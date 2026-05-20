@@ -27,16 +27,17 @@ export interface Stats {
   moodDistribution: Record<string, number>
   trend: 'up' | 'down' | 'stable'
   avgSleep: number | null
+  mostFrequentMood: string | null
 }
 
-export type ModalType = 'add' | 'edit' | 'view' | 'login' | 'register' | 'delete' | null
+export type ModalType = 'add' | 'edit' | 'view' | 'login' | 'register' | 'delete' | 'profile' | null
 
 interface AppState {
   // Auth
-  user: { id: string; username: string } | null
+  user: { id: string; username: string; avatarUrl?: string | null } | null
   isAuthenticated: boolean
   isAuthLoading: boolean
-  setUser: (user: { id: string; username: string } | null) => void
+  setUser: (user: { id: string; username: string; avatarUrl?: string | null } | null) => void
   setAuthLoading: (loading: boolean) => void
   logout: () => Promise<void>
 

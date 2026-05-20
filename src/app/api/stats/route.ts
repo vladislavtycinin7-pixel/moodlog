@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
         moodDistribution: {},
         trend: 'stable',
         avgSleep: null,
+        mostFrequentMood: null,
       })
     }
 
@@ -124,6 +125,16 @@ export async function GET(request: NextRequest) {
       moodDistribution[entry.moodLabel] = (moodDistribution[entry.moodLabel] || 0) + 1
     }
 
+    // Most frequent mood
+    let mostFrequentMood: string | null = null
+    let maxCount = 0
+    for (const [label, count] of Object.entries(moodDistribution)) {
+      if (count > maxCount) {
+        maxCount = count
+        mostFrequentMood = label
+      }
+    }
+
     // Trend: compare first half avg vs second half avg of the month
     let trend: 'up' | 'down' | 'stable' = 'stable'
     if (entries.length >= 3) {
@@ -152,6 +163,7 @@ export async function GET(request: NextRequest) {
       moodDistribution,
       trend,
       avgSleep,
+      mostFrequentMood,
     })
   } catch {
     return NextResponse.json(

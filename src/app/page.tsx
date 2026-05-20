@@ -10,6 +10,7 @@ import MoodChart from '@/components/mood-chart'
 import AuthModals from '@/components/auth-modals'
 import EntryModals from '@/components/entry-modals'
 import SettingsMenu from '@/components/settings-menu'
+import ProfileModal from '@/components/profile-modal'
 
 export default function Home() {
   const { isAuthenticated, isAuthLoading, setUser, setAuthLoading, fetchEntries, fetchStats } = useAppStore()
@@ -69,6 +70,7 @@ export default function Home() {
       {/* Modals */}
       <AuthModals />
       <EntryModals />
+      <ProfileModal />
       <SettingsMenu />
 
       {/* Main content */}

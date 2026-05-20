@@ -6,7 +6,7 @@ import { useAppStore } from '@/lib/store'
 import { toast } from 'sonner'
 
 export default function SettingsMenu() {
-  const { settingsOpen, setSettingsOpen, user, logout } = useAppStore()
+  const { settingsOpen, setSettingsOpen, user, logout, setActiveModal } = useAppStore()
 
   const close = () => setSettingsOpen(false)
 
@@ -101,7 +101,7 @@ export default function SettingsMenu() {
           {/* Профиль */}
           <div
             className="flex items-center gap-3.5 py-3.5 px-3 mb-1 cursor-pointer transition-colors text-white/75 hover:text-white hover:border-b hover:border-purple-500"
-            onClick={() => toast('Профиль: настройка личных данных')}
+            onClick={() => { close(); setActiveModal('profile') }}
           >
             <User className="w-5 h-5" />
             <span className="text-sm font-[450] tracking-[0.3px]">Профиль</span>

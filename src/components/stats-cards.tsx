@@ -1,7 +1,32 @@
 'use client'
 
 import { useAppStore } from '@/lib/store'
-import { TrendingUp, TrendingDown, Minus, Flame, Moon } from 'lucide-react'
+import {
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Flame,
+  Moon,
+  Trophy,
+} from 'lucide-react'
+
+/* ── Mood color map ──────────────────────────────────────────── */
+
+const MOOD_COLORS: Record<string, string> = {
+  'Отличное': '#a855f7',
+  'Хорошее': '#10b185',
+  'Нейтральное': '#3b82f6',
+  'Грустное': '#0ea5e9',
+  'Тревожное': '#f59e0b',
+  'Раздраженное': '#ef4444',
+  'Уставшее': '#6b7280',
+}
+
+function getMoodColor(label: string): string {
+  return MOOD_COLORS[label] ?? '#a855f7'
+}
+
+/* ── Trend icon helper ───────────────────────────────────────── */
 
 function TrendIcon({ trend }: { trend: 'up' | 'down' | 'stable' }) {
   switch (trend) {
@@ -14,63 +39,180 @@ function TrendIcon({ trend }: { trend: 'up' | 'down' | 'stable' }) {
   }
 }
 
+/* ── Single stat card ────────────────────────────────────────── */
+
+interface StatCardProps {
+  value: React.ReactNode
+  label: string
+  icon?: React.ReactNode
+}
+
+function StatCard({ value, label, icon }: StatCardProps) {
+  return (
+    <div className="bg-[#050508] border border-white/[0.08] p-5 text-center">
+      <div className="text-3xl font-semibold text-purple-500 mb-2 flex items-center justify-center gap-1.5">
+        <span>{value}</span>
+        {icon}
+      </div>
+      <div className="text-xs text-white/50 uppercase tracking-wider">
+        {label}
+      </div>
+    </div>
+  )
+}
+
+/* ── Mood distribution bar ───────────────────────────────────── */
+
+function MoodDistribution({
+  distribution,
+  total,
+}: {
+  distribution: Record<string, number>
+  total: number
+}) {
+  const entries = Object.entries(distribution).sort(
+    (a, b) => b[1] - a[1]
+  )
+
+  if (entries.length === 0) {
+    return (
+      <div className="bg-[#050508] border border-white/[0.08] p-8 text-center">
+        <p className="text-white/30 text-sm">
+          Пока нет данных для распределения эмоций
+        </p>
+      </div>
+    )
+  }
+
+  const maxCount = entries[0][1]
+
+  return (
+    <div className="bg-[#050508] border border-white/[0.08] p-6">
+      <div className="space-y-3">
+        {entries.map(([label, count]) => {
+          const color = getMoodColor(label)
+          const percentage = total > 0 ? Math.round((count / total) * 100) : 0
+          const barWidth = maxCount > 0 ? (count / maxCount) * 100 : 0
+
+          return (
+            <div key={label} className="flex items-center gap-3">
+              {/* Label */}
+              <span
+                className="text-sm w-28 shrink-0 truncate"
+                style={{ color }}
+              >
+                {label}
+              </span>
+
+              {/* Bar track */}
+              <div className="flex-1 h-5 bg-white/[0.04] rounded-sm overflow-hidden">
+                <div
+                  className="h-full rounded-sm transition-all duration-500"
+                  style={{
+                    width: `${barWidth}%`,
+                    backgroundColor: color,
+                    opacity: 0.8,
+                  }}
+                />
+              </div>
+
+              {/* Count + percentage */}
+              <span className="text-xs text-white/50 w-16 text-right shrink-0 tabular-nums">
+                {count}&nbsp;
+                <span className="text-white/30">({percentage}%)</span>
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/* ── Main component ──────────────────────────────────────────── */
+
 export function StatsCards() {
   const { stats } = useAppStore()
 
   const hasAvgSleep = stats?.avgSleep != null
+  const distributionTotal = stats
+    ? Object.values(stats.moodDistribution).reduce((s, c) => s + c, 0)
+    : 0
 
   return (
-    <div
-      className={`grid gap-4 ${
-        hasAvgSleep
-          ? 'grid-cols-1 sm:grid-cols-3 lg:grid-cols-4'
-          : 'grid-cols-1 sm:grid-cols-3'
-      }`}
-    >
-      {/* Всего записей */}
-      <div className="bg-[#050508] border border-white/[0.08] p-5 text-center">
-        <div className="text-3xl font-semibold text-purple-500 mb-2">
-          {stats ? stats.totalEntries : '—'}
-        </div>
-        <div className="text-xs text-white/50 uppercase tracking-wider">
-          Всего записей
-        </div>
-      </div>
+    <div className="space-y-8">
+      {/* ── Section 1: Общая ──────────────────────────────────── */}
+      <section>
+        <h3 className="text-xl font-medium text-white mb-4">Общая</h3>
 
-      {/* Среднее настроение */}
-      <div className="bg-[#050508] border border-white/[0.08] p-5 text-center">
-        <div className="text-3xl font-semibold text-purple-500 mb-2 flex items-center justify-center gap-1.5">
-          <span>{stats ? stats.avgMood : '—'}</span>
-          {stats && <TrendIcon trend={stats.trend} />}
-        </div>
-        <div className="text-xs text-white/50 uppercase tracking-wider">
-          Среднее настроение
-        </div>
-      </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          {/* Всего записей */}
+          <StatCard
+            value={stats ? stats.totalEntries : '—'}
+            label="Всего записей"
+          />
 
-      {/* Серия дней */}
-      <div className="bg-[#050508] border border-white/[0.08] p-5 text-center">
-        <div className="text-3xl font-semibold text-purple-500 mb-2">
-          <span>{stats ? stats.currentStreak : '—'}</span>
-          {stats && <Flame className="w-4 h-4 text-orange-400 inline ml-1" />}
-        </div>
-        <div className="text-xs text-white/50 uppercase tracking-wider">
-          Серия дней
-        </div>
-      </div>
+          {/* Среднее настроение */}
+          <StatCard
+            value={stats ? stats.avgMood : '—'}
+            label="Среднее настроение"
+            icon={stats ? <TrendIcon trend={stats.trend} /> : undefined}
+          />
 
-      {/* Average Sleep (conditionally rendered) */}
-      {hasAvgSleep && (
-        <div className="bg-[#050508] border border-white/[0.08] p-5 text-center">
-          <div className="text-3xl font-semibold text-purple-500 mb-2">
-            <span>{stats.avgSleep}</span>
-            <Moon className="w-4 h-4 text-blue-400 inline ml-1" />
-          </div>
-          <div className="text-xs text-white/50 uppercase tracking-wider">
-            Ср. сон (ч)
-          </div>
+          {/* Частая эмоция */}
+          <StatCard
+            value={
+              stats?.mostFrequentMood ? (
+                <span
+                  style={{ color: getMoodColor(stats.mostFrequentMood) }}
+                >
+                  {stats.mostFrequentMood}
+                </span>
+              ) : (
+                '—'
+              )
+            }
+            label="Частая эмоция"
+          />
+
+          {/* Средний сон */}
+          <StatCard
+            value={hasAvgSleep ? stats!.avgSleep : '—'}
+            label="Средний сон"
+            icon={
+              hasAvgSleep ? (
+                <Moon className="w-4 h-4 text-blue-400" />
+              ) : undefined
+            }
+          />
+
+          {/* Серия дней */}
+          <StatCard
+            value={stats ? stats.currentStreak : '—'}
+            label="Серия дней"
+            icon={<Flame className="w-4 h-4 text-orange-400" />}
+          />
+
+          {/* Рекорд серии */}
+          <StatCard
+            value={stats ? stats.longestStreak : '—'}
+            label="Рекорд серии"
+            icon={<Trophy className="w-4 h-4 text-yellow-400" />}
+          />
         </div>
-      )}
+      </section>
+
+      {/* ── Section 2: Распределение эмоций ───────────────────── */}
+      <section>
+        <h3 className="text-xl font-medium text-white mb-4">
+          Распределение эмоций
+        </h3>
+
+        <MoodDistribution
+          distribution={stats?.moodDistribution ?? {}}
+          total={distributionTotal}
+        />
+      </section>
     </div>
   )
 }
