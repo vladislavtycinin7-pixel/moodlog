@@ -1,25 +1,32 @@
-import { db } from '@/lib/db'
+import { scryptSync, randomBytes, timingSafeEqual } from 'crypto'
 import { cookies } from 'next/headers'
 
 const SESSION_COOKIE_NAME = 'moodlog-session'
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7 // 7 days in seconds
+const KEY_LENGTH = 64
+const SALT_LENGTH = 16
 
 /**
- * Hash a password using Bun's built-in crypto
+ * Hash a password using Node.js crypto (scrypt)
  */
 export async function hashPassword(password: string): Promise<string> {
-  return Bun.password.hash(password)
+  const salt = randomBytes(SALT_LENGTH).toString('hex')
+  const derivedKey = scryptSync(password, salt, KEY_LENGTH).toString('hex')
+  return `${salt}:${derivedKey}`
 }
 
 /**
- * Verify a password against its hash using Bun's built-in crypto
+ * Verify a password against its hash using Node.js crypto (scrypt)
  */
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return Bun.password.verify(password, hash)
+  const [salt, storedKey] = hash.split(':')
+  if (!salt || !storedKey) return false
+  const derivedKey = scryptSync(password, salt, KEY_LENGTH).toString('hex')
+  return timingSafeEqual(Buffer.from(derivedKey), Buffer.from(storedKey))
 }
 
 /**
- * Create a JWT-like session token (base64 encoded JSON with userId + expiry)
+ * Create a session token (base64 encoded JSON with userId + expiry)
  */
 export function createSession(userId: string): string {
   const payload = {
@@ -70,6 +77,7 @@ export async function getSessionUser(): Promise<{ id: string; username: string }
       return null
     }
 
+    const { db } = await import('@/lib/db')
     const user = await db.user.findUnique({
       where: { id: session.userId },
       select: { id: true, username: true },

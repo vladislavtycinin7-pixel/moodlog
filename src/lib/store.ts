@@ -84,7 +84,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       const res = await fetch(`/api/entries${params}`)
       if (res.ok) {
         const data = await res.json()
-        set({ entries: data })
+        // API returns { success: true, entries: [...] }
+        set({ entries: data.entries ?? data })
       }
     } catch (e) {
       console.error('Failed to fetch entries:', e)
@@ -98,7 +99,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         body: JSON.stringify(data),
       })
       if (res.ok) {
-        const entry = await res.json()
+        const result = await res.json()
+        // API returns { success: true, entry: {...} }
+        const entry = result.entry ?? result
         set((s) => ({ entries: [entry, ...s.entries] }))
         return true
       }
@@ -115,7 +118,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         body: JSON.stringify(data),
       })
       if (res.ok) {
-        const updated = await res.json()
+        const result = await res.json()
+        // API returns { success: true, entry: {...} }
+        const updated = result.entry ?? result
         set((s) => ({
           entries: s.entries.map((e) => (e.id === id ? { ...e, ...updated } : e)),
         }))
@@ -151,6 +156,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const res = await fetch(`/api/stats${params}`)
       if (res.ok) {
         const data = await res.json()
+        // API returns stats directly (no .success wrapper)
         set({ stats: data })
       }
     } catch (e) {
