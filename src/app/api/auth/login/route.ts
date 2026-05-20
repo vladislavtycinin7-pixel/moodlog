@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      user: { id: user.id, username: user.username },
+      user: { id: user.id, username: user.username, avatarUrl: user.avatarUrl },
     })
   } catch {
     return NextResponse.json(

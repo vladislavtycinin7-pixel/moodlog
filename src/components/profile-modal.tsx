@@ -1,67 +1,69 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Eye, EyeOff, User, ImagePlus, Lock, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, User, ImagePlus, Lock } from 'lucide-react'
 import { useAppStore } from '@/lib/store'
 import { toast } from 'sonner'
 
-type ProfileTab = 'nickname' | 'avatar' | 'password'
+type Tab = 'nickname' | 'avatar' | 'password'
 
-const tabs: { key: ProfileTab; label: string; icon: React.ReactNode }[] = [
-  { key: 'nickname', label: 'Никнейм', icon: <User size={16} /> },
-  { key: 'avatar', label: 'Аватар', icon: <ImagePlus size={16} /> },
-  { key: 'password', label: 'Пароль', icon: <Lock size={16} /> },
-]
+const inputCls =
+  'w-full py-3 bg-transparent border-none border-b border-white/20 text-white text-[15px] font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-white/30'
 
 export default function ProfileModal() {
   const { activeModal, setActiveModal, user, setUser } = useAppStore()
   const isOpen = activeModal === 'profile'
 
-  // ─── Tab state ───
-  const [activeTab, setActiveTab] = useState<ProfileTab>('nickname')
+  const [tab, setTab] = useState<Tab>('nickname')
 
   // ─── Nickname state ───
-  const [username, setUsername] = useState('')
-  const [usernameLoading, setUsernameLoading] = useState(false)
+  const [newUsername, setNewUsername] = useState('')
+  const [nickLoading, setNickLoading] = useState(false)
+  const [nickError, setNickError] = useState('')
 
   // ─── Avatar state ───
   const [avatarUrl, setAvatarUrl] = useState('')
   const [avatarLoading, setAvatarLoading] = useState(false)
+  const [avatarError, setAvatarError] = useState('')
 
   // ─── Password state ───
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+  const [currentPw, setCurrentPw] = useState('')
+  const [newPw, setNewPw] = useState('')
+  const [confirmPw, setConfirmPw] = useState('')
   const [showCurrentPw, setShowCurrentPw] = useState(false)
   const [showNewPw, setShowNewPw] = useState(false)
   const [showConfirmPw, setShowConfirmPw] = useState(false)
-  const [passwordLoading, setPasswordLoading] = useState(false)
+  const [pwLoading, setPwLoading] = useState(false)
+  const [pwError, setPwError] = useState('')
 
-  // ─── Reset form when modal opens ───
+  // ─── Reset when modal opens ───
   useEffect(() => {
     if (isOpen) {
-      setActiveTab('nickname')
-      setUsername(user?.username ?? '')
-      setAvatarUrl(user?.avatarUrl ?? '')
-      setCurrentPassword('')
-      setNewPassword('')
-      setConfirmPassword('')
+      setTab('nickname')
+      setNewUsername(user?.username || '')
+      setNickError('')
+      setNickLoading(false)
+      setAvatarUrl(user?.avatarUrl || '')
+      setAvatarError('')
+      setAvatarLoading(false)
+      setCurrentPw('')
+      setNewPw('')
+      setConfirmPw('')
       setShowCurrentPw(false)
       setShowNewPw(false)
       setShowConfirmPw(false)
+      setPwError('')
+      setPwLoading(false)
     }
   }, [isOpen, user])
 
-  // ─── Escape key handler ───
+  // ─── Escape key ───
   const handleEscape = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        setActiveModal(null)
-      }
+      if (e.key === 'Escape' && isOpen) setActiveModal(null)
     },
     [isOpen, setActiveModal]
   )
-
   useEffect(() => {
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
@@ -69,86 +71,70 @@ export default function ProfileModal() {
 
   // ─── Lock body scroll ───
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => {
-      document.body.style.overflow = ''
-    }
+    if (isOpen) document.body.style.overflow = 'hidden'
+    else document.body.style.overflow = ''
+    return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
-  // ─── Overlay click ───
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      setActiveModal(null)
-    }
-  }
-
-  // ─── Update username ───
-  const handleUsernameSubmit = async (e: React.FormEvent) => {
+  // ─── Nickname submit ───
+  const handleNickSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const trimmed = username.trim()
+    setNickError('')
 
-    if (trimmed.length < 2 || trimmed.length > 20) {
-      toast.error('Никнейм должен быть от 2 до 20 символов')
+    if (!newUsername.trim() || newUsername.trim().length < 2 || newUsername.trim().length > 20) {
+      setNickError('От 2 до 20 символов')
       return
     }
 
-    if (trimmed === user?.username) {
-      toast.error('Новый никнейм совпадает с текущим')
+    if (newUsername.trim() === user?.username) {
+      setNickError('Это ваш текущий никнейм')
       return
     }
 
-    setUsernameLoading(true)
+    setNickLoading(true)
     try {
       const res = await fetch('/api/profile/username', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: trimmed }),
+        body: JSON.stringify({ username: newUsername.trim() }),
       })
       const data = await res.json()
 
       if (data.success && data.user) {
         setUser(data.user)
-        toast.success('Никнейм обновлён')
+        toast.success('Никнейм обновлён!')
       } else {
-        toast.error(data.message || 'Ошибка при обновлении никнейма')
+        setNickError(data.message || 'Ошибка')
       }
     } catch {
-      toast.error('Ошибка соединения')
+      setNickError('Ошибка соединения')
     } finally {
-      setUsernameLoading(false)
+      setNickLoading(false)
     }
   }
 
-  // ─── Update avatar ───
+  // ─── Avatar submit ───
   const handleAvatarSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (avatarUrl.trim() === (user?.avatarUrl ?? '')) {
-      toast.error('Новый URL совпадает с текущим')
-      return
-    }
-
+    setAvatarError('')
     setAvatarLoading(true)
+
     try {
       const res = await fetch('/api/profile/avatar', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ avatarUrl: avatarUrl.trim() }),
+        body: JSON.stringify({ avatarUrl: avatarUrl.trim() || null }),
       })
       const data = await res.json()
 
       if (data.success && data.user) {
         setUser(data.user)
-        toast.success('Аватар обновлён')
+        toast.success('Аватар обновлён!')
       } else {
-        toast.error(data.message || 'Ошибка при обновлении аватара')
+        setAvatarError(data.message || 'Ошибка')
       }
     } catch {
-      toast.error('Ошибка соединения')
+      setAvatarError('Ошибка соединения')
     } finally {
       setAvatarLoading(false)
     }
@@ -161,7 +147,7 @@ export default function ProfileModal() {
       const res = await fetch('/api/profile/avatar', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ avatarUrl: '' }),
+        body: JSON.stringify({ avatarUrl: null }),
       })
       const data = await res.json()
 
@@ -169,77 +155,80 @@ export default function ProfileModal() {
         setUser(data.user)
         setAvatarUrl('')
         toast.success('Аватар удалён')
-      } else {
-        toast.error(data.message || 'Ошибка при удалении аватара')
       }
     } catch {
-      toast.error('Ошибка соединения')
+      // silent
     } finally {
       setAvatarLoading(false)
     }
   }
 
-  // ─── Update password ───
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
+  // ─── Password submit ───
+  const handlePwSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setPwError('')
 
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      toast.error('Заполните все поля')
+    if (!currentPw || !newPw || !confirmPw) {
+      setPwError('Заполните все поля')
+      return
+    }
+    if (newPw.length < 6) {
+      setPwError('Новый пароль — минимум 6 символов')
+      return
+    }
+    if (newPw !== confirmPw) {
+      setPwError('Пароли не совпадают')
       return
     }
 
-    if (newPassword.length < 6) {
-      toast.error('Новый пароль должен быть не менее 6 символов')
-      return
-    }
-
-    if (newPassword !== confirmPassword) {
-      toast.error('Пароли не совпадают')
-      return
-    }
-
-    setPasswordLoading(true)
+    setPwLoading(true)
     try {
       const res = await fetch('/api/profile/password', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+        body: JSON.stringify({
+          currentPassword: currentPw,
+          newPassword: newPw,
+          confirmPassword: confirmPw,
+        }),
       })
       const data = await res.json()
 
       if (data.success) {
-        setCurrentPassword('')
-        setNewPassword('')
-        setConfirmPassword('')
-        setShowCurrentPw(false)
-        setShowNewPw(false)
-        setShowConfirmPw(false)
-        toast.success('Пароль обновлён')
+        toast.success('Пароль изменён!')
+        setCurrentPw('')
+        setNewPw('')
+        setConfirmPw('')
       } else {
-        toast.error(data.message || 'Ошибка при обновлении пароля')
+        setPwError(data.message || 'Ошибка')
       }
     } catch {
-      toast.error('Ошибка соединения')
+      setPwError('Ошибка соединения')
     } finally {
-      setPasswordLoading(false)
+      setPwLoading(false)
     }
   }
 
-  // ─── Initials for avatar fallback ───
-  const initial = user?.username ? user.username.charAt(0).toUpperCase() : '?'
+  const avatarLetter = user?.username ? user.username.charAt(0).toUpperCase() : '?'
+
+  const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
+    { key: 'nickname', label: 'Никнейм', icon: <User size={16} /> },
+    { key: 'avatar', label: 'Аватар', icon: <ImagePlus size={16} /> },
+    { key: 'password', label: 'Пароль', icon: <Lock size={16} /> },
+  ]
 
   return (
     <div
-      className={`fixed inset-0 bg-black/75 backdrop-blur-[6px] z-[200] flex justify-center items-center transition-[visibility,opacity] duration-300 ease ${
+      className={`fixed inset-0 bg-black/75 backdrop-blur-[6px] z-[200] flex justify-center items-center transition-[visibility,opacity] duration-300 ${
         isOpen ? 'visible opacity-100' : 'invisible opacity-0'
       }`}
-      onClick={handleOverlayClick}
+      onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null) }}
       aria-modal="true"
       role="dialog"
       aria-label="Профиль"
     >
       <div
-        className={`relative w-full max-w-[460px] bg-[rgba(18,18,24,0.98)] border border-white/[0.1] p-8 mx-4 transition-transform duration-250 ease ${
+        className={`relative w-full max-w-[480px] bg-[rgba(18,18,24,0.98)] border border-white/[0.1] mx-4 transition-transform duration-250 ${
           isOpen ? 'scale-100' : 'scale-95'
         }`}
       >
@@ -253,256 +242,234 @@ export default function ProfileModal() {
           &times;
         </span>
 
-        {/* Title */}
-        <h2 className="text-[24px] font-medium tracking-[-0.5px] mb-1 text-white">
-          Профиль
-        </h2>
-        <p className="text-[13px] text-white/50 mb-6">
-          Управление вашим аккаунтом
-        </p>
+        {/* Profile header */}
+        <div className="p-8 pb-6 text-center border-b border-white/[0.08]">
+          <div className="w-16 h-16 mx-auto mb-3 overflow-hidden">
+            {user?.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt="Аватар"
+                className="w-full h-full object-cover rounded-full"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[24px] font-medium rounded-full">
+                {avatarLetter}
+              </div>
+            )}
+          </div>
+          <h2 className="text-[22px] font-medium tracking-[-0.5px] text-white">
+            Профиль
+          </h2>
+          <p className="text-[13px] text-white/50 mt-1">{user?.username}</p>
+        </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-7 border-b border-white/[0.08]">
-          {tabs.map((tab) => (
+        <div className="flex border-b border-white/[0.08]">
+          {tabs.map((t) => (
             <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-[13px] font-medium border-b-2 transition-colors cursor-pointer bg-transparent ${
-                activeTab === tab.key
-                  ? 'text-purple-400 border-purple-500'
-                  : 'text-white/50 border-transparent hover:text-white/80'
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-[13px] font-medium cursor-pointer transition-colors border-none bg-transparent ${
+                tab === t.key
+                  ? 'text-purple-400 border-b-2 border-b-purple-400'
+                  : 'text-white/50 hover:text-white/70'
               }`}
+              style={tab === t.key ? { borderBottom: '2px solid #a855f7' } : {}}
             >
-              {tab.icon}
-              {tab.label}
+              {t.icon}
+              {t.label}
             </button>
           ))}
         </div>
 
-        {/* ═══════ NICKNAME TAB ═══════ */}
-        {activeTab === 'nickname' && (
-          <form onSubmit={handleUsernameSubmit}>
-            {/* Current username display */}
-            <div className="mb-5">
-              <label className="block text-[13px] font-medium text-white/60 mb-2">
-                Текущий никнейм
-              </label>
-              <div className="py-3 text-white/80 text-[15px] border-b border-white/[0.08]">
-                {user?.username ?? '—'}
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-[13px] font-medium text-white/60 mb-2">
-                Новый никнейм
+        {/* Tab content */}
+        <div className="p-8">
+          {/* ═══ NICKNAME TAB ═══ */}
+          {tab === 'nickname' && (
+            <form onSubmit={handleNickSubmit}>
+              <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">
+                Никнейм
               </label>
               <input
                 type="text"
-                className="w-full py-3 bg-transparent border-none border-b border-white/20 text-white text-[15px] font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-white/30"
-                placeholder="2–20 символов"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value)}
+                className={inputCls}
+                placeholder="Новый никнейм"
                 minLength={2}
                 maxLength={20}
-                autoComplete="off"
               />
-            </div>
+              <p className="text-[11px] text-white/30 mt-2">От 2 до 20 символов</p>
 
-            <button
-              type="submit"
-              disabled={usernameLoading}
-              className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-[#9333ea] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {usernameLoading && <Loader2 size={16} className="animate-spin" />}
-              {usernameLoading ? 'Сохранение...' : 'Сохранить'}
-            </button>
-          </form>
-        )}
+              {nickError && (
+                <p className="text-red-400 text-xs mt-3">{nickError}</p>
+              )}
 
-        {/* ═══════ AVATAR TAB ═══════ */}
-        {activeTab === 'avatar' && (
-          <form onSubmit={handleAvatarSubmit}>
-            {/* Current avatar preview */}
-            <div className="flex items-center gap-5 mb-6">
-              {user?.avatarUrl ? (
-                <img
-                  src={user.avatarUrl}
-                  alt="Аватар"
-                  className="w-16 h-16 rounded-full object-cover border-2 border-purple-500/40"
-                  onError={(e) => {
-                    ;(e.target as HTMLImageElement).style.display = 'none'
-                    const sibling = (e.target as HTMLImageElement).nextElementSibling as HTMLElement
-                    if (sibling) sibling.style.display = 'flex'
-                  }}
-                />
-              ) : null}
-              <div
-                className={`w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[22px] font-medium rounded-full shrink-0 ${user?.avatarUrl ? 'hidden' : ''}`}
+              <button
+                type="submit"
+                disabled={nickLoading}
+                className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-[#9333ea] disabled:opacity-60 disabled:cursor-not-allowed mt-6"
               >
-                {initial}
-              </div>
-              <div>
-                <div className="text-[15px] text-white/90 font-medium mb-1">
-                  {user?.username ?? '—'}
-                </div>
-                <div className="text-[12px] text-white/45">
-                  {user?.avatarUrl ? 'Аватар установлен' : 'Аватар не установлен'}
-                </div>
-              </div>
-            </div>
+                {nickLoading ? 'Сохранение...' : 'Сохранить никнейм'}
+              </button>
+            </form>
+          )}
 
-            <div className="mb-6">
-              <label className="block text-[13px] font-medium text-white/60 mb-2">
+          {/* ═══ AVATAR TAB ═══ */}
+          {tab === 'avatar' && (
+            <form onSubmit={handleAvatarSubmit}>
+              {/* Preview */}
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-14 h-14 shrink-0 overflow-hidden">
+                  {user?.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt="Аватар"
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[20px] font-medium rounded-full">
+                      {avatarLetter}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm text-white/80">Текущий аватар</p>
+                  <p className="text-[11px] text-white/40">
+                    {user?.avatarUrl ? 'Загружен' : 'Инициалы по умолчанию'}
+                  </p>
+                </div>
+              </div>
+
+              <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">
                 URL аватара
               </label>
               <input
                 type="url"
-                className="w-full py-3 bg-transparent border-none border-b border-white/20 text-white text-[15px] font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-white/30"
-                placeholder="https://example.com/avatar.jpg"
                 value={avatarUrl}
                 onChange={(e) => setAvatarUrl(e.target.value)}
-                autoComplete="off"
+                className={inputCls}
+                placeholder="https://example.com/avatar.jpg"
               />
-            </div>
+              <p className="text-[11px] text-white/30 mt-2">
+                Вставьте ссылку на изображение
+              </p>
 
-            {/* Live preview */}
-            {avatarUrl.trim() && (
-              <div className="mb-6">
-                <label className="block text-[13px] font-medium text-white/60 mb-2">
-                  Предпросмотр
-                </label>
-                <div className="flex items-center gap-3">
-                  <img
-                    src={avatarUrl.trim()}
-                    alt="Предпросмотр аватара"
-                    className="w-12 h-12 rounded-full object-cover border border-white/[0.1]"
-                    onError={(e) => {
-                      ;(e.target as HTMLImageElement).style.display = 'none'
-                      const sibling = (e.target as HTMLImageElement).nextElementSibling as HTMLElement
-                      if (sibling) sibling.style.display = 'flex'
-                    }}
-                  />
-                  <div
-                    className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[18px] font-medium rounded-full shrink-0 hidden"
+              {avatarError && (
+                <p className="text-red-400 text-xs mt-3">{avatarError}</p>
+              )}
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="submit"
+                  disabled={avatarLoading}
+                  className="flex-1 py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-[#9333ea] disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {avatarLoading ? 'Сохранение...' : 'Сохранить'}
+                </button>
+                {user?.avatarUrl && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveAvatar}
+                    disabled={avatarLoading}
+                    className="py-3 px-5 bg-transparent border border-white/20 text-white/70 text-sm cursor-pointer transition-colors hover:border-white/40 hover:text-white disabled:opacity-60"
                   >
-                    {initial}
-                  </div>
-                  <span className="text-[12px] text-white/40">
-                    Загрузка изображения...
-                  </span>
+                    Удалить
+                  </button>
+                )}
+              </div>
+            </form>
+          )}
+
+          {/* ═══ PASSWORD TAB ═══ */}
+          {tab === 'password' && (
+            <form onSubmit={handlePwSubmit}>
+              {/* Current password */}
+              <div className="mb-5">
+                <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">
+                  Текущий пароль
+                </label>
+                <div className="relative">
+                  <input
+                    type={showCurrentPw ? 'text' : 'password'}
+                    value={currentPw}
+                    onChange={(e) => setCurrentPw(e.target.value)}
+                    className={`${inputCls} pr-10`}
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-0 bottom-3 cursor-pointer text-white/40 hover:text-white transition-colors bg-transparent border-none p-0"
+                    onClick={() => setShowCurrentPw(!showCurrentPw)}
+                  >
+                    {showCurrentPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                 </div>
               </div>
-            )}
 
-            <div className="flex gap-3">
+              {/* New password */}
+              <div className="mb-5">
+                <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">
+                  Новый пароль
+                </label>
+                <div className="relative">
+                  <input
+                    type={showNewPw ? 'text' : 'password'}
+                    value={newPw}
+                    onChange={(e) => setNewPw(e.target.value)}
+                    className={`${inputCls} pr-10`}
+                    placeholder="Минимум 6 символов"
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-0 bottom-3 cursor-pointer text-white/40 hover:text-white transition-colors bg-transparent border-none p-0"
+                    onClick={() => setShowNewPw(!showNewPw)}
+                  >
+                    {showNewPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirm password */}
+              <div className="mb-2">
+                <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">
+                  Подтвердите пароль
+                </label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPw ? 'text' : 'password'}
+                    value={confirmPw}
+                    onChange={(e) => setConfirmPw(e.target.value)}
+                    className={`${inputCls} pr-10`}
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-0 bottom-3 cursor-pointer text-white/40 hover:text-white transition-colors bg-transparent border-none p-0"
+                    onClick={() => setShowConfirmPw(!showConfirmPw)}
+                  >
+                    {showConfirmPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              {pwError && (
+                <p className="text-red-400 text-xs mt-3">{pwError}</p>
+              )}
+
               <button
                 type="submit"
-                disabled={avatarLoading}
-                className="flex-1 py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-[#9333ea] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                disabled={pwLoading}
+                className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-[#9333ea] disabled:opacity-60 disabled:cursor-not-allowed mt-5"
               >
-                {avatarLoading && <Loader2 size={16} className="animate-spin" />}
-                {avatarLoading ? 'Сохранение...' : 'Сохранить'}
+                {pwLoading ? 'Сохранение...' : 'Изменить пароль'}
               </button>
-
-              {user?.avatarUrl && (
-                <button
-                  type="button"
-                  disabled={avatarLoading}
-                  onClick={handleRemoveAvatar}
-                  className="py-3 px-5 bg-transparent border border-white/[0.15] text-white/60 text-sm font-medium cursor-pointer transition-colors hover:text-red-400 hover:border-red-400/40 disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  Удалить
-                </button>
-              )}
-            </div>
-          </form>
-        )}
-
-        {/* ═══════ PASSWORD TAB ═══════ */}
-        {activeTab === 'password' && (
-          <form onSubmit={handlePasswordSubmit}>
-            <div className="mb-5">
-              <label className="block text-[13px] font-medium text-white/60 mb-2">
-                Текущий пароль
-              </label>
-              <div className="relative">
-                <input
-                  type={showCurrentPw ? 'text' : 'password'}
-                  className="w-full py-3 pr-10 bg-transparent border-none border-b border-white/20 text-white text-[15px] font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-white/30"
-                  placeholder="••••••••"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  autoComplete="current-password"
-                />
-                <button
-                  type="button"
-                  className="absolute right-0 bottom-3 cursor-pointer text-white/40 hover:text-white transition-colors bg-transparent border-none p-0"
-                  onClick={() => setShowCurrentPw(!showCurrentPw)}
-                  aria-label={showCurrentPw ? 'Скрыть пароль' : 'Показать пароль'}
-                >
-                  {showCurrentPw ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
-            <div className="mb-5">
-              <label className="block text-[13px] font-medium text-white/60 mb-2">
-                Новый пароль
-              </label>
-              <div className="relative">
-                <input
-                  type={showNewPw ? 'text' : 'password'}
-                  className="w-full py-3 pr-10 bg-transparent border-none border-b border-white/20 text-white text-[15px] font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-white/30"
-                  placeholder="Минимум 6 символов"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  autoComplete="new-password"
-                />
-                <button
-                  type="button"
-                  className="absolute right-0 bottom-3 cursor-pointer text-white/40 hover:text-white transition-colors bg-transparent border-none p-0"
-                  onClick={() => setShowNewPw(!showNewPw)}
-                  aria-label={showNewPw ? 'Скрыть пароль' : 'Показать пароль'}
-                >
-                  {showNewPw ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-[13px] font-medium text-white/60 mb-2">
-                Подтвердите новый пароль
-              </label>
-              <div className="relative">
-                <input
-                  type={showConfirmPw ? 'text' : 'password'}
-                  className="w-full py-3 pr-10 bg-transparent border-none border-b border-white/20 text-white text-[15px] font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-white/30"
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  autoComplete="new-password"
-                />
-                <button
-                  type="button"
-                  className="absolute right-0 bottom-3 cursor-pointer text-white/40 hover:text-white transition-colors bg-transparent border-none p-0"
-                  onClick={() => setShowConfirmPw(!showConfirmPw)}
-                  aria-label={showConfirmPw ? 'Скрыть пароль' : 'Показать пароль'}
-                >
-                  {showConfirmPw ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={passwordLoading}
-              className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-[#9333ea] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {passwordLoading && <Loader2 size={16} className="animate-spin" />}
-              {passwordLoading ? 'Сохранение...' : 'Сохранить'}
-            </button>
-          </form>
-        )}
+            </form>
+          )}
+        </div>
       </div>
     </div>
   )

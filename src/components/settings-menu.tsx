@@ -89,8 +89,14 @@ export default function SettingsMenu() {
 
         {/* Profile section */}
         <div className="text-center pb-7 mb-7 border-b border-white/[0.08]">
-          <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[22px] font-medium mx-auto mb-3.5 rounded-full">
-            {avatarLetter}
+          <div className="w-14 h-14 mx-auto mb-3.5 overflow-hidden">
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt="Аватар" className="w-full h-full object-cover rounded-full" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[22px] font-medium rounded-full">
+                {avatarLetter}
+              </div>
+            )}
           </div>
           <div className="text-[17px] font-medium mb-1">{displayName}</div>
           <div className="text-xs text-white/45">{displayEmail}</div>

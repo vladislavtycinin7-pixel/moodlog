@@ -13,7 +13,7 @@ export async function GET() {
 
     return NextResponse.json({
       authenticated: true,
-      user: { id: user.id, username: user.username },
+      user: { id: user.id, username: user.username, avatarUrl: user.avatarUrl },
     })
   } catch {
     return NextResponse.json(

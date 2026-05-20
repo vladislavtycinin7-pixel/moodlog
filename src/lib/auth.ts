@@ -63,7 +63,7 @@ export function verifySession(token: string): { userId: string } | null {
 /**
  * Read cookie from next/headers, verify session, fetch user from DB
  */
-export async function getSessionUser(): Promise<{ id: string; username: string } | null> {
+export async function getSessionUser(): Promise<{ id: string; username: string; avatarUrl: string | null } | null> {
   try {
     const cookieStore = await cookies()
     const token = cookieStore.get(SESSION_COOKIE_NAME)?.value
@@ -80,7 +80,7 @@ export async function getSessionUser(): Promise<{ id: string; username: string }
     const { db } = await import('@/lib/db')
     const user = await db.user.findUnique({
       where: { id: session.userId },
-      select: { id: true, username: true },
+      select: { id: true, username: true, avatarUrl: true },
     })
 
     return user

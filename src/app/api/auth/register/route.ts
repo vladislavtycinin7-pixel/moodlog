@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
         username: username.trim(),
         password: hashedPassword,
       },
-      select: { id: true, username: true },
+      select: { id: true, username: true, avatarUrl: true },
     })
 
     // Create session and set cookie
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      user: { id: user.id, username: user.username },
+      user: { id: user.id, username: user.username, avatarUrl: user.avatarUrl },
     })
   } catch {
     return NextResponse.json(
