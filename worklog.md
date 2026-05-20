@@ -55,3 +55,26 @@ Work Log:
 
 Stage Summary:
 - All 3 profile API routes created with auth, validation, and Russian error messages
+
+---
+Task ID: 6
+Agent: main
+Task: Fix server stability + improve settings menu (language/theme/logout toast)
+
+Work Log:
+- Diagnosed server crash: no process on port 3000, restarted successfully
+- Removed Prisma query logging (log: ['query'] → log: ['warn', 'error']) to reduce IO overhead
+- Verified all code for errors — none found, lint passes cleanly
+- Rewrote settings-menu.tsx with:
+  - Language picker (dropdown: Русский/English, demo with toast for non-Russian)
+  - Theme picker (dropdown: Тёмная/Светлая/Авто, dark is active, others show "скоро" toast)
+  - Improved logout toast: toast.success() with description "До встречи! 😊" and 3s duration
+  - Hover states changed from border-bottom to bg-white/[0.04] for cleaner UX
+  - Added Globe icon for language, Check icons for selected items
+  - Scrollable menu items area for overflow
+
+Stage Summary:
+- Server stable and running on port 3000
+- Settings menu now has interactive language/theme pickers (demo)
+- Logout shows a proper success toast with emoji
+- Prisma query logging removed for performance
