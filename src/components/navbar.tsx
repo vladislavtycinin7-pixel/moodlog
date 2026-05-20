@@ -6,10 +6,11 @@ import { useAppStore } from '@/lib/store'
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const { isAuthenticated, setActiveModal, settingsOpen, setSettingsOpen } =
+  const { isAuthenticated, setActiveModal, settingsOpen, setSettingsOpen, setActiveTab } =
     useAppStore()
 
-  const handleHomeClick = () => {
+  const handleLogoClick = () => {
+    setActiveTab('calendar')
     setActiveModal(null)
     window.scrollTo({ top: 0, behavior: 'smooth' })
     setMobileOpen(false)
@@ -17,14 +18,6 @@ export default function Navbar() {
 
   const handleAddEntry = () => {
     setActiveModal('add')
-    setMobileOpen(false)
-  }
-
-  const handleStatsClick = () => {
-    const el = document.getElementById('chart-section')
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' })
-    }
     setMobileOpen(false)
   }
 
@@ -51,7 +44,7 @@ export default function Navbar() {
         {/* Logo */}
         <span
           className="text-[22px] font-medium text-white cursor-pointer select-none"
-          onClick={handleHomeClick}
+          onClick={handleLogoClick}
         >
           MoodLog
         </span>
@@ -59,26 +52,12 @@ export default function Navbar() {
         {/* Desktop nav links */}
         <div className="hidden md:flex items-center gap-6">
           {isAuthenticated ? (
-            <>
-              <span
-                className="text-white/70 text-sm cursor-pointer hover:text-white transition-colors"
-                onClick={handleHomeClick}
-              >
-                Главная
-              </span>
-              <span
-                className="text-white/70 text-sm cursor-pointer hover:text-white transition-colors"
-                onClick={handleAddEntry}
-              >
-                Добавить запись
-              </span>
-              <span
-                className="text-white/70 text-sm cursor-pointer hover:text-white transition-colors"
-                onClick={handleStatsClick}
-              >
-                Статистика
-              </span>
-            </>
+            <span
+              className="text-white/70 text-sm cursor-pointer hover:text-white transition-colors"
+              onClick={handleAddEntry}
+            >
+              + Добавить запись
+            </span>
           ) : (
             <>
               <span
@@ -140,26 +119,12 @@ export default function Navbar() {
           }}
         >
           {isAuthenticated ? (
-            <>
-              <span
-                className="text-white/70 text-sm cursor-pointer hover:text-white transition-colors py-1"
-                onClick={handleHomeClick}
-              >
-                Главная
-              </span>
-              <span
-                className="text-white/70 text-sm cursor-pointer hover:text-white transition-colors py-1"
-                onClick={handleAddEntry}
-              >
-                Добавить запись
-              </span>
-              <span
-                className="text-white/70 text-sm cursor-pointer hover:text-white transition-colors py-1"
-                onClick={handleStatsClick}
-              >
-                Статистика
-              </span>
-            </>
+            <span
+              className="text-white/70 text-sm cursor-pointer hover:text-white transition-colors py-1"
+              onClick={handleAddEntry}
+            >
+              + Добавить запись
+            </span>
           ) : (
             <>
               <span

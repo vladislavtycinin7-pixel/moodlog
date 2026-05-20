@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { User, Palette, BarChart3, LogOut, X, Globe, Check } from 'lucide-react'
+import { User, Palette, LogOut, X, Globe, Check } from 'lucide-react'
 import { useAppStore } from '@/lib/store'
 import { toast } from 'sonner'
 
@@ -52,14 +52,6 @@ export default function SettingsMenu() {
       document.body.style.overflow = ''
     }
   }, [settingsOpen])
-
-  const handleStatsClick = () => {
-    const el = document.getElementById('chart-section')
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' })
-    }
-    close()
-  }
 
   const handleLogout = async () => {
     await logout()
@@ -232,14 +224,7 @@ export default function SettingsMenu() {
             )}
           </div>
 
-          {/* Статистика */}
-          <div
-            className="flex items-center gap-3.5 py-3.5 px-3 mb-1 cursor-pointer transition-colors text-white/75 hover:text-white hover:bg-white/[0.04]"
-            onClick={handleStatsClick}
-          >
-            <BarChart3 className="w-5 h-5" />
-            <span className="text-sm font-[450] tracking-[0.3px]">Статистика</span>
-          </div>
+
         </div>
 
         {/* Logout item */}

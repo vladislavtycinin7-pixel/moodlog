@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useAppStore } from '@/lib/store'
+import { useAppStore, MainTab } from '@/lib/store'
+import { CalendarDays, BarChart3 } from 'lucide-react'
 import Navbar from '@/components/navbar'
 import LandingPage from '@/components/landing-page'
 import MoodCalendar from '@/components/mood-calendar'
@@ -12,8 +13,21 @@ import EntryModals from '@/components/entry-modals'
 import SettingsMenu from '@/components/settings-menu'
 import ProfileModal from '@/components/profile-modal'
 
+const TABS: { key: MainTab; label: string; icon: React.ReactNode }[] = [
+  { key: 'calendar', label: 'Календарь', icon: <CalendarDays size={18} /> },
+  { key: 'stats', label: 'Статистика', icon: <BarChart3 size={18} /> },
+]
+
 export default function Home() {
-  const { isAuthenticated, isAuthLoading, setUser, setAuthLoading, fetchEntries, fetchStats } = useAppStore()
+  const {
+    isAuthenticated,
+    isAuthLoading,
+    setUser,
+    fetchEntries,
+    fetchStats,
+    activeTab,
+    setActiveTab,
+  } = useAppStore()
 
   // Check session on mount
   useEffect(() => {
@@ -76,18 +90,32 @@ export default function Home() {
       {/* Main content */}
       {isAuthenticated ? (
         <main className="relative z-[1] max-w-[1200px] w-full mx-auto px-4 sm:px-6 pt-[100px] pb-16 flex-1">
-          {/* Calendar */}
-          <MoodCalendar />
-
-          {/* Stats cards */}
-          <div className="mt-8">
-            <StatsCards />
+          {/* Tab switcher */}
+          <div className="flex gap-1 mb-8 p-1 bg-white/[0.04] border border-white/[0.08] w-fit">
+            {TABS.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex items-center gap-2 px-5 py-2.5 text-sm font-medium cursor-pointer transition-all duration-200 border-none ${
+                  activeTab === tab.key
+                    ? 'bg-purple-500 text-white'
+                    : 'bg-transparent text-white/50 hover:text-white/80'
+                }`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
           </div>
 
-          {/* Chart section */}
-          <div id="chart-section" className="mt-8 scroll-mt-20">
-            <MoodChart />
-          </div>
+          {/* Tab content */}
+          {activeTab === 'calendar' && <MoodCalendar />}
+          {activeTab === 'stats' && (
+            <div className="space-y-8">
+              <StatsCards />
+              <MoodChart />
+            </div>
+          )}
         </main>
       ) : (
         <LandingPage />

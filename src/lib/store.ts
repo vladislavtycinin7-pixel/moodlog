@@ -32,6 +32,8 @@ export interface Stats {
 
 export type ModalType = 'add' | 'edit' | 'view' | 'login' | 'register' | 'delete' | 'profile' | null
 
+export type MainTab = 'calendar' | 'stats'
+
 interface AppState {
   // Auth
   user: { id: string; username: string; avatarUrl?: string | null } | null
@@ -62,6 +64,8 @@ interface AppState {
   setSettingsOpen: (open: boolean) => void
   calendarMonth: string // YYYY-MM
   setCalendarMonth: (month: string) => void
+  activeTab: MainTab
+  setActiveTab: (tab: MainTab) => void
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -174,4 +178,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   setSettingsOpen: (open) => set({ settingsOpen: open }),
   calendarMonth: new Date().toISOString().slice(0, 7),
   setCalendarMonth: (month) => set({ calendarMonth: month }),
+  activeTab: 'calendar',
+  setActiveTab: (tab) => set({ activeTab: tab }),
 }))

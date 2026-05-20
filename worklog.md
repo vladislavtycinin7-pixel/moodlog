@@ -78,3 +78,25 @@ Stage Summary:
 - Settings menu now has interactive language/theme pickers (demo)
 - Logout shows a proper success toast with emoji
 - Prisma query logging removed for performance
+
+---
+Task ID: 7
+Agent: main
+Task: Implement tab-based layout (Calendar / Statistics) replacing scroll-based navigation
+
+Work Log:
+- Added `MainTab` type and `activeTab`/`setActiveTab` to Zustand store
+- Rewrote page.tsx: added tab switcher (Календарь / Статистика) with purple active state
+  - Calendar tab shows only MoodCalendar
+  - Statistics tab shows StatsCards + MoodChart
+- Simplified navbar.tsx: removed "Главная" and "Статистика" links
+  - Only "MoodLog" logo + "+ Добавить запись" + gear icon
+  - Logo click switches to calendar tab and scrolls to top
+- Removed "Статистика" item from settings-menu.tsx (BarChart3 import removed)
+- Lint passes, server compiles and serves correctly
+
+Stage Summary:
+- Dashboard now uses tabs instead of long scroll page
+- Navbar is minimal: logo + add entry + settings
+- Settings menu: profile / language / theme / logout (no stats)
+- Tab switcher is visually integrated with the dark theme
