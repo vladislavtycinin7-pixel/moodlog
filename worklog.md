@@ -149,3 +149,20 @@ Stage Summary:
 - Client-side resize ensures images are optimized (max 512px)
 - Server saves files to uploads/avatars/ with unique filenames
 - URL option remains as alternative for those who have a link
+
+---
+Task ID: 10
+Agent: main
+Task: Fix calendar day click: pre-fill date in "add entry" modal when clicking empty day
+
+Work Log:
+- Added `pendingEntryDate` and `setPendingEntryDate` to Zustand store
+- Updated mood-calendar.tsx: when clicking empty day, calls setPendingEntryDate(dateStr) before setActiveModal('add')
+- Updated entry-modals.tsx AddEntryModal: reads pendingEntryDate from store instead of window.__moodCalendarClickedDate
+- Removed window.__moodCalendarClickedDate hack from mood-calendar.tsx and global.d.ts
+- Lint passes, dev server compiles
+
+Stage Summary:
+- Clicking an empty calendar day now opens "add entry" with the correct date pre-filled
+- Used Zustand store instead of window global for reliable state passing
+- Old window.__moodCalendarClickedDate hack removed

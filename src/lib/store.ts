@@ -88,6 +88,8 @@ interface AppState {
   setActiveModal: (modal: ModalType) => void
   selectedEntry: MoodEntry | null
   setSelectedEntry: (entry: MoodEntry | null) => void
+  pendingEntryDate: string | null // YYYY-MM-DD — set when clicking empty calendar day
+  setPendingEntryDate: (date: string | null) => void
   settingsOpen: boolean
   setSettingsOpen: (open: boolean) => void
   calendarMonth: string // YYYY-MM
@@ -207,6 +209,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   setActiveModal: (modal) => set({ activeModal: modal }),
   selectedEntry: null,
   setSelectedEntry: (entry) => set({ selectedEntry: entry }),
+  pendingEntryDate: null,
+  setPendingEntryDate: (date) => set({ pendingEntryDate: date }),
   settingsOpen: false,
   setSettingsOpen: (open) => set({ settingsOpen: open }),
   calendarMonth: new Date().toISOString().slice(0, 7),

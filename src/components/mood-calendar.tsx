@@ -36,6 +36,7 @@ export default function MoodCalendar() {
     fetchStats,
     setSelectedEntry,
     setActiveModal,
+    setPendingEntryDate,
   } = useAppStore()
 
   const [clickedDate, setClickedDate] = useState<string | null>(null)
@@ -130,18 +131,10 @@ export default function MoodCalendar() {
       setActiveModal('view')
     } else {
       setSelectedEntry(null)
+      setPendingEntryDate(dateStr)
       setActiveModal('add')
     }
   }
-
-  // Expose clickedDate for parent components (via store or ref)
-  // We store it in a module-level variable so the add modal can access it
-  useEffect(() => {
-    if (clickedDate) {
-      // Store on window for the add modal to pick up
-      window.__moodCalendarClickedDate = clickedDate
-    }
-  }, [clickedDate])
 
   // Format month title in Russian
   const monthTitle = format(currentDate, 'LLLL yyyy', { locale: ru })

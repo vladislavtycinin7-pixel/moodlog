@@ -1,7 +1,5 @@
 declare global {
-  interface Window {
-    __moodCalendarClickedDate?: string
-  }
+  // Add global type declarations here if needed
 }
 
 export {}

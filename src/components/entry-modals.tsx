@@ -161,7 +161,7 @@ const btnDanger =
 // ADD ENTRY MODAL
 // ═══════════════════════════════════════════
 function AddEntryModal() {
-  const { activeModal, setActiveModal, addEntry } = useAppStore()
+  const { activeModal, setActiveModal, addEntry, pendingEntryDate, setPendingEntryDate } = useAppStore()
   const isOpen = activeModal === 'add'
 
   const today = new Date().toISOString().slice(0, 10)
@@ -177,8 +177,7 @@ function AddEntryModal() {
   // Reset form when opening
   useEffect(() => {
     if (isOpen) {
-      const clickedDate = window.__moodCalendarClickedDate || today
-      setDate(clickedDate)
+      setDate(pendingEntryDate || today)
       setMoodScore(5)
       setMoodLabel('Хорошее')
       setSleepHours('')
@@ -186,8 +185,10 @@ function AddEntryModal() {
       setBadThing('')
       setNotes('')
       setLoading(false)
+      // Clear pending date after using it
+      setPendingEntryDate(null)
     }
-  }, [isOpen, today])
+  }, [isOpen, today, pendingEntryDate, setPendingEntryDate])
 
   // Auto-select label based on score
   useEffect(() => {
