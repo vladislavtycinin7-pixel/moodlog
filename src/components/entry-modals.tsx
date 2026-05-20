@@ -2,26 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useAppStore } from '@/lib/store'
+import { MOOD_LABELS, scoreToLabel } from '@/lib/mood-colors'
 import { toast } from 'sonner'
-
-const MOOD_LABELS = [
-  'Отличное',
-  'Хорошее',
-  'Нейтральное',
-  'Грустное',
-  'Тревожное',
-  'Раздраженное',
-  'Уставшее',
-]
-
-function scoreToLabel(score: number): string {
-  if (score >= 8) return 'Отличное'
-  if (score >= 6) return 'Хорошее'
-  if (score === 5) return 'Нейтральное'
-  if (score >= 3) return 'Грустное'
-  if (score === 2) return 'Тревожное'
-  return 'Уставшее'
-}
 
 function formatDateRu(dateStr: string): string {
   const [y, m, d] = dateStr.split('-').map(Number)

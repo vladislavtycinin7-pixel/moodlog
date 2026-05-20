@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAppStore, MoodEntry } from '@/lib/store'
+import { getMoodColorDef } from '@/lib/mood-colors'
 import {
   startOfMonth,
   endOfMonth,
@@ -17,13 +18,6 @@ import {
   isToday as isTodayFn,
 } from 'date-fns'
 import { ru } from 'date-fns/locale'
-
-export function getMoodColor(score: number): string {
-  if (score <= 3) return 'red'
-  if (score <= 5) return 'blue'
-  if (score <= 7) return 'green'
-  return 'purple'
-}
 
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 
@@ -182,7 +176,7 @@ export default function MoodCalendar() {
           const entry = entryMap.get(dateStr)
           const isCurrentMonth = isSameMonth(day, currentDate)
           const isToday = isTodayFn(day)
-          const moodColor = entry ? getMoodColor(entry.moodScore) : null
+          const moodDef = entry ? getMoodColorDef(entry.moodLabel) : null
 
           // Build class names based on states
           let cellClass =
@@ -218,23 +212,6 @@ export default function MoodCalendar() {
           // Text color for other month days
           const textClass = isCurrentMonth ? 'text-white' : 'text-white/20'
 
-          // Mood dot
-          let dotClass = ''
-          let dotShadow = ''
-          if (moodColor === 'red') {
-            dotClass = 'bg-red-500'
-            dotShadow = 'shadow-[0_0_4px_rgba(239,68,68,0.6)]'
-          } else if (moodColor === 'blue') {
-            dotClass = 'bg-blue-500'
-            dotShadow = 'shadow-[0_0_4px_rgba(59,130,246,0.6)]'
-          } else if (moodColor === 'green') {
-            dotClass = 'bg-emerald-500'
-            dotShadow = 'shadow-[0_0_4px_rgba(16,185,129,0.6)]'
-          } else if (moodColor === 'purple') {
-            dotClass = 'bg-purple-500'
-            dotShadow = 'shadow-[0_0_4px_rgba(168,85,247,0.6)]'
-          }
-
           return (
             <button
               key={index}
@@ -243,9 +220,9 @@ export default function MoodCalendar() {
               aria-label={`${format(day, 'd MMMM', { locale: ru })}${entry ? `, настроение: ${entry.moodScore}` : ''}`}
             >
               <span className={textClass}>{format(day, 'd')}</span>
-              {entry && moodColor && (
+              {entry && moodDef && (
                 <div
-                  className={`w-2 h-2 rounded-full mx-auto mt-1 ${dotClass} ${dotShadow}`}
+                  className={`w-2 h-2 rounded-full mx-auto mt-1 ${moodDef.bg} ${moodDef.shadow}`}
                 />
               )}
             </button>

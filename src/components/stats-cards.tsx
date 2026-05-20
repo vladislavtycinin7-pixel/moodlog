@@ -1,6 +1,7 @@
 'use client'
 
 import { useAppStore } from '@/lib/store'
+import { getMoodColor } from '@/lib/mood-colors'
 import {
   TrendingUp,
   TrendingDown,
@@ -9,22 +10,6 @@ import {
   Moon,
   Trophy,
 } from 'lucide-react'
-
-/* ── Mood color map ──────────────────────────────────────────── */
-
-const MOOD_COLORS: Record<string, string> = {
-  'Отличное': '#a855f7',
-  'Хорошее': '#10b185',
-  'Нейтральное': '#3b82f6',
-  'Грустное': '#0ea5e9',
-  'Тревожное': '#f59e0b',
-  'Раздраженное': '#ef4444',
-  'Уставшее': '#6b7280',
-}
-
-function getMoodColor(label: string): string {
-  return MOOD_COLORS[label] ?? '#a855f7'
-}
 
 /* ── Trend icon helper ───────────────────────────────────────── */
 
