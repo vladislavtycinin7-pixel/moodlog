@@ -135,7 +135,7 @@ export default function MoodCalendar() {
   const capitalizedTitle = monthTitle.charAt(0).toUpperCase() + monthTitle.slice(1)
 
   return (
-    <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-6">
+    <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-6 rounded-xl">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-medium text-white">{capitalizedTitle}</h2>

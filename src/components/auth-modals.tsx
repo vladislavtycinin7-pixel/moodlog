@@ -176,7 +176,7 @@ export default function AuthModals() {
         aria-label="Вход"
       >
         <div
-          className={`relative w-full max-w-[420px] bg-[rgba(18,18,24,0.98)] border border-white/[0.1] p-10 mx-4 transition-transform duration-200 ease ${
+          className={`relative w-full max-w-[420px] bg-[rgba(18,18,24,0.98)] border border-white/[0.1] rounded-xl p-6 sm:p-10 mx-4 transition-transform duration-200 ease ${
             activeModal === 'login' ? 'scale-100' : 'scale-95'
           }`}
         >
@@ -244,7 +244,7 @@ export default function AuthModals() {
             <button
               type="submit"
               disabled={loginLoading}
-              className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg"
             >
               {loginLoading ? 'Вход...' : 'Войти'}
             </button>
@@ -275,7 +275,7 @@ export default function AuthModals() {
         aria-label="Регистрация"
       >
         <div
-          className={`relative w-full max-w-[420px] bg-[rgba(18,18,24,0.98)] border border-white/[0.1] p-10 mx-4 transition-transform duration-200 ease ${
+          className={`relative w-full max-w-[420px] bg-[rgba(18,18,24,0.98)] border border-white/[0.1] rounded-xl p-6 sm:p-10 mx-4 transition-transform duration-200 ease ${
             activeModal === 'register' ? 'scale-100' : 'scale-95'
           }`}
         >
@@ -369,7 +369,7 @@ export default function AuthModals() {
             <button
               type="submit"
               disabled={regLoading}
-              className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg"
             >
               {regLoading ? 'Регистрация...' : 'Зарегистрироваться'}
             </button>

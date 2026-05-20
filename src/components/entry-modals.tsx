@@ -51,7 +51,7 @@ function ModalOverlay({
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
-        className={`relative w-full ${maxWidth || 'max-w-[800px]'} max-h-[85vh] overflow-y-auto bg-[rgba(18,18,24,0.98)] border border-white/[0.1] p-10 mx-4 transition-transform duration-200 ${
+        className={`relative w-full ${maxWidth || 'max-w-[800px]'} max-h-[85vh] overflow-y-auto bg-[rgba(18,18,24,0.98)] border border-white/[0.1] rounded-xl p-6 sm:p-10 mx-4 transition-transform duration-200 ${
           open ? 'scale-100' : 'scale-95'
         }`}
       >
@@ -131,13 +131,13 @@ const textareaCls =
   'w-full py-2.5 bg-transparent border-none border-b border-white/25 text-white text-sm font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-white/30 placeholder:text-[13px] resize-vertical min-h-[70px]'
 
 const btnPrimary =
-  'py-2.5 px-7 text-sm font-medium cursor-pointer bg-purple-500 text-white hover:bg-purple-600 transition-colors border-none'
+  'py-2.5 px-7 text-sm font-medium cursor-pointer bg-purple-500 text-white hover:bg-purple-600 transition-colors border-none rounded-lg'
 
 const btnSecondary =
-  'py-2.5 px-7 text-sm font-medium cursor-pointer bg-transparent border border-white/30 text-white/80 hover:border-white/50 hover:text-white transition-colors'
+  'py-2.5 px-7 text-sm font-medium cursor-pointer bg-transparent border border-white/30 text-white/80 hover:border-white/50 hover:text-white transition-colors rounded-lg'
 
 const btnDanger =
-  'py-2.5 px-7 text-sm font-medium cursor-pointer bg-red-500 text-white hover:bg-red-600 transition-colors border-none'
+  'py-2.5 px-7 text-sm font-medium cursor-pointer bg-red-500 text-white hover:bg-red-600 transition-colors border-none rounded-lg'
 
 // ═══════════════════════════════════════════
 // ADD ENTRY MODAL

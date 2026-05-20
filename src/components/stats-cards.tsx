@@ -34,7 +34,7 @@ interface StatCardProps {
 
 function StatCard({ value, label, icon }: StatCardProps) {
   return (
-    <div className="bg-[#050508] border border-white/[0.08] p-5 text-center">
+    <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-5 text-center rounded-xl">
       <div className="text-3xl font-semibold text-purple-500 mb-2 flex items-center justify-center gap-1.5">
         <span>{value}</span>
         {icon}
@@ -61,7 +61,7 @@ function MoodDistribution({
 
   if (entries.length === 0) {
     return (
-      <div className="bg-[#050508] border border-white/[0.08] p-8 text-center">
+      <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-8 text-center rounded-xl">
         <p className="text-white/30 text-sm">
           Пока нет данных для распределения эмоций
         </p>
@@ -72,7 +72,7 @@ function MoodDistribution({
   const maxCount = entries[0][1]
 
   return (
-    <div className="bg-[#050508] border border-white/[0.08] p-6">
+    <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-6 rounded-xl">
       <div className="space-y-3">
         {entries.map(([label, count]) => {
           const color = getMoodColor(label)

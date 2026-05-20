@@ -139,12 +139,12 @@ export default function MoodChart() {
   const chartHeight = 380
 
   return (
-    <div className="bg-[#050508] border border-white/[0.08] p-6">
+    <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-6 rounded-xl">
       {/* Period selector */}
       <div className="flex gap-3 justify-end mb-6">
         <button
           onClick={() => setPeriod('week')}
-          className={`bg-transparent border px-5 py-1.5 text-sm cursor-pointer transition-colors ${
+          className={`bg-transparent border px-5 py-1.5 text-sm cursor-pointer transition-colors rounded-md ${
             period === 'week'
               ? 'bg-purple-500 border-purple-500 text-white'
               : 'border-white/20 text-white/70 hover:border-purple-500'
@@ -154,7 +154,7 @@ export default function MoodChart() {
         </button>
         <button
           onClick={() => setPeriod('month')}
-          className={`bg-transparent border px-5 py-1.5 text-sm cursor-pointer transition-colors ${
+          className={`bg-transparent border px-5 py-1.5 text-sm cursor-pointer transition-colors rounded-md ${
             period === 'month'
               ? 'bg-purple-500 border-purple-500 text-white'
               : 'border-white/20 text-white/70 hover:border-purple-500'
@@ -164,7 +164,7 @@ export default function MoodChart() {
         </button>
         <button
           onClick={() => setPeriod('year')}
-          className={`bg-transparent border px-5 py-1.5 text-sm cursor-pointer transition-colors ${
+          className={`bg-transparent border px-5 py-1.5 text-sm cursor-pointer transition-colors rounded-md ${
             period === 'year'
               ? 'bg-purple-500 border-purple-500 text-white'
               : 'border-white/20 text-white/70 hover:border-purple-500'

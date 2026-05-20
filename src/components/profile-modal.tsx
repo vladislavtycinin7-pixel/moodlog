@@ -326,7 +326,7 @@ export default function ProfileModal() {
       aria-label="Профиль"
     >
       <div
-        className={`relative w-full max-w-[480px] bg-[rgba(18,18,24,0.98)] border border-white/[0.1] mx-4 transition-transform duration-200 ${
+        className={`relative w-full max-w-[480px] bg-[rgba(18,18,24,0.98)] border border-white/[0.1] rounded-xl mx-4 transition-transform duration-200 ${
           isOpen ? 'scale-100' : 'scale-95'
         }`}
       >
@@ -341,7 +341,7 @@ export default function ProfileModal() {
         </span>
 
         {/* Profile header */}
-        <div className="p-8 pb-6 text-center border-b border-white/[0.08]">
+        <div className="p-6 sm:p-8 pb-6 text-center border-b border-white/[0.08]">
           <div className="w-16 h-16 mx-auto mb-3 overflow-hidden">
             {user?.avatarUrl ? (
               <img
@@ -381,7 +381,7 @@ export default function ProfileModal() {
         </div>
 
         {/* Tab content */}
-        <div className="p-8">
+        <div className="p-6 sm:p-8">
           {/* ═══ NICKNAME TAB ═══ */}
           {tab === 'nickname' && (
             <form onSubmit={handleNickSubmit}>
@@ -406,7 +406,7 @@ export default function ProfileModal() {
               <button
                 type="submit"
                 disabled={nickLoading}
-                className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed mt-6"
+                className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg mt-6"
               >
                 {nickLoading ? 'Сохранение...' : 'Сохранить никнейм'}
               </button>
@@ -445,7 +445,7 @@ export default function ProfileModal() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={avatarLoading}
-                  className="w-full py-3.5 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-3.5 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg flex items-center justify-center gap-2"
                 >
                   <Upload size={16} />
                   {avatarLoading ? 'Загрузка...' : 'Загрузить с устройства'}
@@ -594,7 +594,7 @@ export default function ProfileModal() {
               <button
                 type="submit"
                 disabled={pwLoading}
-                className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed mt-5"
+                className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg mt-5"
               >
                 {pwLoading ? 'Сохранение...' : 'Изменить пароль'}
               </button>
