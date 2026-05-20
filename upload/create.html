@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodLog — Новая запись</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        /* Фоновый градиент */
+        .bg {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 40%, rgba(139, 92, 246, 0.5), rgba(0, 0, 0, 0) 70%),
+                        radial-gradient(circle at 80% 70%, rgba(236, 72, 153, 0.4), rgba(0, 0, 0, 0) 70%),
+                        radial-gradient(circle at 50% 20%, rgba(168, 85, 247, 0.45), rgba(0, 0, 0, 0) 60%);
+            filter: blur(100px);
+            z-index: 0;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            padding: 20px 0;
+            background: rgba(10, 10, 15, 0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 48px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 500;
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .nav-link:hover {
+            color: white;
+        }
+
+        .nav-link-primary {
+            color: white;
+            background: rgba(168, 85, 247, 0.2);
+            padding: 8px 20px;
+        }
+
+        .nav-link-primary:hover {
+            background: rgba(168, 85, 247, 0.3);
+        }
+
+        .settings-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 8px 0 8px 8px;
+            color: rgba(255, 255, 255, 0.7);
+            transition: transform 0.3s ease;
+            font-family: monospace;
+        }
+
+        .settings-btn:hover {
+            color: white;
+            transform: rotate(30deg);
+        }
+
+        .main-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 24px 60px;
+        }
+
+        /* КАРТОЧКА ФОРМЫ — заметнее на фоне */
+        .form-card {
+            background: rgba(20, 20, 28, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 32px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-title {
+            font-size: 24px;
+            font-weight: 500;
+            letter-spacing: -0.5px;
+            margin-bottom: 28px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px 48px;
+        }
+
+        .form-col-left, .form-col-right {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .form-group input:not([type="range"]),
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 0;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+            color: white;
+            font-size: 14px;
+            font-family: inherit;
+            transition: 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-bottom-color: #c56fff;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 13px;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        select option {
+            background: #1a1a24;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        /* ========== ПОЛЗУНОК С ДЕЛЕНИЯМИ ========== */
+        .range {
+            position: relative;
+            width: 100%;
+            padding: 8px 0 16px 0;
+        }
+
+        .range-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 20px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .slider-container {
+            position: relative;
+            width: 100%;
+            margin: 16px 0 8px 0;
+        }
+
+        .range-input {
+            position: relative;
+            width: 100%;
+            margin: 0;
+            -webkit-appearance: none;
+            background: transparent;
+            z-index: 2;
+        }
+
+        .range-input:focus {
+            outline: none;
+        }
+
+        .range-input::-webkit-slider-runnable-track {
+            box-sizing: border-box;
+            height: 8px;
+            background-color: #2b2a33;
+            border: none;
+            border-radius: 10px;
+        }
+
+        .range-input::-moz-range-track {
+            box-sizing: border-box;
+            height: 8px;
+            background-color: #2b2a33;
+            border: none;
+            border-radius: 10px;
+        }
+
+        .range-input::-moz-range-progress {
+            height: 8px;
+            border-radius: 10px;
+            background-color: #c56fff;
+        }
+
+        .range-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            margin-top: -8px;
+            border: none;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 0 0 4px inset #c56fff;
+            transition: 300ms;
+            cursor: pointer;
+            position: relative;
+            z-index: 3;
+        }
+
+        .range-input::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border: none;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 0 0 4px inset #c56fff;
+            transition: 300ms;
+            cursor: pointer;
+        }
+
+        .range-input:hover::-webkit-slider-thumb {
+            box-shadow: 0 0 0 8px inset #c56fff;
+        }
+
+        .range-input:hover::-moz-range-thumb {
+            box-shadow: 0 0 0 8px inset #c56fff;
+        }
+
+        .range-input:active::-webkit-slider-thumb {
+            box-shadow: 0 0 0 20px inset #c56fff;
+        }
+
+        .range-input:active::-moz-range-thumb {
+            box-shadow: 0 0 0 20px inset #c56fff;
+        }
+
+        .slider-ticks {
+            position: relative;
+            width: 100%;
+            margin-top: 12px;
+            padding: 0 11px;
+        }
+
+        .ticks-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .ticks-labels span {
+            position: relative;
+        }
+
+        .ticks-markers {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .tick {
+            width: 1px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            grid-column: span 2;
+        }
+
+        .btn {
+            padding: 10px 28px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            border: none;
+            background: transparent;
+        }
+
+        .btn-primary {
+            background: #c56fff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #a855f7;
+        }
+
+        .btn-secondary {
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .btn-secondary:hover {
+            border-color: rgba(255, 255, 255, 0.5);
+            color: white;
+        }
+
+        /* ========== МОДАЛЬНОЕ ОКНО (как в регистрации) ========== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
+            z-index: 200;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0.3s ease, opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+            background: rgba(18, 18, 24, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            transform: scale(0.95);
+            transition: transform 0.25s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 24px;
+            font-size: 24px;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.5);
+            transition: 0.2s;
+        }
+
+        .modal-close:hover {
+            color: white;
+        }
+
+        .modal h2 {
+            font-size: 24px;
+            font-weight: 500;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .modal-sub {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 28px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal .form-grid {
+            gap: 20px 40px;
+        }
+
+        .modal .form-group label {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .modal .form-actions {
+            margin-top: 24px;
+            padding-top: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .full-width {
+                grid-column: span 1;
+            }
+            .form-actions {
+                grid-column: span 1;
+            }
+            .modal {
+                margin: 20px;
+                padding: 32px 24px;
+                max-width: calc(100% - 40px);
+            }
+        }
+
+        @media (max-width: 700px) {
+            .main-content {
+                padding: 90px 20px 40px;
+            }
+            .form-card {
+                padding: 24px 20px;
+            }
+            .form-title {
+                font-size: 20px;
+            }
+            .form-actions {
+                flex-direction: column;
+            }
+            .btn {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg"></div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">MoodLog</div>
+            <div class="nav-links">
+                <a class="nav-link">Главная</a>
+                <a class="nav-link nav-link-primary" onclick="openEntryModal()">Добавить запись</a>
+                <a class="nav-link">Статистика</a>
+                <a class="nav-link">Вход</a>
+                <button class="settings-btn" id="settingsBtn">⚙</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="form-card">
+            <div class="form-title">Дневник настроения</div>
+            <p style="text-align: center; color: rgba(255,255,255,0.5); padding: 40px;">
+                Нажмите «Добавить запись» в меню, чтобы открыть форму создания записи
+            </p>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО ДОБАВЛЕНИЯ ЗАПИСИ -->
+    <div id="entryModal" class="modal-overlay">
+        <div class="modal">
+            <span class="modal-close" onclick="closeEntryModal()">&times;</span>
+            <h2>Новая запись</h2>
+            <div class="modal-sub">Заполните форму, чтобы сохранить настроение дня</div>
+
+            <form id="entryForm">
+                <div class="form-grid">
+                    <div class="form-col-left">
+                        <div class="form-group">
+                            <label for="date">Дата</label>
+                            <input type="date" id="date" name="date" value="2026-05-19">
+                        </div>
+
+                        <div class="range" id="moodRange">
+                            <label class="range-label" for="mood_score">
+                                Оценка настроения (0-10)
+                            </label>
+                            <div class="slider-container" id="sliderContainer">
+                                <input class="range-input" id="mood_score" type="range" min="0" max="10" value="5" step="1">
+                            </div>
+                            <div class="slider-ticks">
+                                <div class="ticks-markers">
+                                    <div class="tick"></div><div class="tick"></div><div class="tick"></div>
+                                    <div class="tick"></div><div class="tick"></div><div class="tick"></div>
+                                    <div class="tick"></div><div class="tick"></div><div class="tick"></div>
+                                    <div class="tick"></div><div class="tick"></div>
+                                </div>
+                                <div class="ticks-labels">
+                                    <span>0</span><span>1</span><span>2</span><span>3</span><span>4</span>
+                                    <span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mood_label">Описание настроения</label>
+                            <select id="mood_label" name="mood_label">
+                                <option value="Отличное">Отличное</option>
+                                <option value="Хорошее" selected>Хорошее</option>
+                                <option value="Нейтральное">Нейтральное</option>
+                                <option value="Грустное">Грустное</option>
+                                <option value="Тревожное">Тревожное</option>
+                                <option value="Раздраженное">Раздраженное</option>
+                                <option value="Уставшее">Уставшее</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="sleep_hours">Сон (часы)</label>
+                            <input type="number" id="sleep_hours" name="sleep_hours" step="0.5" min="0" max="24" placeholder="8">
+                        </div>
+                    </div>
+
+                    <div class="form-col-right">
+                        <div class="form-group">
+                            <label for="good_thing">Что хорошего случилось?</label>
+                            <textarea id="good_thing" name="good_thing" placeholder="Позитивные моменты, достижения..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bad_thing">Что плохого случилось?</label>
+                            <textarea id="bad_thing" name="bad_thing" placeholder="Трудности, неприятности..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="full-width">
+                        <div class="form-group">
+                            <label for="notes">Заметки</label>
+                            <textarea id="notes" name="notes" rows="2" placeholder="Что произошло сегодня?"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Сохранить запись</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeEntryModal()">Отмена</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Модальное окно для записи
+        const entryModal = document.getElementById('entryModal');
+
+        function openEntryModal() {
+            entryModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeEntryModal() {
+            entryModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Обработка отправки формы
+        document.getElementById('entryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const data = {};
+            formData.forEach((value, key) => { data[key] = value; });
+            console.log('Данные записи:', data);
+            alert('Демо-режим: запись сохранена');
+            closeEntryModal();
+        });
+
+        // Закрытие по клику на оверлей
+        entryModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEntryModal();
+            }
+        });
+
+        // Закрытие по Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && entryModal.classList.contains('active')) {
+                closeEntryModal();
+            }
+        });
+
+        // Настройки (заглушка)
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            alert('Меню настроек');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodLog — Дневник настроения</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        /* Фоновый градиент для всей страницы */
+        .bg {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 40%, rgba(139, 92, 246, 0.4), rgba(0, 0, 0, 0) 60%),
+                        radial-gradient(circle at 80% 70%, rgba(236, 72, 153, 0.3), rgba(0, 0, 0, 0) 60%),
+                        radial-gradient(circle at 50% 20%, rgba(168, 85, 247, 0.35), rgba(0, 0, 0, 0) 50%);
+            filter: blur(80px);
+            z-index: 0;
+        }
+
+        /* ШАПКА */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            padding: 20px 0;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 48px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 500;
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+
+        .nav-link:hover {
+            color: white;
+        }
+
+        .nav-link-primary {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 20px;
+        }
+
+        .user-name {
+            color: #a855f7;
+            font-size: 14px;
+            margin-left: 16px;
+        }
+
+        .settings-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 8px 0 8px 8px;
+            color: rgba(255, 255, 255, 0.7);
+            transition: transform 0.3s ease;
+            font-family: monospace;
+        }
+
+        .settings-btn:hover {
+            color: white;
+            transform: rotate(30deg);
+        }
+
+        /* ОСНОВНОЙ КОНТЕНТ */
+        .main-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 24px 60px;
+        }
+
+        /* ========== КАЛЕНДАРЬ (ФИОЛЕТОВАЯ ЗОНА) ========== */
+        .calendar-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 24px;
+            margin-bottom: 32px;
+            position: relative;
+            backdrop-filter: blur(4px);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .month-title {
+            font-size: 22px;
+            font-weight: 500;
+        }
+
+        .month-nav {
+            display: flex;
+            gap: 16px;
+        }
+
+        .month-nav button {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 6px 14px;
+            transition: 0.2s;
+        }
+
+        .month-nav button:hover {
+            border-color: #a855f7;
+            background: rgba(168, 85, 247, 0.1);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .weekday {
+            text-align: center;
+            padding: 12px 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+        }
+
+        .calendar-day {
+            text-align: center;
+            padding: 12px 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid transparent;
+            background: rgba(255, 255, 255, 0.02);
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            border-color: rgba(168, 85, 247, 0.4);
+            background: rgba(168, 85, 247, 0.05);
+        }
+
+        .calendar-day.has-entry {
+            border-color: rgba(168, 85, 247, 0.5);
+            background: rgba(168, 85, 247, 0.1);
+        }
+
+        .calendar-day.today {
+            border-color: #a855f7;
+            background: rgba(168, 85, 247, 0.15);
+            box-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
+        }
+
+        .calendar-day.other-month {
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        .mood-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin: 4px auto 0;
+        }
+        .mood-dot.red { background: #ef4444; box-shadow: 0 0 4px #ef4444; }
+        .mood-dot.blue { background: #3b82f6; box-shadow: 0 0 4px #3b82f6; }
+        .mood-dot.green { background: #22c55e; box-shadow: 0 0 4px #22c55e; }
+        .mood-dot.purple { background: #a855f7; box-shadow: 0 0 4px #a855f7; }
+
+        /* Панель выбора настроения */
+        .mood-panel {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .mood-panel h3 {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .mood-options {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .mood-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 6px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            transition: 0.2s;
+        }
+
+        .mood-option:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .mood-option .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .mood-option .dot.red { background: #ef4444; }
+        .mood-option .dot.blue { background: #3b82f6; }
+        .mood-option .dot.green { background: #22c55e; }
+        .mood-option .dot.purple { background: #a855f7; }
+
+        .mood-option span {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* ========== СТАТИСТИКА (ТЁМНО-СЕРЫЙ ФОН) ========== */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: #050508;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: 600;
+            color: #a855f7;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ========== ГРАФИК (ТЁМНО-СЕРЫЙ ФОН) ========== */
+        .chart-section {
+            background: #050508;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 24px;
+        }
+
+        .graph-period {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            justify-content: flex-end;
+        }
+
+        .graph-period-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.7);
+            padding: 6px 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .graph-period-btn.active {
+            background: #a855f7;
+            border-color: #a855f7;
+            color: white;
+        }
+
+        .graph-period-btn:hover:not(.active) {
+            border-color: #a855f7;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 380px;
+            width: 100%;
+        }
+
+        .legend-note {
+            margin-top: 20px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 16px;
+        }
+
+        .legend-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .legend-dot.regular { background: #a855f7; }
+        .legend-dot.sunday { background: #a855f7; border: 2px solid white; width: 12px; height: 12px; }
+        .legend-line { display: inline-block; width: 20px; height: 2px; background: #a855f7; margin-right: 6px; vertical-align: middle; }
+        .legend-line.dashed { background: none; border-bottom: 2px dashed rgba(168, 85, 247, 0.5); width: 20px; }
+
+        .info-note {
+            background: rgba(168, 85, 247, 0.1);
+            border-left: 3px solid #a855f7;
+            padding: 10px 14px;
+            margin-top: 16px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* ========== ФУТЕР ========== */
+        .footer {
+            background: #08080c;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 60px 48px 40px;
+            margin-top: 60px;
+        }
+
+        .footer-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 60px;
+        }
+
+        .footer-col h4 {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 20px;
+        }
+
+        .footer-col ul {
+            list-style: none;
+        }
+
+        .footer-col li {
+            margin-bottom: 10px;
+        }
+
+        .footer-col a {
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: none;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+
+        .footer-col a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            max-width: 1400px;
+            margin: 50px auto 0;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .social-links span {
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .social-links span:hover {
+            color: white;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 1000px) {
+            .nav-container {
+                padding: 0 24px;
+            }
+            .stats-row {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+            }
+            .footer-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 40px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .nav-container {
+                padding: 0 20px;
+            }
+            .nav-links {
+                gap: 16px;
+            }
+            .main-content {
+                padding: 90px 16px 40px;
+            }
+            .calendar-grid {
+                gap: 4px;
+            }
+            .calendar-day {
+                padding: 8px 4px;
+                font-size: 12px;
+            }
+            .stats-row {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .chart-wrapper {
+                height: 280px;
+            }
+            .footer {
+                padding: 40px 24px 30px;
+            }
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            .footer-bottom {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg"></div>
+
+    <!-- ШАПКА -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">MoodLog</div>
+            <div class="nav-links">
+                <a class="nav-link">Главная</a>
+                <a class="nav-link">Добавить запись</a>
+                <a class="nav-link">Статистика</a>
+                <a class="nav-link nav-link-primary">Выйти</a>
+                <button class="settings-btn" id="settingsBtn">⚙</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <!-- КАЛЕНДАРЬ (ФИОЛЕТОВАЯ ЗОНА) -->
+        <div class="calendar-card">
+            <div class="calendar-header">
+                <div class="month-title" id="monthTitle">Май 2026</div>
+                <div class="month-nav">
+                    <button id="prevMonth">←</button>
+                    <button id="nextMonth">→</button>
+                </div>
+            </div>
+            <div class="calendar-grid" id="calendarGrid">
+                <div class="weekday">Пн</div><div class="weekday">Вт</div><div class="weekday">Ср</div>
+                <div class="weekday">Чт</div><div class="weekday">Пт</div><div class="weekday">Сб</div><div class="weekday">Вс</div>
+            </div>
+
+            <div class="mood-panel">
+                <h3>Выберите настроение и нажмите на день</h3>
+                <div class="mood-options">
+                    <div class="mood-option" data-mood="red"><div class="dot red"></div><span>Ужасное</span></div>
+                    <div class="mood-option" data-mood="blue"><div class="dot blue"></div><span>Грустное</span></div>
+                    <div class="mood-option" data-mood="green"><div class="dot green"></div><span>Хорошее</span></div>
+                    <div class="mood-option" data-mood="purple"><div class="dot purple"></div><span>Отличное</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- КАРТОЧКИ СТАТИСТИКИ -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="number" id="totalEntries">12</div>
+                <div class="label">Всего записей</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="avgMood">6.8</div>
+                <div class="label">Среднее настроение</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="bestDay">15 мая</div>
+                <div class="label">Лучший день</div>
+            </div>
+        </div>
+
+        <!-- ГРАФИК -->
+        <div class="chart-section">
+            <div class="graph-period">
+                <button class="graph-period-btn" data-period="week">Неделя</button>
+                <button class="graph-period-btn active" data-period="month">Месяц</button>
+                <button class="graph-period-btn" data-period="year">Год</button>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="moodChart"></canvas>
+            </div>
+            <div class="legend-note">
+                <span><span class="legend-dot regular"></span> Есть запись</span>
+                <span><span class="legend-dot sunday"></span> Воскресенье</span>
+                <span><span class="legend-line"></span> Соединение дней с записями</span>
+                <span><span class="legend-line dashed"></span> Пропуск (нет данных)</span>
+            </div>
+            <div class="info-note">
+                💡 Пропуски в графике (разрывы линии) означают дни, когда вы не делали запись.
+            </div>
+        </div>
+    </div>
+
+    <!-- ФУТЕР -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>Компания</h4>
+                <ul>
+                    <li><a href="#">О нас</a></li>
+                    <li><a href="#">Вакансии</a></li>
+                    <li><a href="#">Для прессы</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Сообщества</h4>
+                <ul>
+                    <li><a href="#">Для авторов</a></li>
+                    <li><a href="#">Разработчикам</a></li>
+                    <li><a href="#">Реклама</a></li>
+                    <li><a href="#">Инвесторам</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Полезные ссылки</h4>
+                <ul>
+                    <li><a href="#">Поддержка</a></li>
+                    <li><a href="#">Мобильное приложение</a></li>
+                    <li><a href="#">Веб-плеер</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Правовая информация</h4>
+                <ul>
+                    <li><a href="#">Политика конфиденциальности</a></li>
+                    <li><a href="#">Cookies</a></li>
+                    <li><a href="#">Условия использования</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>© 2026 MoodLog — твой личный дневник настроения</div>
+            <div class="social-links">
+                <span>f</span>
+                <span>t</span>
+                <span>in</span>
+                <span>ig</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let moodChart = null;
+        let currentDate = new Date(2026, 4, 15);
+        let selectedMood = null;
+
+        // Демо-данные для календаря
+        let moodEntries = {
+            '2026-05-01': 'green', '2026-05-02': 'red', '2026-05-03': 'purple',
+            '2026-05-05': 'blue', '2026-05-10': 'green', '2026-05-15': 'purple',
+            '2026-05-18': 'red', '2026-05-20': 'green', '2026-05-25': 'blue'
+        };
+
+        // Обновление карточек статистики
+        function updateStats() {
+            const entries = Object.values(moodEntries);
+            document.getElementById('totalEntries').textContent = entries.length;
+            
+            const moodToValue = { 'red': 2, 'blue': 4, 'green': 7, 'purple': 9 };
+            let sum = 0;
+            entries.forEach(m => sum += moodToValue[m] || 0);
+            const avg = entries.length > 0 ? (sum / entries.length).toFixed(1) : 0;
+            document.getElementById('avgMood').textContent = avg;
+            
+            document.getElementById('bestDay').textContent = '15 мая';
+        }
+
+        function getMonthlyChartData() {
+            const values = [];
+            for (let day = 1; day <= 31; day++) {
+                const dateKey = `2026-05-${String(day).padStart(2, '0')}`;
+                const mood = moodEntries[dateKey];
+                if (mood) {
+                    const moodToValue = { 'red': 2, 'blue': 4, 'green': 7, 'purple': 9 };
+                    values.push(moodToValue[mood] || null);
+                } else {
+                    values.push(null);
+                }
+            }
+            return values;
+        }
+
+        function getGraphData(period) {
+            if (period === 'week') {
+                return {
+                    labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+                    values: [7, null, 6, 8, null, 9, 8],
+                    sundays: [6]
+                };
+            } else if (period === 'month') {
+                return {
+                    labels: Array.from({length: 31}, (_, i) => `${i+1} мая`),
+                    values: getMonthlyChartData(),
+                    sundays: [2, 9, 16, 23, 30]
+                };
+            } else {
+                return {
+                    labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
+                    values: [6.2, 6.5, 6.8, 7.0, 7.5, 7.8, 8.0, 7.9, 7.6, 7.3, 7.0, 6.8],
+                    sundays: []
+                };
+            }
+        }
+
+        function renderChart(period) {
+            const data = getGraphData(period);
+            const hasData = data.values.some(v => v !== null && v > 0);
+            
+            if (!hasData) {
+                const ctx = document.getElementById('moodChart').getContext('2d');
+                if (moodChart) moodChart.destroy();
+                moodChart = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [] }, options: { responsive: true } });
+                return;
+            }
+
+            const ctx = document.getElementById('moodChart').getContext('2d');
+            if (moodChart) moodChart.destroy();
+
+            const pointRadii = [];
+            const pointHoverRadii = [];
+            const pointBorderWidths = [];
+
+            for (let i = 0; i < data.values.length; i++) {
+                const isSunday = data.sundays && data.sundays.includes(i);
+                const hasValue = data.values[i] !== null;
+                if (!hasValue) {
+                    pointRadii.push(0); pointHoverRadii.push(0); pointBorderWidths.push(0);
+                } else if (isSunday) {
+                    pointRadii.push(8); pointHoverRadii.push(11); pointBorderWidths.push(3);
+                } else {
+                    pointRadii.push(period === 'month' ? 4 : 5);
+                    pointHoverRadii.push(period === 'month' ? 7 : 8);
+                    pointBorderWidths.push(1.5);
+                }
+            }
+
+            moodChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Настроение',
+                        data: data.values,
+                        borderColor: '#a855f7',
+                        backgroundColor: 'rgba(168, 85, 247, 0.05)',
+                        borderWidth: 2.5,
+                        spanGaps: false,
+                        pointRadius: pointRadii,
+                        pointHoverRadius: pointHoverRadii,
+                        pointBackgroundColor: '#a855f7',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: pointBorderWidths,
+                        tension: 0.2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(18, 18, 24, 0.95)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#a855f7',
+                            borderColor: 'rgba(168, 85, 247, 0.3)',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    const val = context.parsed.y;
+                                    return val === null ? 'Нет записи' : `Настроение: ${val}/10`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { min: 0, max: 10, grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { stepSize: 2 } },
+                        x: { ticks: { color: 'rgba(255, 255, 255, 0.5)', maxRotation: 45, autoSkip: true, maxTicksLimit: period === 'month' ? 15 : 12 } }
+                    }
+                }
+            });
+        }
+
+        function addMoodDot(dayElement, mood) {
+            const existing = dayElement.querySelector('.mood-dot');
+            if (existing) existing.remove();
+            if (mood) {
+                const dot = document.createElement('div');
+                dot.className = `mood-dot ${mood}`;
+                dayElement.appendChild(dot);
+            }
+        }
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const firstDay = new Date(year, month, 1);
+            let startWeekday = firstDay.getDay() || 7;
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const prevMonthDays = new Date(year, month, 0).getDate();
+            const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+            document.getElementById('monthTitle').textContent = `${monthNames[month]} ${year}`;
+            
+            const grid = document.getElementById('calendarGrid');
+            while (grid.children.length > 7) grid.removeChild(grid.lastChild);
+            
+            for (let i = 1; i < startWeekday; i++) {
+                const prevDay = prevMonthDays - (startWeekday - i) + 1;
+                const div = document.createElement('div');
+                div.className = 'calendar-day other-month';
+                div.textContent = prevDay;
+                grid.appendChild(div);
+            }
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const savedMood = moodEntries[dateKey];
+                const isToday = dateKey === '2026-05-15';
+                
+                const div = document.createElement('div');
+                div.className = 'calendar-day';
+                if (savedMood) div.classList.add('has-entry');
+                if (isToday) div.classList.add('today');
+                div.textContent = day;
+                if (savedMood) addMoodDot(div, savedMood);
+                
+                div.onclick = (function(dk, el) {
+                    return function() {
+                        if (selectedMood) {
+                            moodEntries[dk] = selectedMood;
+                            addMoodDot(el, selectedMood);
+                            el.classList.add('has-entry');
+                            renderChart('month');
+                            updateStats();
+                        } else {
+                            alert('Сначала выберите настроение в панели ниже');
+                        }
+                    };
+                })(dateKey, div);
+                grid.appendChild(div);
+            }
+            
+            const totalCells = Math.ceil((startWeekday - 1 + daysInMonth) / 7) * 7;
+            const remaining = totalCells - (startWeekday - 1 + daysInMonth);
+            for (let i = 1; i <= remaining; i++) {
+                const div = document.createElement('div');
+                div.className = 'calendar-day other-month';
+                div.textContent = i;
+                grid.appendChild(div);
+            }
+        }
+
+        function setPeriod(period) {
+            document.querySelectorAll('.graph-period-btn').forEach(btn => {
+                if (btn.dataset.period === period) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+            renderChart(period);
+        }
+
+        document.querySelectorAll('.mood-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                selectedMood = opt.dataset.mood;
+                document.querySelectorAll('.mood-option').forEach(o => o.style.background = 'rgba(255, 255, 255, 0.03)');
+                opt.style.background = 'rgba(168, 85, 247, 0.2)';
+            });
+        });
+
+        document.getElementById('prevMonth').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        });
+        document.getElementById('nextMonth').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+        document.querySelectorAll('.graph-period-btn').forEach(btn => {
+            btn.addEventListener('click', () => setPeriod(btn.dataset.period));
+        });
+        document.getElementById('settingsBtn').addEventListener('click', () => alert('Меню настроек (будет позже)'));
+
+        renderCalendar();
+        renderChart('month');
+        updateStats();
+    </script>
+</body>
+</html>
