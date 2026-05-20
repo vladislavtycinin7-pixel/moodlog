@@ -6,6 +6,7 @@ export async function PUT(request: NextRequest) {
   try {
     const sessionUser = await getSessionUser()
     if (!sessionUser) {
+      console.error('[profile/password] getSessionUser returned null — cookie missing or invalid')
       return NextResponse.json(
         { success: false, message: 'Необходима авторизация' },
         { status: 401 }

@@ -69,11 +69,13 @@ export async function getSessionUser(): Promise<{ id: string; username: string; 
     const token = cookieStore.get(SESSION_COOKIE_NAME)?.value
 
     if (!token) {
+      console.error('[auth] getSessionUser: no cookie found')
       return null
     }
 
     const session = verifySession(token)
     if (!session) {
+      console.error('[auth] getSessionUser: token invalid or expired')
       return null
     }
 
@@ -83,8 +85,13 @@ export async function getSessionUser(): Promise<{ id: string; username: string; 
       select: { id: true, username: true, avatarUrl: true },
     })
 
+    if (!user) {
+      console.error('[auth] getSessionUser: user not found in DB, id=', session.userId)
+    }
+
     return user
-  } catch {
+  } catch (err) {
+    console.error('[auth] getSessionUser error:', err)
     return null
   }
 }
@@ -101,6 +108,19 @@ export async function setSessionCookie(token: string): Promise<void> {
     maxAge: SESSION_MAX_AGE,
     path: '/',
   })
+}
+
+/**
+ * Build Set-Cookie header value for manual response attachment
+ */
+export function buildSessionCookieHeader(token: string): string {
+  const maxAge = SESSION_MAX_AGE
+  const expires = new Date(Date.now() + maxAge * 1000).toUTCString()
+  let cookie = `${SESSION_COOKIE_NAME}=${token}; Path=/; Expires=${expires}; Max-Age=${maxAge}; HttpOnly; SameSite=Lax`
+  if (process.env.NODE_ENV === 'production') {
+    cookie += '; Secure'
+  }
+  return cookie
 }
 
 /**
