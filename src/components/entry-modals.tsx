@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useAppStore } from '@/lib/store'
 import { MOOD_LABELS, scoreToLabel } from '@/lib/mood-colors'
+import { ModalOverlay, CloseBtn } from '@/components/modal-overlay'
 import { toast } from 'sonner'
 
 function formatDateRu(dateStr: string): string {
@@ -12,65 +13,6 @@ function formatDateRu(dateStr: string): string {
     'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря',
   ]
   return `${d} ${months[m]} ${y}`
-}
-
-// Shared modal overlay wrapper
-function ModalOverlay({
-  open,
-  onClose,
-  maxWidth,
-  children,
-}: {
-  open: boolean
-  onClose: () => void
-  maxWidth?: string
-  children: React.ReactNode
-}) {
-  const handleEscape = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && open) onClose()
-    },
-    [open, onClose]
-  )
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
-  }, [handleEscape])
-
-  useEffect(() => {
-    document.body.style.overflow = open ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
-  }, [open])
-
-  return (
-    <div
-      className={`fixed inset-0 bg-black/75 backdrop-blur-[6px] z-[200] flex justify-center items-center transition-[visibility,opacity] duration-300 ${
-        open ? 'visible opacity-100' : 'invisible opacity-0'
-      }`}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div
-        className={`relative w-full ${maxWidth || 'max-w-[800px]'} max-h-[85vh] overflow-y-auto bg-[rgba(18,18,24,0.98)] border border-white/[0.1] rounded-xl p-6 sm:p-10 mx-4 transition-transform duration-200 ${
-          open ? 'scale-100' : 'scale-95'
-        }`}
-      >
-        {children}
-      </div>
-    </div>
-  )
-}
-
-// Close button
-function CloseBtn({ onClick }: { onClick: () => void }) {
-  return (
-    <span
-      className="absolute top-5 right-6 text-2xl cursor-pointer text-white/50 hover:text-white transition-colors"
-      onClick={onClick}
-    >
-      &times;
-    </span>
-  )
 }
 
 // Custom range slider 1-10
@@ -83,7 +25,7 @@ function MoodSlider({
 }) {
   return (
     <div className="py-2 pb-4">
-      <label className="block text-[12px] font-medium text-white/60 mb-5 uppercase tracking-[0.3px]">
+      <label className="label-sm mb-5">
         Оценка настроения (1-10)
       </label>
       <div className="relative w-full my-4">
@@ -222,21 +164,21 @@ function AddEntryModal() {
           {/* Left column */}
           <div className="flex flex-col gap-6">
             <div>
-              <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">Дата</label>
+              <label className="label-sm">Дата</label>
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} required />
             </div>
 
             <MoodSlider value={moodScore} onChange={setMoodScore} />
 
             <div>
-              <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">Описание настроения</label>
+              <label className="label-sm">Описание настроения</label>
               <select value={moodLabel} onChange={(e) => setMoodLabel(e.target.value)} className={selectCls}>
                 {MOOD_LABELS.map((l) => <option key={l} value={l}>{l}</option>)}
               </select>
             </div>
 
             <div>
-              <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">Сон (часы)</label>
+              <label className="label-sm">Сон (часы)</label>
               <input type="number" step="0.5" min="0" max="24" value={sleepHours} onChange={(e) => setSleepHours(e.target.value)} placeholder="8" className={inputCls} />
             </div>
           </div>
@@ -244,19 +186,19 @@ function AddEntryModal() {
           {/* Right column */}
           <div className="flex flex-col gap-6">
             <div>
-              <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">Что хорошего случилось?</label>
+              <label className="label-sm">Что хорошего случилось?</label>
               <textarea value={goodThing} onChange={(e) => setGoodThing(e.target.value)} placeholder="Позитивные моменты, достижения..." className={textareaCls} />
             </div>
 
             <div>
-              <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">Что плохого случилось?</label>
+              <label className="label-sm">Что плохого случилось?</label>
               <textarea value={badThing} onChange={(e) => setBadThing(e.target.value)} placeholder="Трудности, неприятности..." className={textareaCls} />
             </div>
           </div>
 
           {/* Full width */}
           <div className="md:col-span-2">
-            <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">Заметки</label>
+            <label className="label-sm">Заметки</label>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Что произошло сегодня?" className={textareaCls} />
           </div>
 
@@ -315,39 +257,39 @@ function EditEntryForm({ entry, onDone }: { entry: NonNullable<useAppStore['sele
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
         <div className="flex flex-col gap-6">
           <div>
-            <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">Дата</label>
+            <label className="label-sm">Дата</label>
             <input type="text" value={formatDateRu(entry.date)} disabled className={`${inputCls} opacity-50 cursor-not-allowed`} />
           </div>
 
           <MoodSlider value={moodScore} onChange={setMoodScore} />
 
           <div>
-            <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">Описание настроения</label>
+            <label className="label-sm">Описание настроения</label>
             <select value={moodLabel} onChange={(e) => { /* moodLabel is derived from moodScore */ }} className={selectCls}>
               {MOOD_LABELS.map((l) => <option key={l} value={l}>{l}</option>)}
             </select>
           </div>
 
           <div>
-            <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">Сон (часы)</label>
+            <label className="label-sm">Сон (часы)</label>
             <input type="number" step="0.5" min="0" max="24" value={sleepHours} onChange={(e) => setSleepHours(e.target.value)} placeholder="8" className={inputCls} />
           </div>
         </div>
 
         <div className="flex flex-col gap-6">
           <div>
-            <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">Что хорошего случилось?</label>
+            <label className="label-sm">Что хорошего случилось?</label>
             <textarea value={goodThing} onChange={(e) => setGoodThing(e.target.value)} placeholder="Позитивные моменты, достижения..." className={textareaCls} />
           </div>
 
           <div>
-            <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">Что плохого случилось?</label>
+            <label className="label-sm">Что плохого случилось?</label>
             <textarea value={badThing} onChange={(e) => setBadThing(e.target.value)} placeholder="Трудности, неприятности..." className={textareaCls} />
           </div>
         </div>
 
         <div className="md:col-span-2">
-          <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">Заметки</label>
+          <label className="label-sm">Заметки</label>
           <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Что произошло сегодня?" className={textareaCls} />
         </div>
 

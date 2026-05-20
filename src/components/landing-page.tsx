@@ -48,7 +48,7 @@ export default function LandingPage() {
         <div className="relative z-[1] max-w-[1400px] mx-auto w-full px-6 sm:px-12 py-10 md:py-16 flex flex-col md:flex-row items-center gap-10 md:gap-20">
           {/* Left — text */}
           <div className="relative z-[1] max-w-[540px] text-center md:text-left">
-            <h1 className="text-4xl sm:text-5xl md:text-[64px] font-semibold tracking-[-2px] leading-[1.1] mb-6">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-[-2px] leading-[1.1] mb-6">
               Дневник
               <br />
               настроения
@@ -58,15 +58,15 @@ export default function LandingPage() {
               днём. Просто записывай, как прошёл твой день.
             </p>
             <button
-              onClick={() => setActiveModal('login')}
-              className="inline-block px-6 py-2.5 text-sm font-medium border border-white/20 bg-transparent text-white/70 cursor-pointer transition-colors hover:border-white/40 hover:text-white"
+              onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+              className="inline-block px-6 py-2.5 text-sm font-medium border border-white/20 bg-transparent text-white/70 cursor-pointer transition-colors hover:border-white/40 hover:text-white rounded-lg"
             >
               Узнать больше
             </button>
           </div>
 
           {/* Right — stats panel */}
-          <div className="flex-1 w-full md:w-auto bg-white/[0.03] p-8 border border-white/[0.08]">
+          <div className="flex-1 w-full md:w-auto bg-white/[0.03] p-8 border border-white/[0.08] rounded-xl">
             {/* Header */}
             <div className="flex justify-between mb-6 text-xs uppercase tracking-wider text-white/50">
               <span>Динамика настроения</span>
@@ -78,8 +78,8 @@ export default function LandingPage() {
               {barHeights.map((h, i) => (
                 <div
                   key={i}
-                  className="flex-1 bg-purple-500 transition-all"
-                  style={{ height: `${h}px` }}
+                  className="flex-1 bg-purple-500/60 rounded-sm transition-all duration-700 hover:bg-purple-500"
+                  style={{ height: `${h}px`, transitionDelay: `${i * 100}ms` }}
                 />
               ))}
             </div>

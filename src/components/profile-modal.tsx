@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Eye, EyeOff, User, ImagePlus, Lock, Upload } from 'lucide-react'
 import { useAppStore, getAuthHeaders, loadToken } from '@/lib/store'
+import { ModalOverlay, CloseBtn } from '@/components/modal-overlay'
 import { toast } from 'sonner'
 
 type Tab = 'nickname' | 'avatar' | 'password'
@@ -96,25 +97,6 @@ export default function ProfileModal() {
       setPwLoading(false)
     }
   }, [isOpen, user])
-
-  // ─── Escape key ───
-  const handleEscape = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) setActiveModal(null)
-    },
-    [isOpen, setActiveModal]
-  )
-  useEffect(() => {
-    document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
-  }, [handleEscape])
-
-  // ─── Lock body scroll ───
-  useEffect(() => {
-    if (isOpen) document.body.style.overflow = 'hidden'
-    else document.body.style.overflow = ''
-    return () => { document.body.style.overflow = '' }
-  }, [isOpen])
 
   // ─── Nickname submit ───
   const handleNickSubmit = async (e: React.FormEvent) => {
@@ -316,31 +298,10 @@ export default function ProfileModal() {
   ]
 
   return (
-    <div
-      className={`fixed inset-0 bg-black/75 backdrop-blur-[6px] z-[200] flex justify-center items-center transition-[visibility,opacity] duration-300 ${
-        isOpen ? 'visible opacity-100' : 'invisible opacity-0'
-      }`}
-      onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null) }}
-      aria-modal="true"
-      role="dialog"
-      aria-label="Профиль"
-    >
-      <div
-        className={`relative w-full max-w-[480px] bg-[rgba(18,18,24,0.98)] border border-white/[0.1] rounded-xl mx-4 transition-transform duration-200 ${
-          isOpen ? 'scale-100' : 'scale-95'
-        }`}
-      >
-        {/* Close button */}
-        <span
-          className="absolute top-5 right-6 text-2xl cursor-pointer text-white/50 hover:text-white transition-colors"
-          onClick={() => setActiveModal(null)}
-          role="button"
-          aria-label="Закрыть"
-        >
-          &times;
-        </span>
+    <ModalOverlay open={isOpen} onClose={() => setActiveModal(null)} maxWidth="max-w-[480px]">
+      <CloseBtn onClick={() => setActiveModal(null)} />
 
-        {/* Profile header */}
+      {/* Profile header */}
         <div className="p-6 sm:p-8 pb-6 text-center border-b border-white/[0.08]">
           <div className="w-16 h-16 mx-auto mb-3 overflow-hidden">
             {user?.avatarUrl ? (
@@ -385,7 +346,7 @@ export default function ProfileModal() {
           {/* ═══ NICKNAME TAB ═══ */}
           {tab === 'nickname' && (
             <form onSubmit={handleNickSubmit}>
-              <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">
+              <label className="label-sm">
                 Никнейм
               </label>
               <input
@@ -471,7 +432,7 @@ export default function ProfileModal() {
 
               {/* URL input */}
               <form onSubmit={handleAvatarSubmit}>
-                <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">
+                <label className="label-sm">
                   URL аватара
                 </label>
                 <input
@@ -517,7 +478,7 @@ export default function ProfileModal() {
             <form onSubmit={handlePwSubmit}>
               {/* Current password */}
               <div className="mb-5">
-                <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">
+                <label className="label-sm">
                   Текущий пароль
                 </label>
                 <div className="relative">
@@ -541,7 +502,7 @@ export default function ProfileModal() {
 
               {/* New password */}
               <div className="mb-5">
-                <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">
+                <label className="label-sm">
                   Новый пароль
                 </label>
                 <div className="relative">
@@ -565,7 +526,7 @@ export default function ProfileModal() {
 
               {/* Confirm password */}
               <div className="mb-2">
-                <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">
+                <label className="label-sm">
                   Подтвердите пароль
                 </label>
                 <div className="relative">
@@ -601,7 +562,6 @@ export default function ProfileModal() {
             </form>
           )}
         </div>
-      </div>
-    </div>
+      </ModalOverlay>
   )
 }
