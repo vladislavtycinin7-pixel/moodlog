@@ -94,7 +94,7 @@ export default function SettingsMenu() {
       {/* Overlay */}
       <div
         className={`fixed inset-0 bg-black/60 backdrop-blur-[4px] z-[150] transition-all duration-300 ${
-          settingsOpen ? 'visible opacity-1' : 'invisible opacity-0'
+          settingsOpen ? 'visible opacity-100' : 'invisible opacity-0'
         }`}
         onClick={close}
         aria-hidden="true"

@@ -51,7 +51,7 @@ function ModalOverlay({
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
-        className={`relative w-full ${maxWidth || 'max-w-[800px]'} max-h-[85vh] overflow-y-auto bg-[rgba(18,18,24,0.98)] border border-white/[0.1] p-10 mx-4 transition-transform duration-250 ${
+        className={`relative w-full ${maxWidth || 'max-w-[800px]'} max-h-[85vh] overflow-y-auto bg-[rgba(18,18,24,0.98)] border border-white/[0.1] p-10 mx-4 transition-transform duration-200 ${
           open ? 'scale-100' : 'scale-95'
         }`}
       >

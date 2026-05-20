@@ -176,7 +176,7 @@ export default function AuthModals() {
         aria-label="Вход"
       >
         <div
-          className={`relative w-full max-w-[420px] bg-[rgba(18,18,24,0.98)] border border-white/[0.1] p-10 mx-4 transition-transform duration-250 ease ${
+          className={`relative w-full max-w-[420px] bg-[rgba(18,18,24,0.98)] border border-white/[0.1] p-10 mx-4 transition-transform duration-200 ease ${
             activeModal === 'login' ? 'scale-100' : 'scale-95'
           }`}
         >
@@ -275,7 +275,7 @@ export default function AuthModals() {
         aria-label="Регистрация"
       >
         <div
-          className={`relative w-full max-w-[420px] bg-[rgba(18,18,24,0.98)] border border-white/[0.1] p-10 mx-4 transition-transform duration-250 ease ${
+          className={`relative w-full max-w-[420px] bg-[rgba(18,18,24,0.98)] border border-white/[0.1] p-10 mx-4 transition-transform duration-200 ease ${
             activeModal === 'register' ? 'scale-100' : 'scale-95'
           }`}
         >

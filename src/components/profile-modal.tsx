@@ -326,7 +326,7 @@ export default function ProfileModal() {
       aria-label="Профиль"
     >
       <div
-        className={`relative w-full max-w-[480px] bg-[rgba(18,18,24,0.98)] border border-white/[0.1] mx-4 transition-transform duration-250 ${
+        className={`relative w-full max-w-[480px] bg-[rgba(18,18,24,0.98)] border border-white/[0.1] mx-4 transition-transform duration-200 ${
           isOpen ? 'scale-100' : 'scale-95'
         }`}
       >
