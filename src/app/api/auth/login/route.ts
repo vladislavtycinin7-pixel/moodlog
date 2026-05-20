@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { verifyPassword, createAuthCookie } from '@/lib/auth'
+import { verifyPassword, createSession, setSessionCookie } from '@/lib/auth'
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { username, password } = body
@@ -14,6 +14,7 @@ export async function POST(request: Request) {
       )
     }
 
+    // Find user
     const user = await db.user.findUnique({
       where: { username: typeof username === 'string' ? username.trim() : username },
     })
@@ -25,6 +26,7 @@ export async function POST(request: Request) {
       )
     }
 
+    // Verify password using Bun's built-in crypto
     const isValid = await verifyPassword(password, user.password)
 
     if (!isValid) {
@@ -34,14 +36,14 @@ export async function POST(request: Request) {
       )
     }
 
-    const response = NextResponse.json({
+    // Create session and set cookie
+    const token = createSession(user.id)
+    await setSessionCookie(token)
+
+    return NextResponse.json({
       success: true,
       user: { id: user.id, username: user.username },
     })
-
-    response.headers.set('Set-Cookie', createAuthCookie(user.id))
-
-    return response
   } catch {
     return NextResponse.json(
       { success: false, message: 'Ошибка при входе' },

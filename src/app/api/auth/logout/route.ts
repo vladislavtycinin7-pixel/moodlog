@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server'
-import { clearAuthCookie } from '@/lib/auth'
+import { deleteSessionCookie } from '@/lib/auth'
 
 export async function POST() {
-  const response = NextResponse.json({ success: true })
-  response.headers.set('Set-Cookie', clearAuthCookie())
-  return response
+  try {
+    await deleteSessionCookie()
+    return NextResponse.json({ success: true })
+  } catch {
+    return NextResponse.json(
+      { success: false, message: 'Ошибка при выходе' },
+      { status: 500 }
+    )
+  }
 }

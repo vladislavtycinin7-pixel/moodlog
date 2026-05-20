@@ -1,39 +1,110 @@
 import { db } from '@/lib/db'
+import { cookies } from 'next/headers'
 
-const encoder = new TextEncoder()
+const SESSION_COOKIE_NAME = 'moodlog-session'
+const SESSION_MAX_AGE = 60 * 60 * 24 * 7 // 7 days in seconds
 
-export async function hashPassword(password: string, salt?: string): Promise<string> {
-  const s = salt || crypto.randomUUID()
-  const data = encoder.encode(s + password)
-  const hash = await crypto.subtle.digest('SHA-256', data)
-  return `${s}:${Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('')}`
+/**
+ * Hash a password using Bun's built-in crypto
+ */
+export async function hashPassword(password: string): Promise<string> {
+  return Bun.password.hash(password)
 }
 
-export async function verifyPassword(password: string, stored: string): Promise<boolean> {
-  const [salt] = stored.split(':')
-  const hash = await hashPassword(password, salt)
-  return hash === stored
+/**
+ * Verify a password against its hash using Bun's built-in crypto
+ */
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  return Bun.password.verify(password, hash)
 }
 
-export async function getAuthUser(request: Request) {
-  const cookieHeader = request.headers.get('cookie') || ''
-  const match = cookieHeader.match(/moodlog_user_id=([^;]+)/)
-  if (!match) return null
+/**
+ * Create a JWT-like session token (base64 encoded JSON with userId + expiry)
+ */
+export function createSession(userId: string): string {
+  const payload = {
+    userId,
+    exp: Date.now() + SESSION_MAX_AGE * 1000,
+  }
+  const json = JSON.stringify(payload)
+  const token = Buffer.from(json).toString('base64')
+  return token
+}
 
-  const userId = decodeURIComponent(match[1])
-  const user = await db.user.findUnique({
-    where: { id: userId },
-    select: { id: true, username: true, createdAt: true },
+/**
+ * Decode and verify a session token, return null if expired/invalid
+ */
+export function verifySession(token: string): { userId: string } | null {
+  try {
+    const json = Buffer.from(token, 'base64').toString('utf-8')
+    const payload = JSON.parse(json) as { userId: string; exp: number }
+
+    if (!payload.userId || !payload.exp) {
+      return null
+    }
+
+    if (Date.now() > payload.exp) {
+      return null
+    }
+
+    return { userId: payload.userId }
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Read cookie from next/headers, verify session, fetch user from DB
+ */
+export async function getSessionUser(): Promise<{ id: string; username: string } | null> {
+  try {
+    const cookieStore = await cookies()
+    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value
+
+    if (!token) {
+      return null
+    }
+
+    const session = verifySession(token)
+    if (!session) {
+      return null
+    }
+
+    const user = await db.user.findUnique({
+      where: { id: session.userId },
+      select: { id: true, username: true },
+    })
+
+    return user
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Set the session cookie on the response
+ */
+export async function setSessionCookie(token: string): Promise<void> {
+  const cookieStore = await cookies()
+  cookieStore.set(SESSION_COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: SESSION_MAX_AGE,
+    path: '/',
   })
-
-  return user
 }
 
-export function createAuthCookie(userId: string): string {
-  const maxAge = 30 * 24 * 60 * 60 // 30 days
-  return `moodlog_user_id=${encodeURIComponent(userId)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${maxAge}`
-}
-
-export function clearAuthCookie(): string {
-  return 'moodlog_user_id=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0'
+/**
+ * Delete the session cookie
+ */
+export async function deleteSessionCookie(): Promise<void> {
+  const cookieStore = await cookies()
+  cookieStore.set(SESSION_COOKIE_NAME, '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 0,
+    path: '/',
+  })
 }

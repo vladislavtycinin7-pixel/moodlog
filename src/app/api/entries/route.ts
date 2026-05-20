@@ -1,12 +1,22 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getAuthUser } from '@/lib/auth'
+import { getSessionUser } from '@/lib/auth'
+
+const VALID_MOOD_LABELS = [
+  'Отличное',
+  'Хорошее',
+  'Нейтральное',
+  'Грустное',
+  'Тревожное',
+  'Раздраженное',
+  'Уставшее',
+]
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const user = await getAuthUser(request)
+    const user = await getSessionUser()
     if (!user) {
       return NextResponse.json(
         { success: false, message: 'Не авторизован' },
@@ -14,8 +24,24 @@ export async function GET(request: Request) {
       )
     }
 
+    const { searchParams } = new URL(request.url)
+    const month = searchParams.get('month') // e.g. "2026-05"
+
+    const where: { userId: string; date?: { gte: string; lt: string } } = {
+      userId: user.id,
+    }
+
+    // If month param provided, filter entries for that month
+    if (month && /^\d{4}-\d{2}$/.test(month)) {
+      const startDate = `${month}-01`
+      // Calculate next month for range filter
+      const [year, mon] = month.split('-').map(Number)
+      const nextMonth = mon === 12 ? `${year + 1}-01` : `${year}-${String(mon + 1).padStart(2, '0')}`
+      where.date = { gte: startDate, lt: `${nextMonth}-01` }
+    }
+
     const entries = await db.moodEntry.findMany({
-      where: { userId: user.id },
+      where,
       orderBy: { date: 'desc' },
     })
 
@@ -28,9 +54,9 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const user = await getAuthUser(request)
+    const user = await getSessionUser()
     if (!user) {
       return NextResponse.json(
         { success: false, message: 'Не авторизован' },
@@ -51,7 +77,7 @@ export async function POST(request: Request) {
       badThing,
     } = body
 
-    // Validate date
+    // Validate date format
     if (!date || !DATE_REGEX.test(date)) {
       return NextResponse.json(
         { success: false, message: 'Неверный формат даты (ожидается YYYY-MM-DD)' },
@@ -59,7 +85,7 @@ export async function POST(request: Request) {
       )
     }
 
-    // Validate moodScore
+    // Validate moodScore: 1-10
     if (
       moodScore === undefined ||
       moodScore === null ||
@@ -73,15 +99,15 @@ export async function POST(request: Request) {
       )
     }
 
-    // Validate moodLabel
-    if (!moodLabel || typeof moodLabel !== 'string') {
+    // Validate moodLabel in valid set
+    if (!moodLabel || typeof moodLabel !== 'string' || !VALID_MOOD_LABELS.includes(moodLabel)) {
       return NextResponse.json(
-        { success: false, message: 'Укажите настроение' },
+        { success: false, message: `Настроение должно быть одним из: ${VALID_MOOD_LABELS.join(', ')}` },
         { status: 400 }
       )
     }
 
-    // Check for duplicate date
+    // Check no existing entry for this date+user (unique constraint)
     const existing = await db.moodEntry.findUnique({
       where: { userId_date: { userId: user.id, date } },
     })

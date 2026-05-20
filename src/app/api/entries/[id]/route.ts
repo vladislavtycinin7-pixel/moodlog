@@ -1,15 +1,25 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getAuthUser } from '@/lib/auth'
+import { getSessionUser } from '@/lib/auth'
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 
+const VALID_MOOD_LABELS = [
+  'Отличное',
+  'Хорошее',
+  'Нейтральное',
+  'Грустное',
+  'Тревожное',
+  'Раздраженное',
+  'Уставшее',
+]
+
 export async function GET(
-  request: Request,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getAuthUser(request)
+    const user = await getSessionUser()
     if (!user) {
       return NextResponse.json(
         { success: false, message: 'Не авторизован' },
@@ -40,11 +50,11 @@ export async function GET(
 }
 
 export async function PUT(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getAuthUser(request)
+    const user = await getSessionUser()
     if (!user) {
       return NextResponse.json(
         { success: false, message: 'Не авторизован' },
@@ -97,6 +107,14 @@ export async function PUT(
       )
     }
 
+    // Validate moodLabel if provided
+    if (moodLabel !== undefined && (typeof moodLabel !== 'string' || !VALID_MOOD_LABELS.includes(moodLabel))) {
+      return NextResponse.json(
+        { success: false, message: `Настроение должно быть одним из: ${VALID_MOOD_LABELS.join(', ')}` },
+        { status: 400 }
+      )
+    }
+
     // Check for duplicate date if date is being changed
     if (date && date !== existing.date) {
       const duplicate = await db.moodEntry.findUnique({
@@ -135,11 +153,11 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: Request,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getAuthUser(request)
+    const user = await getSessionUser()
     if (!user) {
       return NextResponse.json(
         { success: false, message: 'Не авторизован' },

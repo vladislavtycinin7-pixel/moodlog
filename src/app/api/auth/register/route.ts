@@ -1,19 +1,21 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { hashPassword, createAuthCookie } from '@/lib/auth'
+import { hashPassword, createSession, setSessionCookie } from '@/lib/auth'
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { username, password } = body
+    const { username, password, confirmPassword } = body
 
-    if (!username || typeof username !== 'string' || username.trim().length < 3) {
+    // Validate username: 2-20 chars
+    if (!username || typeof username !== 'string' || username.trim().length < 2 || username.trim().length > 20) {
       return NextResponse.json(
-        { success: false, message: 'Имя пользователя должно содержать минимум 3 символа' },
+        { success: false, message: 'Имя пользователя должно содержать от 2 до 20 символов' },
         { status: 400 }
       )
     }
 
+    // Validate password: min 6 chars
     if (!password || typeof password !== 'string' || password.length < 6) {
       return NextResponse.json(
         { success: false, message: 'Пароль должен содержать минимум 6 символов' },
@@ -21,6 +23,15 @@ export async function POST(request: Request) {
       )
     }
 
+    // Validate passwords match
+    if (password !== confirmPassword) {
+      return NextResponse.json(
+        { success: false, message: 'Пароли не совпадают' },
+        { status: 400 }
+      )
+    }
+
+    // Check username uniqueness
     const existingUser = await db.user.findUnique({
       where: { username: username.trim() },
     })
@@ -32,8 +43,10 @@ export async function POST(request: Request) {
       )
     }
 
+    // Hash password using Bun's built-in crypto
     const hashedPassword = await hashPassword(password)
 
+    // Create user in DB
     const user = await db.user.create({
       data: {
         username: username.trim(),
@@ -42,14 +55,14 @@ export async function POST(request: Request) {
       select: { id: true, username: true },
     })
 
-    const response = NextResponse.json({
+    // Create session and set cookie
+    const token = createSession(user.id)
+    await setSessionCookie(token)
+
+    return NextResponse.json({
       success: true,
       user: { id: user.id, username: user.username },
     })
-
-    response.headers.set('Set-Cookie', createAuthCookie(user.id))
-
-    return response
   } catch {
     return NextResponse.json(
       { success: false, message: 'Ошибка при регистрации' },
