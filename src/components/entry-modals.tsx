@@ -95,12 +95,12 @@ function MoodSlider({
           onChange={(e) => onChange(Number(e.target.value))}
           className="range-slider w-full appearance-none bg-transparent cursor-pointer
             [&::-webkit-slider-runnable-track]:h-2 [&::-webkit-slider-runnable-track]:bg-[#2b2a33] [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:border-none
-            [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:-mt-2 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-[0_0_0_4px_#c56fff_inset] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-shadow [&::-webkit-slider-thumb]:duration-300
-            [&::-webkit-slider-thumb]:hover:shadow-[0_0_0_8px_#c56fff_inset]
-            [&::-webkit-slider-thumb]:active:shadow-[0_0_0_20px_#c56fff_inset]
+            [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:-mt-2 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-[0_0_0_4px_#a855f7_inset] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-shadow [&::-webkit-slider-thumb]:duration-300
+            [&::-webkit-slider-thumb]:hover:shadow-[0_0_0_8px_#a855f7_inset]
+            [&::-webkit-slider-thumb]:active:shadow-[0_0_0_20px_#a855f7_inset]
             [&::-moz-range-track]:h-2 [&::-moz-range-track]:bg-[#2b2a33] [&::-moz-range-track]:rounded-full [&::-moz-range-track]:border-none
-            [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:shadow-[0_0_0_4px_#c56fff_inset] [&::-moz-range-thumb]:cursor-pointer
-            [&::-moz-range-progress]:h-2 [&::-moz-range-progress]:rounded-full [&::-moz-range-progress]:bg-[#c56fff]
+            [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:shadow-[0_0_0_4px_#a855f7_inset] [&::-moz-range-thumb]:cursor-pointer
+            [&::-moz-range-progress]:h-2 [&::-moz-range-progress]:rounded-full [&::-moz-range-progress]:bg-purple-500
           "
         />
       </div>
@@ -122,16 +122,16 @@ function MoodSlider({
 
 // Shared input styles
 const inputCls =
-  'w-full py-2.5 bg-transparent border-none border-b border-white/25 text-white text-sm font-[inherit] transition-colors focus:outline-none focus:border-[#c56fff] placeholder:text-white/30 placeholder:text-[13px]'
+  'w-full py-2.5 bg-transparent border-none border-b border-white/25 text-white text-sm font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-white/30 placeholder:text-[13px]'
 
 const selectCls =
-  'w-full py-2.5 bg-transparent border-none border-b border-white/25 text-white text-sm font-[inherit] transition-colors focus:outline-none focus:border-[#c56fff] cursor-pointer [&>option]:bg-[#1a1a24]'
+  'w-full py-2.5 bg-transparent border-none border-b border-white/25 text-white text-sm font-[inherit] transition-colors focus:outline-none focus:border-purple-400 cursor-pointer [&>option]:bg-[#1a1a24]'
 
 const textareaCls =
-  'w-full py-2.5 bg-transparent border-none border-b border-white/25 text-white text-sm font-[inherit] transition-colors focus:outline-none focus:border-[#c56fff] placeholder:text-white/30 placeholder:text-[13px] resize-vertical min-h-[70px]'
+  'w-full py-2.5 bg-transparent border-none border-b border-white/25 text-white text-sm font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-white/30 placeholder:text-[13px] resize-vertical min-h-[70px]'
 
 const btnPrimary =
-  'py-2.5 px-7 text-sm font-medium cursor-pointer bg-[#c56fff] text-white hover:bg-purple-500 transition-colors border-none'
+  'py-2.5 px-7 text-sm font-medium cursor-pointer bg-purple-500 text-white hover:bg-purple-600 transition-colors border-none'
 
 const btnSecondary =
   'py-2.5 px-7 text-sm font-medium cursor-pointer bg-transparent border border-white/30 text-white/80 hover:border-white/50 hover:text-white transition-colors'

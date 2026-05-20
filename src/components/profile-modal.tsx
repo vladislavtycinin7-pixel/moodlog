@@ -406,7 +406,7 @@ export default function ProfileModal() {
               <button
                 type="submit"
                 disabled={nickLoading}
-                className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-[#9333ea] disabled:opacity-60 disabled:cursor-not-allowed mt-6"
+                className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed mt-6"
               >
                 {nickLoading ? 'Сохранение...' : 'Сохранить никнейм'}
               </button>
@@ -445,7 +445,7 @@ export default function ProfileModal() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={avatarLoading}
-                  className="w-full py-3.5 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-[#9333ea] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-3.5 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   <Upload size={16} />
                   {avatarLoading ? 'Загрузка...' : 'Загрузить с устройства'}
@@ -594,7 +594,7 @@ export default function ProfileModal() {
               <button
                 type="submit"
                 disabled={pwLoading}
-                className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-[#9333ea] disabled:opacity-60 disabled:cursor-not-allowed mt-5"
+                className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed mt-5"
               >
                 {pwLoading ? 'Сохранение...' : 'Изменить пароль'}
               </button>

@@ -244,7 +244,7 @@ export default function AuthModals() {
             <button
               type="submit"
               disabled={loginLoading}
-              className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-[#9333ea] disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {loginLoading ? 'Вход...' : 'Войти'}
             </button>
@@ -369,7 +369,7 @@ export default function AuthModals() {
             <button
               type="submit"
               disabled={regLoading}
-              className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-[#9333ea] disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {regLoading ? 'Регистрация...' : 'Зарегистрироваться'}
             </button>

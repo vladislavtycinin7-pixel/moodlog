@@ -118,7 +118,7 @@ export default function Home() {
 
             <button
               onClick={() => { setPendingEntryDate(null); setActiveModal('add') }}
-              className="flex items-center gap-2 px-5 py-2.5 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-[#9333ea]"
+              className="flex items-center gap-2 px-5 py-2.5 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600"
             >
               <Plus size={18} />
               Добавить запись
