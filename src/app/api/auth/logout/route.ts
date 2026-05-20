@@ -1,15 +1,11 @@
 import { NextResponse } from 'next/server'
+import { buildDeleteCookieHeader } from '@/lib/auth'
 
 export async function POST() {
   try {
     const response = NextResponse.json({ success: true })
-
-    // Clear session cookie directly on response
-    response.headers.set(
-      'Set-Cookie',
-      'moodlog-session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; HttpOnly; SameSite=Lax'
-    )
-
+    // Clear session cookie
+    response.headers.set('Set-Cookie', buildDeleteCookieHeader())
     return response
   } catch {
     return NextResponse.json(

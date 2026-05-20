@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Eye, EyeOff, User, ImagePlus, Lock } from 'lucide-react'
-import { useAppStore } from '@/lib/store'
+import { useAppStore, getAuthHeaders } from '@/lib/store'
 import { toast } from 'sonner'
 
 type Tab = 'nickname' | 'avatar' | 'password'
@@ -95,7 +95,7 @@ export default function ProfileModal() {
     try {
       const res = await fetch('/api/profile/username', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ username: newUsername.trim() }),
       })
       const data = await res.json()
@@ -122,7 +122,7 @@ export default function ProfileModal() {
     try {
       const res = await fetch('/api/profile/avatar', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ avatarUrl: avatarUrl.trim() || null }),
       })
       const data = await res.json()
@@ -146,7 +146,7 @@ export default function ProfileModal() {
     try {
       const res = await fetch('/api/profile/avatar', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ avatarUrl: null }),
       })
       const data = await res.json()
@@ -185,7 +185,7 @@ export default function ProfileModal() {
     try {
       const res = await fetch('/api/profile/password', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           currentPassword: currentPw,
           newPassword: newPw,

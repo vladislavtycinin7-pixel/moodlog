@@ -61,12 +61,26 @@ export function verifySession(token: string): { userId: string } | null {
 }
 
 /**
- * Read cookie from next/headers, verify session, fetch user from DB
+ * Extract token from request (Authorization header or cookie) and verify session.
+ * Returns the user object if valid, null otherwise.
  */
-export async function getSessionUser(): Promise<{ id: string; username: string; avatarUrl: string | null } | null> {
+export async function getSessionUser(request?: Request): Promise<{ id: string; username: string; avatarUrl: string | null } | null> {
   try {
-    const cookieStore = await cookies()
-    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value
+    let token: string | null = null
+
+    // 1) Try Authorization: Bearer <token> header first (most reliable)
+    if (request) {
+      const authHeader = request.headers.get('authorization')
+      if (authHeader?.startsWith('Bearer ')) {
+        token = authHeader.slice(7)
+      }
+    }
+
+    // 2) Fall back to cookie
+    if (!token) {
+      const cookieStore = await cookies()
+      token = cookieStore.get(SESSION_COOKIE_NAME)?.value || null
+    }
 
     if (!token) {
       return null
@@ -90,20 +104,6 @@ export async function getSessionUser(): Promise<{ id: string; username: string; 
 }
 
 /**
- * Set the session cookie on the response
- */
-export async function setSessionCookie(token: string): Promise<void> {
-  const cookieStore = await cookies()
-  cookieStore.set(SESSION_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: SESSION_MAX_AGE,
-    path: '/',
-  })
-}
-
-/**
  * Build Set-Cookie header value for manual response attachment
  */
 export function buildSessionCookieHeader(token: string): string {
@@ -117,15 +117,8 @@ export function buildSessionCookieHeader(token: string): string {
 }
 
 /**
- * Delete the session cookie
+ * Delete the session cookie via Set-Cookie header
  */
-export async function deleteSessionCookie(): Promise<void> {
-  const cookieStore = await cookies()
-  cookieStore.set(SESSION_COOKIE_NAME, '', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 0,
-    path: '/',
-  })
+export function buildDeleteCookieHeader(): string {
+  return `${SESSION_COOKIE_NAME}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; HttpOnly; SameSite=Lax`
 }

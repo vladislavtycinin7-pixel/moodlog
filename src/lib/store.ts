@@ -34,6 +34,34 @@ export type ModalType = 'add' | 'edit' | 'view' | 'login' | 'register' | 'delete
 
 export type MainTab = 'calendar' | 'stats'
 
+// ─── Token helpers (localStorage) ─── //
+const TOKEN_KEY = 'moodlog_token'
+
+function saveToken(token: string) {
+  try { localStorage.setItem(TOKEN_KEY, token) } catch { /* noop */ }
+}
+
+function loadToken(): string | null {
+  try { return localStorage.getItem(TOKEN_KEY) } catch { return null }
+}
+
+function clearToken() {
+  try { localStorage.removeItem(TOKEN_KEY) } catch { /* noop */ }
+}
+
+/**
+ * Get Authorization headers for API fetch calls.
+ * Always includes Content-Type: application/json and, if a token exists, Authorization: Bearer.
+ */
+export function getAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  const token = loadToken()
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  return headers
+}
+
 interface AppState {
   // Auth
   user: { id: string; username: string; avatarUrl?: string | null } | null
@@ -76,7 +104,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   setUser: (user) => set({ user, isAuthenticated: !!user, isAuthLoading: false }),
   setAuthLoading: (loading) => set({ isAuthLoading: loading }),
   logout: async () => {
-    await fetch('/api/auth/logout', { method: 'POST' })
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+      })
+    } catch { /* noop */ }
+    clearToken()
     set({ user: null, isAuthenticated: false, entries: [], stats: null })
   },
 
@@ -86,10 +120,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   fetchEntries: async (month) => {
     try {
       const params = month ? `?month=${month}` : ''
-      const res = await fetch(`/api/entries${params}`)
+      const res = await fetch(`/api/entries${params}`, { headers: getAuthHeaders() })
       if (res.ok) {
         const data = await res.json()
-        // API returns { success: true, entries: [...] }
         set({ entries: data.entries ?? data })
       }
     } catch (e) {
@@ -100,12 +133,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       const res = await fetch('/api/entries', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(data),
       })
       if (res.ok) {
         const result = await res.json()
-        // API returns { success: true, entry: {...} }
         const entry = result.entry ?? result
         set((s) => ({ entries: [entry, ...s.entries] }))
         return true
@@ -119,12 +151,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       const res = await fetch(`/api/entries/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(data),
       })
       if (res.ok) {
         const result = await res.json()
-        // API returns { success: true, entry: {...} }
         const updated = result.entry ?? result
         set((s) => ({
           entries: s.entries.map((e) => (e.id === id ? { ...e, ...updated } : e)),
@@ -138,7 +169,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   deleteEntry: async (id) => {
     try {
-      const res = await fetch(`/api/entries/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/entries/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      })
       if (res.ok) {
         set((s) => ({
           entries: s.entries.filter((e) => e.id !== id),
@@ -158,10 +192,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   fetchStats: async (month) => {
     try {
       const params = month ? `?month=${month}` : ''
-      const res = await fetch(`/api/stats${params}`)
+      const res = await fetch(`/api/stats${params}`, { headers: getAuthHeaders() })
       if (res.ok) {
         const data = await res.json()
-        // API returns stats directly (no .success wrapper)
         set({ stats: data })
       }
     } catch (e) {
@@ -181,3 +214,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   activeTab: 'calendar',
   setActiveTab: (tab) => set({ activeTab: tab }),
 }))
+
+// Re-export token helpers for use in components
+export { saveToken, loadToken, clearToken }

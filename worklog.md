@@ -100,3 +100,29 @@ Stage Summary:
 - Navbar is minimal: logo + add entry + settings
 - Settings menu: profile / language / theme / logout (no stats)
 - Tab switcher is visually integrated with the dark theme
+
+---
+Task ID: 8
+Agent: main
+Task: Fix auth: cookie not sent with API requests in sandbox environment (password change returns 401)
+
+Work Log:
+- Diagnosed root cause: cookies set via Set-Cookie header are not persisted by the browser in sandbox/iframe environment
+- User appeared logged in only because Zustand stored user data client-side (no actual cookie)
+- Implemented Authorization header-based auth as primary mechanism, with cookie as fallback
+- Updated auth.ts: getSessionUser() now accepts optional Request param, checks Authorization: Bearer header first, then falls back to cookie
+- Updated store.ts: added saveToken/loadToken/clearToken helpers for localStorage, added getAuthHeaders() utility
+- Updated login/register routes: now return `token` in response body for client-side storage
+- Updated auth-modals.tsx: save token to localStorage after successful login/register
+- Updated profile-modal.tsx: all fetch calls now use getAuthHeaders() for Authorization header
+- Updated page.tsx: session check sends stored token via Authorization header
+- Updated ALL API routes to pass request object to getSessionUser(): entries, entries/[id], entries/stats, stats, profile/password, profile/username, profile/avatar, auth/session, auth/me
+- Fixed auth/me route: replaced removed getAuthUser with getSessionUser(request)
+- Removed dead code: setSessionCookie, deleteSessionCookie functions from auth.ts (replaced with buildSessionCookieHeader, buildDeleteCookieHeader)
+- Lint passes with 0 errors
+
+Stage Summary:
+- Auth now works via Authorization: Bearer <token> header (stored in localStorage)
+- Cookie is still set as fallback, but auth no longer depends on it
+- All API routes updated to read token from Authorization header first
+- Password change should now work correctly in sandbox environment

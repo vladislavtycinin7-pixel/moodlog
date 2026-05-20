@@ -4,7 +4,7 @@ import { getSessionUser } from '@/lib/auth'
 
 export async function PUT(request: NextRequest) {
   try {
-    const sessionUser = await getSessionUser()
+    const sessionUser = await getSessionUser(request)
     if (!sessionUser) {
       return NextResponse.json(
         { success: false, message: 'Необходима авторизация' },

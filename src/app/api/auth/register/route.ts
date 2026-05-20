@@ -61,9 +61,10 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({
       success: true,
       user: { id: user.id, username: user.username, avatarUrl: user.avatarUrl },
+      token, // Client stores this in localStorage for Authorization header
     })
 
-    // Set cookie directly on response headers
+    // Also set cookie as fallback
     response.headers.set('Set-Cookie', buildSessionCookieHeader(token))
 
     return response

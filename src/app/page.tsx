@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useAppStore, MainTab } from '@/lib/store'
+import { useAppStore, MainTab, loadToken } from '@/lib/store'
 import { CalendarDays, BarChart3, Plus } from 'lucide-react'
 import Navbar from '@/components/navbar'
 import LandingPage from '@/components/landing-page'
@@ -30,11 +30,16 @@ export default function Home() {
     setActiveModal,
   } = useAppStore()
 
-  // Check session on mount
+  // Check session on mount — use Authorization header with stored token
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const res = await fetch('/api/auth/session')
+        const token = loadToken()
+        const headers: Record<string, string> = {}
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`
+        }
+        const res = await fetch('/api/auth/session', { headers })
         if (res.ok) {
           const data = await res.json()
           if (data.authenticated && data.user) {

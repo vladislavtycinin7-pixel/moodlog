@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
-import { useAppStore } from '@/lib/store'
+import { useAppStore, saveToken } from '@/lib/store'
 
 export default function AuthModals() {
   const { activeModal, setActiveModal, setUser } = useAppStore()
@@ -91,6 +91,10 @@ export default function AuthModals() {
       const data = await res.json()
 
       if (data.success && data.user) {
+        // Store token in localStorage for subsequent API calls
+        if (data.token) {
+          saveToken(data.token)
+        }
         setUser(data.user)
         setActiveModal(null)
       } else {
@@ -132,6 +136,10 @@ export default function AuthModals() {
       const data = await res.json()
 
       if (data.success && data.user) {
+        // Store token in localStorage for subsequent API calls
+        if (data.token) {
+          saveToken(data.token)
+        }
         setUser(data.user)
         setActiveModal(null)
       } else {

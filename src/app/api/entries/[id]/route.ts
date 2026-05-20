@@ -19,7 +19,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getSessionUser()
+    const user = await getSessionUser(_request)
     if (!user) {
       return NextResponse.json(
         { success: false, message: 'Не авторизован' },
@@ -54,7 +54,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getSessionUser()
+    const user = await getSessionUser(request)
     if (!user) {
       return NextResponse.json(
         { success: false, message: 'Не авторизован' },
@@ -157,7 +157,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getSessionUser()
+    const user = await getSessionUser(_request)
     if (!user) {
       return NextResponse.json(
         { success: false, message: 'Не авторизован' },
