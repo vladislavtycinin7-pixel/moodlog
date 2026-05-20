@@ -1,14 +1,53 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { Eye, EyeOff, User, ImagePlus, Lock } from 'lucide-react'
-import { useAppStore, getAuthHeaders } from '@/lib/store'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { Eye, EyeOff, User, ImagePlus, Lock, Upload } from 'lucide-react'
+import { useAppStore, getAuthHeaders, loadToken } from '@/lib/store'
 import { toast } from 'sonner'
 
 type Tab = 'nickname' | 'avatar' | 'password'
 
 const inputCls =
   'w-full py-3 bg-transparent border-none border-b border-white/20 text-white text-[15px] font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-white/30'
+
+/**
+ * Resize an image file to fit within maxDim x maxDim on the client side.
+ * Returns a Blob of the resized image in the same format.
+ */
+function resizeImage(file: File, maxDim = 512): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      let { width, height } = img
+      if (width <= maxDim && height <= maxDim) {
+        // No resize needed, just return original as blob
+        resolve(file)
+        return
+      }
+      const ratio = Math.min(maxDim / width, maxDim / height)
+      width = Math.round(width * ratio)
+      height = Math.round(height * ratio)
+
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      if (!ctx) { reject(new Error('Canvas not supported')); return }
+      ctx.drawImage(img, 0, 0, width, height)
+
+      canvas.toBlob(
+        (blob) => {
+          if (blob) resolve(blob)
+          else reject(new Error('Failed to create blob'))
+        },
+        file.type || 'image/jpeg',
+        0.85 // quality for lossy formats
+      )
+    }
+    img.onerror = () => reject(new Error('Failed to load image'))
+    img.src = URL.createObjectURL(file)
+  })
+}
 
 export default function ProfileModal() {
   const { activeModal, setActiveModal, user, setUser } = useAppStore()
@@ -25,6 +64,7 @@ export default function ProfileModal() {
   const [avatarUrl, setAvatarUrl] = useState('')
   const [avatarLoading, setAvatarLoading] = useState(false)
   const [avatarError, setAvatarError] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // ─── Password state ───
   const [currentPw, setCurrentPw] = useState('')
@@ -113,7 +153,65 @@ export default function ProfileModal() {
     }
   }
 
-  // ─── Avatar submit ───
+  // ─── Avatar: upload from device ───
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      setAvatarError('Поддерживаются только JPEG, PNG, GIF, WebP')
+      return
+    }
+
+    // Validate size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setAvatarError('Файл слишком большой (максимум 5MB)')
+      return
+    }
+
+    setAvatarError('')
+    setAvatarLoading(true)
+
+    try {
+      // Resize on client side
+      const resizedBlob = await resizeImage(file, 512)
+      const resizedFile = new File([resizedBlob], file.name, { type: file.type })
+
+      // Upload via multipart form data
+      const formData = new FormData()
+      formData.append('avatar', resizedFile)
+
+      const token = loadToken()
+      const headers: Record<string, string> = {}
+      if (token) headers['Authorization'] = `Bearer ${token}`
+      // Don't set Content-Type for FormData — browser sets it with boundary
+
+      const res = await fetch('/api/upload/avatars', {
+        method: 'POST',
+        headers,
+        body: formData,
+      })
+      const data = await res.json()
+
+      if (data.success && data.user) {
+        setUser(data.user)
+        setAvatarUrl(data.avatarUrl || '')
+        toast.success('Аватар загружен!')
+      } else {
+        setAvatarError(data.message || 'Ошибка при загрузке')
+      }
+    } catch {
+      setAvatarError('Ошибка при загрузке файла')
+    } finally {
+      setAvatarLoading(false)
+      // Reset file input so the same file can be selected again
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  // ─── Avatar: save URL ───
   const handleAvatarSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setAvatarError('')
@@ -317,7 +415,7 @@ export default function ProfileModal() {
 
           {/* ═══ AVATAR TAB ═══ */}
           {tab === 'avatar' && (
-            <form onSubmit={handleAvatarSubmit}>
+            <div>
               {/* Preview */}
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-14 h-14 shrink-0 overflow-hidden">
@@ -341,44 +439,77 @@ export default function ProfileModal() {
                 </div>
               </div>
 
-              <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">
-                URL аватара
-              </label>
-              <input
-                type="url"
-                value={avatarUrl}
-                onChange={(e) => setAvatarUrl(e.target.value)}
-                className={inputCls}
-                placeholder="https://example.com/avatar.jpg"
-              />
-              <p className="text-[11px] text-white/30 mt-2">
-                Вставьте ссылку на изображение
-              </p>
-
-              {avatarError && (
-                <p className="text-red-400 text-xs mt-3">{avatarError}</p>
-              )}
-
-              <div className="flex gap-3 mt-6">
+              {/* Upload from device */}
+              <div className="mb-6">
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
                   disabled={avatarLoading}
-                  className="flex-1 py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-[#9333ea] disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full py-3.5 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-[#9333ea] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {avatarLoading ? 'Сохранение...' : 'Сохранить'}
+                  <Upload size={16} />
+                  {avatarLoading ? 'Загрузка...' : 'Загрузить с устройства'}
                 </button>
-                {user?.avatarUrl && (
-                  <button
-                    type="button"
-                    onClick={handleRemoveAvatar}
-                    disabled={avatarLoading}
-                    className="py-3 px-5 bg-transparent border border-white/20 text-white/70 text-sm cursor-pointer transition-colors hover:border-white/40 hover:text-white disabled:opacity-60"
-                  >
-                    Удалить
-                  </button>
-                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                />
+                <p className="text-[11px] text-white/30 mt-2 text-center">
+                  JPEG, PNG, GIF или WebP — до 5MB
+                </p>
               </div>
-            </form>
+
+              {/* Divider */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex-1 h-px bg-white/10" />
+                <span className="text-[11px] text-white/30 uppercase tracking-wider">или</span>
+                <div className="flex-1 h-px bg-white/10" />
+              </div>
+
+              {/* URL input */}
+              <form onSubmit={handleAvatarSubmit}>
+                <label className="block text-[12px] font-medium text-white/60 mb-2 uppercase tracking-[0.3px]">
+                  URL аватара
+                </label>
+                <input
+                  type="url"
+                  value={avatarUrl}
+                  onChange={(e) => setAvatarUrl(e.target.value)}
+                  className={inputCls}
+                  placeholder="https://example.com/avatar.jpg"
+                />
+                <p className="text-[11px] text-white/30 mt-2">
+                  Вставьте ссылку на изображение
+                </p>
+
+                {avatarError && (
+                  <p className="text-red-400 text-xs mt-3">{avatarError}</p>
+                )}
+
+                <div className="flex gap-3 mt-6">
+                  <button
+                    type="submit"
+                    disabled={avatarLoading}
+                    className="flex-1 py-3 bg-transparent border border-purple-500 text-purple-400 text-sm font-medium cursor-pointer transition-colors hover:bg-purple-500/10 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    Сохранить URL
+                  </button>
+                  {user?.avatarUrl && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveAvatar}
+                      disabled={avatarLoading}
+                      className="py-3 px-5 bg-transparent border border-white/20 text-white/70 text-sm cursor-pointer transition-colors hover:border-white/40 hover:text-white disabled:opacity-60"
+                    >
+                      Удалить
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
           )}
 
           {/* ═══ PASSWORD TAB ═══ */}

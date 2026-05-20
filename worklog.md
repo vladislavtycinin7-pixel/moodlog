@@ -126,3 +126,26 @@ Stage Summary:
 - Cookie is still set as fallback, but auth no longer depends on it
 - All API routes updated to read token from Authorization header first
 - Password change should now work correctly in sandbox environment
+
+---
+Task ID: 9
+Agent: main
+Task: Add file upload for avatar (upload from device instead of URL only)
+
+Work Log:
+- Created `/api/upload/avatars` POST route: accepts multipart/form-data, validates file type/size, saves to uploads/avatars/ directory, updates user in DB
+- Created `/api/upload/avatars/[filename]` GET route: serves uploaded avatar files with proper Content-Type and caching headers, with directory traversal protection
+- Updated profile-modal.tsx avatar tab with:
+  - "Загрузить с устройства" button (purple, prominent) — opens file picker for JPEG/PNG/GIF/WebP
+  - Client-side image resizing (resizeImage function): scales images to max 512px, quality 0.85
+  - File validation: type check + 5MB limit
+  - "или" divider between upload and URL options
+  - URL input preserved as alternative (with "Сохранить URL" button style changed to outline)
+  - Hidden file input ref for clean UX
+- Lint passes with 0 errors, dev server compiles successfully
+
+Stage Summary:
+- Users can now upload avatar directly from their device (phone/PC gallery)
+- Client-side resize ensures images are optimized (max 512px)
+- Server saves files to uploads/avatars/ with unique filenames
+- URL option remains as alternative for those who have a link
