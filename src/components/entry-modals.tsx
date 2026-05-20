@@ -177,7 +177,10 @@ function AddEntryModal() {
   // Reset form when opening
   useEffect(() => {
     if (isOpen) {
-      setDate(pendingEntryDate || today)
+      // pendingEntryDate is set by the calendar when clicking an empty day
+      // Read it from the store directly to avoid stale closure / re-trigger issues
+      const { pendingEntryDate: storedDate } = useAppStore.getState()
+      setDate(storedDate || today)
       setMoodScore(5)
       setMoodLabel('Хорошее')
       setSleepHours('')
@@ -188,7 +191,7 @@ function AddEntryModal() {
       // Clear pending date after using it
       setPendingEntryDate(null)
     }
-  }, [isOpen, today, pendingEntryDate, setPendingEntryDate])
+  }, [isOpen])
 
   // Auto-select label based on score
   useEffect(() => {

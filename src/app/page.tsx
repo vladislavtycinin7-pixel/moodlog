@@ -28,6 +28,7 @@ export default function Home() {
     activeTab,
     setActiveTab,
     setActiveModal,
+    setPendingEntryDate,
   } = useAppStore()
 
   // Check session on mount — use Authorization header with stored token
@@ -116,7 +117,7 @@ export default function Home() {
             </div>
 
             <button
-              onClick={() => setActiveModal('add')}
+              onClick={() => { setPendingEntryDate(null); setActiveModal('add') }}
               className="flex items-center gap-2 px-5 py-2.5 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-[#9333ea]"
             >
               <Plus size={18} />
