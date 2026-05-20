@@ -16,11 +16,6 @@ export default function Navbar() {
     setMobileOpen(false)
   }
 
-  const handleAddEntry = () => {
-    setActiveModal('add')
-    setMobileOpen(false)
-  }
-
   const handleLogin = () => {
     setActiveModal('login')
     setMobileOpen(false)
@@ -49,100 +44,86 @@ export default function Navbar() {
           MoodLog
         </span>
 
-        {/* Desktop nav links */}
-        <div className="hidden md:flex items-center gap-6">
-          {isAuthenticated ? (
+        {/* Desktop: guest auth buttons */}
+        {!isAuthenticated && (
+          <div className="hidden md:flex items-center gap-6">
             <span
               className="text-white/70 text-sm cursor-pointer hover:text-white transition-colors"
-              onClick={handleAddEntry}
+              onClick={handleLogin}
             >
-              + Добавить запись
+              Вход
             </span>
-          ) : (
-            <>
-              <span
-                className="text-white/70 text-sm cursor-pointer hover:text-white transition-colors"
-                onClick={handleLogin}
-              >
-                Вход
-              </span>
-              <span
-                className="text-white text-sm bg-white/10 px-5 py-2 cursor-pointer hover:bg-white/15 transition-colors"
-                onClick={handleRegister}
-              >
-                Регистрация
-              </span>
-            </>
-          )}
-        </div>
+            <span
+              className="text-white text-sm bg-white/10 px-5 py-2 cursor-pointer hover:bg-white/15 transition-colors"
+              onClick={handleRegister}
+            >
+              Регистрация
+            </span>
+          </div>
+        )}
 
         {/* Right side: hamburger (mobile) + settings */}
         <div className="flex items-center gap-2">
-          {/* Mobile hamburger */}
-          <button
-            className="md:hidden text-white/70 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-xl p-2"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-          >
-            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
+          {/* Mobile hamburger (guests only) */}
+          {!isAuthenticated && (
+            <button
+              className="md:hidden text-white/70 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-xl p-2"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            >
+              {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          )}
 
           {/* Settings gear */}
-          <button
-            className="text-white/70 hover:text-white hover:rotate-[30deg] transition-all duration-300 bg-transparent border-none cursor-pointer text-xl p-2"
-            style={{
-              transform: settingsOpen ? 'rotate(180deg)' : undefined,
-              transition: 'all 0.3s',
-            }}
-            onClick={toggleSettings}
-            aria-label="Settings"
-          >
-            <Settings size={22} />
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile dropdown menu */}
-      <div
-        className="md:hidden overflow-hidden transition-all duration-300 ease-in-out"
-        style={{
-          maxHeight: mobileOpen ? '300px' : '0px',
-          opacity: mobileOpen ? 1 : 0,
-        }}
-      >
-        <div
-          className="px-6 sm:px-12 py-4 flex flex-col gap-4"
-          style={{
-            background: 'rgba(10, 10, 15, 0.95)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-          }}
-        >
-          {isAuthenticated ? (
-            <span
-              className="text-white/70 text-sm cursor-pointer hover:text-white transition-colors py-1"
-              onClick={handleAddEntry}
+          {isAuthenticated && (
+            <button
+              className="text-white/70 hover:text-white hover:rotate-[30deg] transition-all duration-300 bg-transparent border-none cursor-pointer text-xl p-2"
+              style={{
+                transform: settingsOpen ? 'rotate(180deg)' : undefined,
+                transition: 'all 0.3s',
+              }}
+              onClick={toggleSettings}
+              aria-label="Settings"
             >
-              + Добавить запись
-            </span>
-          ) : (
-            <>
-              <span
-                className="text-white/70 text-sm cursor-pointer hover:text-white transition-colors py-1"
-                onClick={handleLogin}
-              >
-                Вход
-              </span>
-              <span
-                className="text-white text-sm bg-white/10 px-5 py-2 cursor-pointer hover:bg-white/15 transition-colors w-fit"
-                onClick={handleRegister}
-              >
-                Регистрация
-              </span>
-            </>
+              <Settings size={22} />
+            </button>
           )}
         </div>
       </div>
+
+      {/* Mobile dropdown menu (guests only) */}
+      {!isAuthenticated && (
+        <div
+          className="md:hidden overflow-hidden transition-all duration-300 ease-in-out"
+          style={{
+            maxHeight: mobileOpen ? '300px' : '0px',
+            opacity: mobileOpen ? 1 : 0,
+          }}
+        >
+          <div
+            className="px-6 sm:px-12 py-4 flex flex-col gap-4"
+            style={{
+              background: 'rgba(10, 10, 15, 0.95)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+            }}
+          >
+            <span
+              className="text-white/70 text-sm cursor-pointer hover:text-white transition-colors py-1"
+              onClick={handleLogin}
+            >
+              Вход
+            </span>
+            <span
+              className="text-white text-sm bg-white/10 px-5 py-2 cursor-pointer hover:bg-white/15 transition-colors w-fit"
+              onClick={handleRegister}
+            >
+              Регистрация
+            </span>
+          </div>
+        </div>
+      )}
     </nav>
   )
 }
