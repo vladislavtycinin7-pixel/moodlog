@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Статистика</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Анализ записей</h4>
+            </div>
+            <div class="card-body">
+                {% if entries %}
+                    <p>Всего записей: {{ entries|length }}</p>
+                    
+                    {% if entries|length > 0 %}
+                        {% set mood_scores = entries|map(attribute='mood_score')|list %}
+                        <p>Среднее настроение: {{ (mood_scores|sum / mood_scores|length)|round(1) }}/10</p>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">На главную</a>
+                {% else %}
+                    <div class="alert alert-info">
+                        Пока нет записей для статистики. <a href="{{ url_for('add_entry') }}">Добавьте запись</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
