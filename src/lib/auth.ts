@@ -69,13 +69,11 @@ export async function getSessionUser(): Promise<{ id: string; username: string; 
     const token = cookieStore.get(SESSION_COOKIE_NAME)?.value
 
     if (!token) {
-      console.error('[auth] getSessionUser: no cookie found')
       return null
     }
 
     const session = verifySession(token)
     if (!session) {
-      console.error('[auth] getSessionUser: token invalid or expired')
       return null
     }
 
@@ -85,13 +83,8 @@ export async function getSessionUser(): Promise<{ id: string; username: string; 
       select: { id: true, username: true, avatarUrl: true },
     })
 
-    if (!user) {
-      console.error('[auth] getSessionUser: user not found in DB, id=', session.userId)
-    }
-
     return user
-  } catch (err) {
-    console.error('[auth] getSessionUser error:', err)
+  } catch {
     return null
   }
 }
