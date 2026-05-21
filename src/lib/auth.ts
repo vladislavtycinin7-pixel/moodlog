@@ -1,10 +1,11 @@
-import { scryptSync, randomBytes, timingSafeEqual, createHmac } from 'crypto'
+import { pbkdf2Sync, randomBytes, timingSafeEqual, createHmac } from 'crypto'
 import { cookies } from 'next/headers'
 
 const SESSION_COOKIE_NAME = 'moodlog-session'
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7 // 7 days in seconds
-const KEY_LENGTH = 64
+const KEY_LENGTH = 32
 const SALT_LENGTH = 16
+const ITERATIONS = 100_000 // OWASP recommended minimum for PBKDF2-SHA256
 
 // HMAC secret for token signing — uses env var or a stable derived key
 function getHmacSecret(): string {
@@ -12,25 +13,25 @@ function getHmacSecret(): string {
   // Fallback: derive a stable secret from a fixed seed (dev only)
   // In production, SESSION_SECRET must be set
   console.warn('[auth] WARNING: SESSION_SECRET env var not set — using derived fallback. Set SESSION_SECRET in production!')
-  return scryptSync('moodlog-session-secret-fallback', 'moodlog-salt', 32).toString('hex')
+  return pbkdf2Sync('moodlog-session-secret-fallback', 'moodlog-salt', 100_000, 32, 'sha256').toString('hex')
 }
 
 /**
- * Hash a password using Node.js crypto (scrypt)
+ * Hash a password using PBKDF2-SHA256 (memory-efficient alternative to scrypt)
  */
 export async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(SALT_LENGTH).toString('hex')
-  const derivedKey = scryptSync(password, salt, KEY_LENGTH).toString('hex')
+  const derivedKey = pbkdf2Sync(password, salt, ITERATIONS, KEY_LENGTH, 'sha256').toString('hex')
   return `${salt}:${derivedKey}`
 }
 
 /**
- * Verify a password against its hash using Node.js crypto (scrypt)
+ * Verify a password against its hash using PBKDF2-SHA256
  */
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
   const [salt, storedKey] = hash.split(':')
   if (!salt || !storedKey) return false
-  const derivedKey = scryptSync(password, salt, KEY_LENGTH).toString('hex')
+  const derivedKey = pbkdf2Sync(password, salt, ITERATIONS, KEY_LENGTH, 'sha256').toString('hex')
   return timingSafeEqual(Buffer.from(derivedKey), Buffer.from(storedKey))
 }
 
