@@ -13,6 +13,9 @@ const VALID_MOOD_LABELS = [
 ]
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
+const MAX_TEXT_LENGTH = 2000
+const MAX_SLEEP_HOURS = 24
+const MIN_SLEEP_HOURS = 0
 
 export async function GET(request: NextRequest) {
   try {
@@ -105,6 +108,32 @@ export async function POST(request: NextRequest) {
         { success: false, message: `Настроение должно быть одним из: ${VALID_MOOD_LABELS.join(', ')}` },
         { status: 400 }
       )
+    }
+
+    // Validate text field lengths
+    const textFields: [string, string | undefined][] = [
+      ['Заметки', notes],
+      ['Что хорошего', goodThing],
+      ['Что плохого', badThing],
+    ]
+    for (const [name, value] of textFields) {
+      if (value && typeof value === 'string' && value.length > MAX_TEXT_LENGTH) {
+        return NextResponse.json(
+          { success: false, message: `${name}: максимум ${MAX_TEXT_LENGTH} символов` },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Validate sleepHours: 0-24
+    if (sleepHours != null) {
+      const sleep = Number(sleepHours)
+      if (isNaN(sleep) || sleep < MIN_SLEEP_HOURS || sleep > MAX_SLEEP_HOURS) {
+        return NextResponse.json(
+          { success: false, message: `Сон: от ${MIN_SLEEP_HOURS} до ${MAX_SLEEP_HOURS} часов` },
+          { status: 400 }
+        )
+      }
     }
 
     // Check no existing entry for this date+user (unique constraint)

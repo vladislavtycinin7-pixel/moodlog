@@ -3,6 +3,8 @@ import { db } from '@/lib/db'
 import { getSessionUser } from '@/lib/auth'
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
+const MAX_TEXT_LENGTH = 2000
+const MAX_SLEEP_HOURS = 24
 
 const VALID_MOOD_LABELS = [
   'Отличное',
@@ -113,6 +115,32 @@ export async function PUT(
         { success: false, message: `Настроение должно быть одним из: ${VALID_MOOD_LABELS.join(', ')}` },
         { status: 400 }
       )
+    }
+
+    // Validate text field lengths
+    const textFields: [string, string | undefined][] = [
+      ['Заметки', notes],
+      ['Что хорошего', goodThing],
+      ['Что плохого', badThing],
+    ]
+    for (const [name, value] of textFields) {
+      if (value && typeof value === 'string' && value.length > MAX_TEXT_LENGTH) {
+        return NextResponse.json(
+          { success: false, message: `${name}: максимум ${MAX_TEXT_LENGTH} символов` },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Validate sleepHours if provided
+    if (sleepHours != null) {
+      const sleep = Number(sleepHours)
+      if (isNaN(sleep) || sleep < 0 || sleep > MAX_SLEEP_HOURS) {
+        return NextResponse.json(
+          { success: false, message: `Сон: от 0 до ${MAX_SLEEP_HOURS} часов` },
+          { status: 400 }
+        )
+      }
     }
 
     // Check for duplicate date if date is being changed

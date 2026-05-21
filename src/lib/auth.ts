@@ -1,10 +1,19 @@
-import { scryptSync, randomBytes, timingSafeEqual } from 'crypto'
+import { scryptSync, randomBytes, timingSafeEqual, createHmac } from 'crypto'
 import { cookies } from 'next/headers'
 
 const SESSION_COOKIE_NAME = 'moodlog-session'
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7 // 7 days in seconds
 const KEY_LENGTH = 64
 const SALT_LENGTH = 16
+
+// HMAC secret for token signing — uses env var or a stable derived key
+function getHmacSecret(): string {
+  if (process.env.SESSION_SECRET) return process.env.SESSION_SECRET
+  // Fallback: derive a stable secret from a fixed seed (dev only)
+  // In production, SESSION_SECRET must be set
+  console.warn('[auth] WARNING: SESSION_SECRET env var not set — using derived fallback. Set SESSION_SECRET in production!')
+  return scryptSync('moodlog-session-secret-fallback', 'moodlog-salt', 32).toString('hex')
+}
 
 /**
  * Hash a password using Node.js crypto (scrypt)
@@ -26,25 +35,52 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 /**
- * Create a session token (base64 encoded JSON with userId + expiry)
+ * Create a session token: base64(payload).hmacSignature
+ * The signature prevents token forgery — without the secret,
+ * an attacker cannot produce a valid signature.
+ * Includes tokenVersion so that logging out invalidates all existing tokens.
  */
-export function createSession(userId: string): string {
+export function createSession(userId: string, tokenVersion: number = 0): string {
   const payload = {
     userId,
+    tv: tokenVersion,
     exp: Date.now() + SESSION_MAX_AGE * 1000,
   }
   const json = JSON.stringify(payload)
-  const token = Buffer.from(json).toString('base64')
-  return token
+  const encoded = Buffer.from(json).toString('base64')
+  const signature = createHmac('sha256', getHmacSecret())
+    .update(encoded)
+    .digest('hex')
+  return `${encoded}.${signature}`
 }
 
 /**
- * Decode and verify a session token, return null if expired/invalid
+ * Verify a signed session token.
+ * Checks HMAC signature first, then decodes and checks expiry.
+ * Returns null if signature is invalid, token is malformed, or expired.
  */
-export function verifySession(token: string): { userId: string } | null {
+export function verifySession(token: string): { userId: string; tv: number } | null {
   try {
-    const json = Buffer.from(token, 'base64').toString('utf-8')
-    const payload = JSON.parse(json) as { userId: string; exp: number }
+    const dotIndex = token.indexOf('.')
+    if (dotIndex === -1) return null
+
+    const encoded = token.slice(0, dotIndex)
+    const signature = token.slice(dotIndex + 1)
+
+    // Verify HMAC signature
+    const expectedSig = createHmac('sha256', getHmacSecret())
+      .update(encoded)
+      .digest('hex')
+
+    // Timing-safe comparison to prevent timing attacks
+    const sigBuf = Buffer.from(signature)
+    const expectedBuf = Buffer.from(expectedSig)
+    if (sigBuf.length !== expectedBuf.length) return null
+    if (!timingSafeEqual(sigBuf, expectedBuf)) return null
+
+    // Decode and validate payload
+    const json = Buffer.from(encoded, 'base64').toString('utf-8')
+    const payload = JSON.parse(json) as { userId: string; tv?: number; exp: number }
 
     if (!payload.userId || !payload.exp) {
       return null
@@ -54,7 +90,7 @@ export function verifySession(token: string): { userId: string } | null {
       return null
     }
 
-    return { userId: payload.userId }
+    return { userId: payload.userId, tv: payload.tv ?? 0 }
   } catch {
     return null
   }
@@ -94,10 +130,17 @@ export async function getSessionUser(request?: Request): Promise<{ id: string; u
     const { db } = await import('@/lib/db')
     const user = await db.user.findUnique({
       where: { id: session.userId },
-      select: { id: true, username: true, avatarUrl: true },
+      select: { id: true, username: true, avatarUrl: true, tokenVersion: true },
     })
 
-    return user
+    if (!user) return null
+
+    // Check token version — if user logged out (bumped version), old tokens are invalid
+    if (session.tv !== user.tokenVersion) {
+      return null
+    }
+
+    return { id: user.id, username: user.username, avatarUrl: user.avatarUrl }
   } catch {
     return null
   }

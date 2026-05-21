@@ -8,12 +8,13 @@ datasource db {
 }
 
 model User {
-  id           String     @id @default(cuid())
-  username     String     @unique
-  password     String
-  avatarUrl    String?
-  createdAt    DateTime   @default(now())
-  moodEntries  MoodEntry[]
+  id            String     @id @default(cuid())
+  username      String     @unique
+  password      String
+  avatarUrl     String?
+  tokenVersion  Int        @default(0)
+  createdAt     DateTime   @default(now())
+  moodEntries   MoodEntry[]
 }
 
 model MoodEntry {

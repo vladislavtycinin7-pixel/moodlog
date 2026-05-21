@@ -23,10 +23,17 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // Validate new password: min 6 chars
+    // Validate new password: min 6 chars, max 128
     if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 6) {
       return NextResponse.json(
         { success: false, message: 'Новый пароль должен содержать минимум 6 символов' },
+        { status: 400 }
+      )
+    }
+
+    if (newPassword.length > 128) {
+      return NextResponse.json(
+        { success: false, message: 'Пароль слишком длинный (максимум 128 символов)' },
         { status: 400 }
       )
     }

@@ -15,13 +15,42 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const { avatarUrl } = body
 
-    // avatarUrl can be null/empty to remove, or a string to set
-    const cleanedAvatarUrl =
-      avatarUrl === null || avatarUrl === undefined || avatarUrl === ''
-        ? null
-        : typeof avatarUrl === 'string'
-          ? avatarUrl.trim() || null
-          : null
+    // avatarUrl can be null/empty to remove, or a valid URL string
+    let cleanedAvatarUrl: string | null = null
+
+    if (avatarUrl !== null && avatarUrl !== undefined && avatarUrl !== '') {
+      if (typeof avatarUrl !== 'string') {
+        return NextResponse.json(
+          { success: false, message: 'Некорректный URL аватара' },
+          { status: 400 }
+        )
+      }
+      const trimmed = avatarUrl.trim()
+      if (!trimmed) {
+        cleanedAvatarUrl = null
+      } else if (trimmed.startsWith('/api/upload/avatars/')) {
+        // Allow local uploaded avatar paths
+        cleanedAvatarUrl = trimmed
+      } else if (trimmed.startsWith('https://') || trimmed.startsWith('http://')) {
+        // Allow external URLs (must start with http(s)://)
+        // Basic validation: must look like a URL
+        try {
+          new URL(trimmed)
+          cleanedAvatarUrl = trimmed
+        } catch {
+          return NextResponse.json(
+            { success: false, message: 'Некорректный URL аватара' },
+            { status: 400 }
+          )
+        }
+      } else {
+        // Reject javascript:, data:, and any other schemes
+        return NextResponse.json(
+          { success: false, message: 'URL аватара должен начинаться с /api/upload/avatars/ или https://' },
+          { status: 400 }
+        )
+      }
+    }
 
     // Update avatar
     const updatedUser = await db.user.update({
