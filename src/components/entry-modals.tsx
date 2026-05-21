@@ -64,13 +64,13 @@ function MoodSlider({
 
 // Shared input styles
 const inputCls =
-  'w-full py-2.5 bg-transparent border-none border-b border-white/25 text-white text-sm font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-white/30 placeholder:text-[13px]'
+  'w-full py-2.5 bg-transparent border-none border-b border-white/20 text-white text-sm font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-white/30 placeholder:text-[13px]'
 
 const selectCls =
-  'w-full py-2.5 bg-transparent border-none border-b border-white/25 text-white text-sm font-[inherit] transition-colors focus:outline-none focus:border-purple-400 cursor-pointer [&>option]:bg-[#1a1a24]'
+  'w-full py-2.5 bg-transparent border-none border-b border-white/20 text-white text-sm font-[inherit] transition-colors focus:outline-none focus:border-purple-400 cursor-pointer [&>option]:bg-[#1a1a24]'
 
 const textareaCls =
-  'w-full py-2.5 bg-transparent border-none border-b border-white/25 text-white text-sm font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-white/30 placeholder:text-[13px] resize-vertical min-h-[70px]'
+  'w-full py-2.5 bg-transparent border-none border-b border-white/20 text-white text-sm font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-white/30 placeholder:text-[13px] resize-vertical min-h-[70px]'
 
 const btnPrimary =
   'py-2.5 px-7 text-sm font-medium cursor-pointer bg-purple-500 text-white hover:bg-purple-600 transition-colors border-none rounded-lg'
@@ -378,19 +378,19 @@ function ViewEntryModal() {
         {/* Notes */}
         <div className="mb-5 p-4 bg-white/[0.03]">
           <div className="text-[11px] font-medium text-white/40 uppercase mb-2 tracking-[0.5px]">Заметки</div>
-          <div className="text-sm text-white/85 leading-relaxed">{entry.notes || 'Нет заметок'}</div>
+          <div className="text-sm text-white/80 leading-relaxed">{entry.notes || 'Нет заметок'}</div>
         </div>
 
         {/* Good thing */}
         <div className="mb-5 p-4 bg-white/[0.03]">
           <div className="text-[11px] font-medium text-white/40 uppercase mb-2 tracking-[0.5px]">Что хорошего</div>
-          <div className="text-sm text-white/85 leading-relaxed">{entry.goodThing || 'Не указано'}</div>
+          <div className="text-sm text-white/80 leading-relaxed">{entry.goodThing || 'Не указано'}</div>
         </div>
 
         {/* Bad thing */}
         <div className="mb-5 p-4 bg-white/[0.03]">
           <div className="text-[11px] font-medium text-white/40 uppercase mb-2 tracking-[0.5px]">Что плохого</div>
-          <div className="text-sm text-white/85 leading-relaxed">{entry.badThing || 'Не указано'}</div>
+          <div className="text-sm text-white/80 leading-relaxed">{entry.badThing || 'Не указано'}</div>
         </div>
       </div>
 

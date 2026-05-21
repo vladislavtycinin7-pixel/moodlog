@@ -1,7 +1,9 @@
 'use client'
 
 import { useAppStore } from '@/lib/store'
+import Footer from '@/components/footer'
 
+// Relative bar heights (percentage of container)
 const barHeights = [45, 68, 32, 82, 58, 52, 74]
 const dayLabels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 
@@ -74,12 +76,12 @@ export default function LandingPage() {
             </div>
 
             {/* Bar chart */}
-            <div className="flex items-end gap-3 mb-8 h-[100px]">
+            <div className="flex items-end gap-3 mb-8 h-24 sm:h-28">
               {barHeights.map((h, i) => (
                 <div
                   key={i}
                   className="flex-1 bg-purple-500/60 rounded-sm transition-all duration-700 hover:bg-purple-500"
-                  style={{ height: `${h}px`, transitionDelay: `${i * 100}ms` }}
+                  style={{ height: `${h}%`, transitionDelay: `${i * 100}ms` }}
                 />
               ))}
             </div>
@@ -135,22 +137,7 @@ export default function LandingPage() {
       </section>
 
       {/* ===== FOOTER ===== */}
-      <footer className="mt-auto bg-[#08080c] border-t border-white/[0.08] px-6 sm:px-12 py-10">
-        <div className="flex flex-col items-center gap-3">
-          <span className="text-sm text-white/50">
-            © 2026 MoodLog — твой личный дневник настроения
-          </span>
-          <div className="flex items-center gap-2 text-xs text-white/30">
-            <span className="cursor-pointer hover:text-white transition-colors">
-              Политика конфиденциальности
-            </span>
-            <span>·</span>
-            <span className="cursor-pointer hover:text-white transition-colors">
-              Поддержка
-            </span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

@@ -133,24 +133,26 @@ export default function SettingsMenu() {
             )}
           </div>
           <div className="text-[17px] font-medium mb-1">{displayName}</div>
-          <div className="text-xs text-white/45">{displayEmail}</div>
+          <div className="text-xs text-white/40">{displayEmail}</div>
         </div>
 
         {/* Menu items */}
         <div className="flex-1 overflow-y-auto">
           {/* Профиль */}
-          <div
-            className="flex items-center gap-3.5 py-3.5 px-3 mb-1 cursor-pointer transition-colors text-white/75 hover:text-white hover:bg-white/[0.04]"
+          <button
+            type="button"
+            className="flex items-center gap-3.5 py-3.5 px-3 mb-1 cursor-pointer transition-colors text-white/70 hover:text-white hover:bg-white/[0.04] bg-transparent border-none w-full text-left font-[inherit]"
             onClick={() => { close(); setActiveModal('profile') }}
           >
             <User className="w-5 h-5" />
             <span className="text-sm font-[450] tracking-[0.3px]">Профиль</span>
-          </div>
+          </button>
 
           {/* Язык */}
           <div>
-            <div
-              className="flex items-center justify-between gap-3.5 py-3.5 px-3 mb-1 cursor-pointer transition-colors text-white/75 hover:text-white hover:bg-white/[0.04]"
+            <button
+              type="button"
+              className="flex items-center justify-between gap-3.5 py-3.5 px-3 mb-1 cursor-pointer transition-colors text-white/70 hover:text-white hover:bg-white/[0.04] bg-transparent border-none w-full text-left font-[inherit]"
               onClick={() => { setShowLangPicker(!showLangPicker); setShowThemePicker(false) }}
             >
               <div className="flex items-center gap-3.5">
@@ -160,15 +162,16 @@ export default function SettingsMenu() {
               <span className="text-xs text-white/40">
                 {LANGUAGES.find(l => l.code === selectedLang)?.label}
               </span>
-            </div>
+            </button>
 
             {/* Language picker dropdown */}
             {showLangPicker && (
               <div className="ml-12 mr-3 mb-2 border border-white/[0.08] bg-white/[0.03]">
                 {LANGUAGES.map((lang) => (
-                  <div
+                  <button
+                    type="button"
                     key={lang.code}
-                    className={`flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors text-sm ${
+                    className={`flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors text-sm bg-transparent border-none w-full text-left font-[inherit] ${
                       selectedLang === lang.code
                         ? 'text-purple-400 bg-purple-500/10'
                         : 'text-white/60 hover:text-white hover:bg-white/[0.04]'
@@ -177,7 +180,7 @@ export default function SettingsMenu() {
                   >
                     <span>{lang.label}</span>
                     {selectedLang === lang.code && <Check size={14} />}
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
@@ -185,8 +188,9 @@ export default function SettingsMenu() {
 
           {/* Тема */}
           <div>
-            <div
-              className="flex items-center justify-between gap-3.5 py-3.5 px-3 mb-1 cursor-pointer transition-colors text-white/75 hover:text-white hover:bg-white/[0.04]"
+            <button
+              type="button"
+              className="flex items-center justify-between gap-3.5 py-3.5 px-3 mb-1 cursor-pointer transition-colors text-white/70 hover:text-white hover:bg-white/[0.04] bg-transparent border-none w-full text-left font-[inherit]"
               onClick={() => { setShowThemePicker(!showThemePicker); setShowLangPicker(false) }}
             >
               <div className="flex items-center gap-3.5">
@@ -196,15 +200,16 @@ export default function SettingsMenu() {
               <span className="text-xs text-white/40">
                 {THEMES.find(t => t.code === selectedTheme)?.label}
               </span>
-            </div>
+            </button>
 
             {/* Theme picker dropdown */}
             {showThemePicker && (
               <div className="ml-12 mr-3 mb-2 border border-white/[0.08] bg-white/[0.03]">
                 {THEMES.map((theme) => (
-                  <div
+                  <button
+                    type="button"
                     key={theme.code}
-                    className={`flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors text-sm ${
+                    className={`flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors text-sm bg-transparent border-none w-full text-left font-[inherit] ${
                       selectedTheme === theme.code && theme.code === 'dark'
                         ? 'text-purple-400 bg-purple-500/10'
                         : 'text-white/60 hover:text-white hover:bg-white/[0.04]'
@@ -218,7 +223,7 @@ export default function SettingsMenu() {
                       )}
                     </div>
                     {selectedTheme === theme.code && theme.code === 'dark' && <Check size={14} />}
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
@@ -228,13 +233,14 @@ export default function SettingsMenu() {
         </div>
 
         {/* Logout item */}
-        <div
-          className="flex items-center gap-3.5 py-3.5 px-3 cursor-pointer transition-colors text-red-400/80 hover:text-red-400 hover:bg-red-500/5 pt-5 mt-5 border-t border-white/[0.08]"
+        <button
+          type="button"
+          className="flex items-center gap-3.5 py-3.5 px-3 cursor-pointer transition-colors text-red-400/80 hover:text-red-400 hover:bg-red-500/5 pt-5 mt-5 border-t border-white/[0.08] bg-transparent border-x-0 border-b-0 w-full text-left font-[inherit]"
           onClick={handleLogout}
         >
           <LogOut className="w-5 h-5" />
           <span className="text-sm font-[450] tracking-[0.3px]">Выйти</span>
-        </div>
+        </button>
       </div>
     </>
   )

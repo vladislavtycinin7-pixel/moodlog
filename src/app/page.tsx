@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useAppStore, MainTab, loadToken } from '@/lib/store'
 import { CalendarDays, BarChart3, Plus } from 'lucide-react'
 import Navbar from '@/components/navbar'
+import Footer from '@/components/footer'
 import LandingPage from '@/components/landing-page'
 import MoodCalendar from '@/components/mood-calendar'
 import { StatsCards } from '@/components/stats-cards'
@@ -140,22 +141,7 @@ export default function Home() {
 
       {/* Footer (only for authenticated users) */}
       {isAuthenticated && (
-        <footer className="relative z-[1] bg-[#08080c] border-t border-white/[0.08] px-6 sm:px-12 py-10 mt-auto">
-          <div className="flex flex-col items-center gap-3">
-            <span className="text-sm text-white/50">
-              © 2026 MoodLog — твой личный дневник настроения
-            </span>
-            <div className="flex items-center gap-2 text-xs text-white/30">
-              <span className="cursor-pointer hover:text-white transition-colors">
-                Политика конфиденциальности
-              </span>
-              <span>·</span>
-              <span className="cursor-pointer hover:text-white transition-colors">
-                Поддержка
-              </span>
-            </div>
-          </div>
-        </footer>
+        <Footer className="relative z-[1]" />
       )}
     </div>
   )

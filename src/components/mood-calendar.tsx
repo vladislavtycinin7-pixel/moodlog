@@ -142,14 +142,14 @@ export default function MoodCalendar() {
         <div className="flex items-center gap-2">
           <button
             onClick={goToPrevMonth}
-            className="bg-transparent border border-white/20 text-white cursor-pointer px-3 py-1.5 hover:border-purple-500 hover:bg-purple-500/10 transition-colors"
+            className="bg-transparent border border-white/20 text-white cursor-pointer px-3 py-1.5 hover:border-purple-500 hover:bg-purple-500/10 transition-colors rounded-lg"
             aria-label="Предыдущий месяц"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             onClick={goToNextMonth}
-            className="bg-transparent border border-white/20 text-white cursor-pointer px-3 py-1.5 hover:border-purple-500 hover:bg-purple-500/10 transition-colors"
+            className="bg-transparent border border-white/20 text-white cursor-pointer px-3 py-1.5 hover:border-purple-500 hover:bg-purple-500/10 transition-colors rounded-lg"
             aria-label="Следующий месяц"
           >
             <ChevronRight className="w-4 h-4" />
@@ -183,9 +183,7 @@ export default function MoodCalendar() {
             'text-center py-3 px-2 text-sm cursor-pointer transition-all border bg-white/[0.02] '
 
           // Border state
-          if (isToday && entry) {
-            cellClass += 'border-purple-500 '
-          } else if (isToday) {
+          if (isToday) {
             cellClass += 'border-purple-500 '
           } else if (entry) {
             cellClass += 'border-purple-500/50 '
@@ -194,14 +192,10 @@ export default function MoodCalendar() {
           }
 
           // Background state
-          if (isToday && entry) {
-            cellClass += 'bg-purple-500/15 shadow-[0_0_8px_rgba(168,85,247,0.3)] '
-          } else if (isToday) {
+          if (isToday) {
             cellClass += 'bg-purple-500/15 shadow-[0_0_8px_rgba(168,85,247,0.3)] '
           } else if (entry) {
             cellClass += 'bg-purple-500/10 '
-          } else {
-            cellClass += ''
           }
 
           // Hover states

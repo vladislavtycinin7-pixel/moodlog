@@ -47,18 +47,20 @@ export default function Navbar() {
         {/* Desktop: guest auth buttons */}
         {!isAuthenticated && (
           <div className="hidden md:flex items-center gap-6">
-            <span
-              className="text-white/70 text-sm cursor-pointer hover:text-white transition-colors"
+            <button
+              type="button"
+              className="text-white/70 text-sm cursor-pointer hover:text-white transition-colors bg-transparent border-none p-0 font-[inherit]"
               onClick={handleLogin}
             >
               Вход
-            </span>
-            <span
-              className="text-white text-sm bg-white/10 px-5 py-2 cursor-pointer hover:bg-white/15 transition-colors"
+            </button>
+            <button
+              type="button"
+              className="text-white text-sm bg-white/10 px-5 py-2 cursor-pointer hover:bg-white/15 transition-colors border-none font-[inherit] rounded-lg"
               onClick={handleRegister}
             >
               Регистрация
-            </span>
+            </button>
           </div>
         )}
 
@@ -109,18 +111,20 @@ export default function Navbar() {
               WebkitBackdropFilter: 'blur(24px)',
             }}
           >
-            <span
-              className="text-white/70 text-sm cursor-pointer hover:text-white transition-colors py-1"
+            <button
+              type="button"
+              className="text-white/70 text-sm cursor-pointer hover:text-white transition-colors py-1 bg-transparent border-none p-0 font-[inherit]"
               onClick={handleLogin}
             >
               Вход
-            </span>
-            <span
-              className="text-white text-sm bg-white/10 px-5 py-2 cursor-pointer hover:bg-white/15 transition-colors w-fit"
+            </button>
+            <button
+              type="button"
+              className="text-white text-sm bg-white/10 px-5 py-2 cursor-pointer hover:bg-white/15 transition-colors w-fit border-none font-[inherit] rounded-lg"
               onClick={handleRegister}
             >
               Регистрация
-            </span>
+            </button>
           </div>
         </div>
       )}

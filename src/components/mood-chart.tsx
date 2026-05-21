@@ -40,7 +40,7 @@ function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null
   const value = payload[0].value
   return (
-    <div className="bg-[rgba(18,18,24,0.95)] border border-purple-500/30 px-3 py-2 text-sm">
+    <div className="bg-[rgba(18,18,24,0.95)] border border-purple-500/30 px-3 py-2 text-sm rounded-lg">
       <p className="text-white/70">{label}</p>
       <p className="text-purple-400 font-medium">
         {value !== null && value !== undefined
@@ -144,30 +144,30 @@ export default function MoodChart() {
       <div className="flex gap-3 justify-end mb-6">
         <button
           onClick={() => setPeriod('week')}
-          className={`bg-transparent border px-5 py-1.5 text-sm cursor-pointer transition-colors rounded-md ${
+          className={`px-5 py-1.5 text-sm cursor-pointer transition-colors rounded-md ${
             period === 'week'
-              ? 'bg-purple-500 border-purple-500 text-white'
-              : 'border-white/20 text-white/70 hover:border-purple-500'
+              ? 'bg-purple-500 border border-purple-500 text-white'
+              : 'bg-transparent border border-white/20 text-white/70 hover:border-purple-500'
           }`}
         >
           Неделя
         </button>
         <button
           onClick={() => setPeriod('month')}
-          className={`bg-transparent border px-5 py-1.5 text-sm cursor-pointer transition-colors rounded-md ${
+          className={`px-5 py-1.5 text-sm cursor-pointer transition-colors rounded-md ${
             period === 'month'
-              ? 'bg-purple-500 border-purple-500 text-white'
-              : 'border-white/20 text-white/70 hover:border-purple-500'
+              ? 'bg-purple-500 border border-purple-500 text-white'
+              : 'bg-transparent border border-white/20 text-white/70 hover:border-purple-500'
           }`}
         >
           Месяц
         </button>
         <button
           onClick={() => setPeriod('year')}
-          className={`bg-transparent border px-5 py-1.5 text-sm cursor-pointer transition-colors rounded-md ${
+          className={`px-5 py-1.5 text-sm cursor-pointer transition-colors rounded-md ${
             period === 'year'
-              ? 'bg-purple-500 border-purple-500 text-white'
-              : 'border-white/20 text-white/70 hover:border-purple-500'
+              ? 'bg-purple-500 border border-purple-500 text-white'
+              : 'bg-transparent border border-white/20 text-white/70 hover:border-purple-500'
           }`}
         >
           Год
