@@ -6,9 +6,14 @@ import { CalendarDays, BarChart3, Plus } from 'lucide-react'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import LandingPage from '@/components/landing-page'
+import dynamic from 'next/dynamic'
 import MoodCalendar from '@/components/mood-calendar'
 import { StatsCards } from '@/components/stats-cards'
-import MoodChart from '@/components/mood-chart'
+// Lazy-load recharts — it's ~200KB+ and only needed on the Stats tab
+const MoodChart = dynamic(() => import('@/components/mood-chart'), {
+  ssr: false,
+  loading: () => <div className="h-[300px] flex items-center justify-center text-white/40 text-sm">Загрузка графика...</div>,
+})
 import AuthModals from '@/components/auth-modals'
 import EntryModals from '@/components/entry-modals'
 import SettingsMenu from '@/components/settings-menu'

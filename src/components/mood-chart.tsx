@@ -32,7 +32,7 @@ import {
   startOfYear,
   endOfYear,
 } from 'date-fns'
-import { ru } from 'date-fns/locale'
+import { ru } from 'date-fns/locale/ru'
 
 type Period = 'week' | 'month' | 'year'
 

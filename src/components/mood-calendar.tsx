@@ -17,7 +17,7 @@ import {
   isSameMonth,
   isToday as isTodayFn,
 } from 'date-fns'
-import { ru } from 'date-fns/locale'
+import { ru } from 'date-fns/locale/ru'
 
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 
