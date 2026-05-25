@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Eye, EyeOff, User, ImagePlus, Lock, Upload, RefreshCw } from 'lucide-react'
 import { useAppStore, getAuthHeaders, loadToken } from '@/lib/store'
 import { ModalOverlay, CloseBtn } from '@/components/modal-overlay'
