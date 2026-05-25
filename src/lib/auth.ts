@@ -7,39 +7,111 @@ const KEY_LENGTH = 32
 const SALT_LENGTH = 16
 const ITERATIONS = 100_000 // OWASP recommended minimum for PBKDF2-SHA256
 
-// HMAC secret for token signing — uses env var or a stable derived key
+// Stable fallback secret — only used when SESSION_SECRET env var is not set
+// This ensures tokens stay valid across server restarts in development
+const FALLBACK_SECRET = 'moodlog-dev-stable-fallback-secret-key-do-not-use-in-prod'
+
 function getHmacSecret(): string {
   if (process.env.SESSION_SECRET) return process.env.SESSION_SECRET
-  // Fallback: derive a stable secret from a fixed seed (dev only)
-  // In production, SESSION_SECRET must be set
-  console.warn('[auth] WARNING: SESSION_SECRET env var not set — using derived fallback. Set SESSION_SECRET in production!')
-  return pbkdf2Sync('moodlog-session-secret-fallback', 'moodlog-salt', 100_000, 32, 'sha256').toString('hex')
+  // In development, use a stable fallback so tokens survive server restarts
+  if (process.env.NODE_ENV !== 'production') {
+    return FALLBACK_SECRET
+  }
+  console.warn('[auth] WARNING: SESSION_SECRET env var not set in production! Tokens may be invalid after restart.')
+  return FALLBACK_SECRET
 }
 
 /**
- * Hash a password using PBKDF2-SHA256 (memory-efficient alternative to scrypt)
+ * Hash a password using PBKDF2-SHA256
  */
 export async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(SALT_LENGTH).toString('hex')
   const derivedKey = pbkdf2Sync(password, salt, ITERATIONS, KEY_LENGTH, 'sha256').toString('hex')
-  return `${salt}:${derivedKey}`
+  return `pbkdf2:${salt}:${derivedKey}`
 }
 
 /**
- * Verify a password against its hash using PBKDF2-SHA256
+ * Verify a password against its hash.
+ * Supports both old format (salt:derivedKey) and new format (pbkdf2:salt:derivedKey).
+ * Old format hashes are tried with both scrypt (legacy) and pbkdf2.
  */
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  const [salt, storedKey] = hash.split(':')
-  if (!salt || !storedKey) return false
-  const derivedKey = pbkdf2Sync(password, salt, ITERATIONS, KEY_LENGTH, 'sha256').toString('hex')
-  return timingSafeEqual(Buffer.from(derivedKey), Buffer.from(storedKey))
+  try {
+    // New format: pbkdf2:salt:derivedKey
+    if (hash.startsWith('pbkdf2:')) {
+      const parts = hash.split(':')
+      if (parts.length !== 3) return false
+      const [, salt, storedKey] = parts
+      if (!salt || !storedKey) return false
+      const derivedKey = pbkdf2Sync(password, salt, ITERATIONS, KEY_LENGTH, 'sha256').toString('hex')
+      // Compare as hex strings first (length check), then use timingSafeEqual on buffers
+      if (derivedKey.length !== storedKey.length) return false
+      return timingSafeEqual(Buffer.from(derivedKey, 'hex'), Buffer.from(storedKey, 'hex'))
+    }
+
+    // Old format: salt:derivedKey (could be scrypt or pbkdf2 without prefix)
+    const colonIndex = hash.indexOf(':')
+    if (colonIndex === -1) return false
+    const salt = hash.slice(0, colonIndex)
+    const storedKey = hash.slice(colonIndex + 1)
+    if (!salt || !storedKey) return false
+
+    const keyLength = storedKey.length / 2 // hex chars / 2 = bytes
+
+    // Try pbkdf2-sha256 first (most likely for old-format hashes created during migration)
+    try {
+      const derivedKey = pbkdf2Sync(password, salt, ITERATIONS, keyLength, 'sha256').toString('hex')
+      if (derivedKey.length === storedKey.length && timingSafeEqual(Buffer.from(derivedKey, 'hex'), Buffer.from(storedKey, 'hex'))) {
+        return true
+      }
+    } catch {
+      // pbkdf2-sha256 failed
+    }
+
+    // Try scrypt as fallback for very old hashes
+    try {
+      const { scryptSync } = await import('crypto')
+      const derivedKey = scryptSync(password, salt, keyLength).toString('hex')
+      if (derivedKey.length === storedKey.length && timingSafeEqual(Buffer.from(derivedKey, 'hex'), Buffer.from(storedKey, 'hex'))) {
+        return true
+      }
+    } catch {
+      // scrypt failed (may OOM on low-memory systems)
+    }
+
+    return false
+  } catch (error) {
+    console.error('[auth] Password verification error:', error)
+    return false
+  }
+}
+
+/**
+ * Check if a hash needs migration to the new pbkdf2 format
+ */
+export function needsHashMigration(hash: string): boolean {
+  return !hash.startsWith('pbkdf2:')
+}
+
+/**
+ * Migrate a user's password hash to pbkdf2 format.
+ * Called after successful login with old-format hash.
+ */
+export async function migratePasswordHash(userId: string, password: string): Promise<void> {
+  try {
+    const newHash = await hashPassword(password)
+    const { db } = await import('@/lib/db')
+    await db.user.update({
+      where: { id: userId },
+      data: { password: newHash },
+    })
+  } catch (error) {
+    console.error('[auth] Failed to migrate password hash:', error)
+  }
 }
 
 /**
  * Create a session token: base64(payload).hmacSignature
- * The signature prevents token forgery — without the secret,
- * an attacker cannot produce a valid signature.
- * Includes tokenVersion so that logging out invalidates all existing tokens.
  */
 export function createSession(userId: string, tokenVersion: number = 0): string {
   const payload = {
@@ -57,8 +129,6 @@ export function createSession(userId: string, tokenVersion: number = 0): string 
 
 /**
  * Verify a signed session token.
- * Checks HMAC signature first, then decodes and checks expiry.
- * Returns null if signature is invalid, token is malformed, or expired.
  */
 export function verifySession(token: string): { userId: string; tv: number } | null {
   try {
@@ -68,28 +138,20 @@ export function verifySession(token: string): { userId: string; tv: number } | n
     const encoded = token.slice(0, dotIndex)
     const signature = token.slice(dotIndex + 1)
 
-    // Verify HMAC signature
     const expectedSig = createHmac('sha256', getHmacSecret())
       .update(encoded)
       .digest('hex')
 
-    // Timing-safe comparison to prevent timing attacks
     const sigBuf = Buffer.from(signature)
     const expectedBuf = Buffer.from(expectedSig)
     if (sigBuf.length !== expectedBuf.length) return null
     if (!timingSafeEqual(sigBuf, expectedBuf)) return null
 
-    // Decode and validate payload
     const json = Buffer.from(encoded, 'base64').toString('utf-8')
     const payload = JSON.parse(json) as { userId: string; tv?: number; exp: number }
 
-    if (!payload.userId || !payload.exp) {
-      return null
-    }
-
-    if (Date.now() > payload.exp) {
-      return null
-    }
+    if (!payload.userId || !payload.exp) return null
+    if (Date.now() > payload.exp) return null
 
     return { userId: payload.userId, tv: payload.tv ?? 0 }
   } catch {
@@ -98,10 +160,23 @@ export function verifySession(token: string): { userId: string; tv: number } | n
 }
 
 /**
- * Extract token from request (Authorization header or cookie) and verify session.
- * Returns the user object if valid, null otherwise.
+ * Sleep for a given number of milliseconds.
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+/**
+ * Extract token from request and verify session.
+ * Uses retry with exponential backoff for transient DB errors.
+ * This is the KEY fix for the 401 bug — previously, a single DB error
+ * (like PgBouncer prepared statement conflict) would cause getSessionUser()
+ * to return null, making ALL API calls return 401.
  */
 export async function getSessionUser(request?: Request): Promise<{ id: string; username: string; avatarUrl: string | null } | null> {
+  const MAX_RETRIES = 3
+  const BASE_DELAY = 200
+
   try {
     let token: string | null = null
 
@@ -128,27 +203,50 @@ export async function getSessionUser(request?: Request): Promise<{ id: string; u
       return null
     }
 
-    const { db } = await import('@/lib/db')
-    const user = await db.user.findUnique({
-      where: { id: session.userId },
-      select: { id: true, username: true, avatarUrl: true, tokenVersion: true },
-    })
+    // Retry the DB query on transient errors (42P05, connection timeout, etc.)
+    let lastError: unknown = null
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      try {
+        const { db } = await import('@/lib/db')
+        const user = await db.user.findUnique({
+          where: { id: session.userId },
+          select: { id: true, username: true, avatarUrl: true, tokenVersion: true },
+        })
 
-    if (!user) return null
+        if (!user) return null
 
-    // Check token version — if user logged out (bumped version), old tokens are invalid
-    if (session.tv !== user.tokenVersion) {
-      return null
+        // Check token version — if user logged out (bumped version), old tokens are invalid
+        if (session.tv !== user.tokenVersion) {
+          return null
+        }
+
+        return { id: user.id, username: user.username, avatarUrl: user.avatarUrl }
+      } catch (dbError) {
+        lastError = dbError
+        const errorMsg = dbError instanceof Error ? dbError.message : String(dbError)
+
+        // Only retry on transient errors
+        const isTransient = /prepared statement|42P05|P1001|P1002|P2024|ECONNRESET|EPIPE|connection.*refused|connection.*timed?\s*out|53300|cannot acquire|pool|timeout/i.test(errorMsg)
+
+        if (!isTransient || attempt >= MAX_RETRIES - 1) {
+          console.error(`[auth] getSessionUser DB query failed (attempt ${attempt + 1}/${MAX_RETRIES}):`, errorMsg)
+          throw dbError
+        }
+
+        const delay = Math.min(BASE_DELAY * Math.pow(2, attempt) + Math.random() * 200, 3000)
+        console.warn(`[auth] getSessionUser transient error, retry ${attempt + 1}/${MAX_RETRIES} in ${Math.round(delay)}ms...`)
+        await sleep(delay)
+      }
     }
 
-    return { id: user.id, username: user.username, avatarUrl: user.avatarUrl }
+    throw lastError
   } catch {
     return null
   }
 }
 
 /**
- * Build Set-Cookie header value for manual response attachment
+ * Build Set-Cookie header value
  */
 export function buildSessionCookieHeader(token: string): string {
   const maxAge = SESSION_MAX_AGE
@@ -161,8 +259,8 @@ export function buildSessionCookieHeader(token: string): string {
 }
 
 /**
- * Delete the session cookie via Set-Cookie header
+ * Delete the session cookie
  */
 export function buildDeleteCookieHeader(): string {
-  return `${SESSION_COOKIE_NAME}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; HttpOnly; SameSite=Lax`
+  return `${SESSION_COOKIE_NAME}=; Path=/; Expires=Thu, 1 Jan 1970 00:00:00 GMT; Max-Age=0; HttpOnly; SameSite=Lax`
 }

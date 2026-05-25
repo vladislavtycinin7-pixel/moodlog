@@ -62,6 +62,104 @@ export function getAuthHeaders(): Record<string, string> {
   return headers
 }
 
+// ─── Fetch with retry + auto-session-refresh ─── //
+const FETCH_MAX_RETRIES = 2
+const FETCH_BASE_DELAY = 500
+
+/**
+ * Try to refresh the session by re-checking /api/auth/session.
+ * Returns true if session is still valid, false if not.
+ */
+async function tryRefreshSession(): Promise<boolean> {
+  try {
+    const token = loadToken()
+    const headers: Record<string, string> = {}
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+    const res = await fetch('/api/auth/session', { headers })
+    if (res.ok) {
+      const data = await res.json()
+      if (data.authenticated && data.user) {
+        // Session still valid — update user in store
+        useAppStore.getState().setUser(data.user)
+        return true
+      }
+    }
+    return false
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Fetch with automatic retry on network errors, 5xx responses,
+ * AND auto-session-refresh on 401.
+ */
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit = {},
+  retries: number = FETCH_MAX_RETRIES
+): Promise<Response> {
+  let lastError: Error | null = null
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(url, options)
+
+      // On 401 — try to refresh session once before giving up
+      if (response.status === 401 && attempt === 0) {
+        const refreshed = await tryRefreshSession()
+        if (refreshed) {
+          // Retry with fresh headers (token might still be valid, DB was just slow)
+          const newHeaders = { ...options.headers }
+          const token = loadToken()
+          if (token) {
+            (newHeaders as Record<string, string>)['Authorization'] = `Bearer ${token}`
+          }
+          const retryRes = await fetch(url, { ...options, headers: newHeaders })
+          if (retryRes.ok || retryRes.status < 500) {
+            return retryRes
+          }
+        }
+        // Session truly invalid — don't retry, let caller handle 401
+        return response
+      }
+
+      // Retry on server errors (500, 502, 503, 504)
+      if (response.status >= 500 && attempt < retries) {
+        const delay = Math.min(
+          FETCH_BASE_DELAY * Math.pow(2, attempt) + Math.random() * 300,
+          3000
+        )
+        console.warn(
+          `[fetch] Server error ${response.status}, retry ${attempt + 1}/${retries} in ${Math.round(delay)}ms...`
+        )
+        await new Promise((resolve) => setTimeout(resolve, delay))
+        continue
+      }
+
+      return response
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+
+      if (attempt < retries) {
+        const delay = Math.min(
+          FETCH_BASE_DELAY * Math.pow(2, attempt) + Math.random() * 300,
+          3000
+        )
+        console.warn(
+          `[fetch] Network error, retry ${attempt + 1}/${retries} in ${Math.round(delay)}ms...`,
+          lastError.message
+        )
+        await new Promise((resolve) => setTimeout(resolve, delay))
+      }
+    }
+  }
+
+  throw lastError || new Error('Fetch failed after retries')
+}
+
 interface AppState {
   // Auth
   user: { id: string; username: string; avatarUrl?: string | null } | null
@@ -88,14 +186,18 @@ interface AppState {
   setActiveModal: (modal: ModalType) => void
   selectedEntry: MoodEntry | null
   setSelectedEntry: (entry: MoodEntry | null) => void
-  pendingEntryDate: string | null // YYYY-MM-DD — set when clicking empty calendar day
+  pendingEntryDate: string | null
   setPendingEntryDate: (date: string | null) => void
   settingsOpen: boolean
   setSettingsOpen: (open: boolean) => void
-  calendarMonth: string // YYYY-MM
+  calendarMonth: string
   setCalendarMonth: (month: string) => void
   activeTab: MainTab
   setActiveTab: (tab: MainTab) => void
+
+  // Network status
+  isOffline: boolean
+  setOffline: (offline: boolean) => void
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -107,7 +209,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   setAuthLoading: (loading) => set({ isAuthLoading: loading }),
   logout: async () => {
     try {
-      await fetch('/api/auth/logout', {
+      await fetchWithRetry('/api/auth/logout', {
         method: 'POST',
         headers: getAuthHeaders(),
       })
@@ -122,18 +224,23 @@ export const useAppStore = create<AppState>((set, get) => ({
   fetchEntries: async (month) => {
     try {
       const params = month ? `?month=${month}` : ''
-      const res = await fetch(`/api/entries${params}`, { headers: getAuthHeaders() })
+      const res = await fetchWithRetry(`/api/entries${params}`, { headers: getAuthHeaders() })
       if (res.ok) {
         const data = await res.json()
-        set({ entries: data.entries ?? data })
+        set({ entries: data.entries ?? data, isOffline: false })
+      } else if (res.status === 401) {
+        // Token truly expired after refresh attempt
+        clearToken()
+        set({ user: null, isAuthenticated: false, entries: [] })
       }
     } catch (e) {
       console.error('Failed to fetch entries:', e)
+      set({ isOffline: true })
     }
   },
   addEntry: async (data) => {
     try {
-      const res = await fetch('/api/entries', {
+      const res = await fetchWithRetry('/api/entries', {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(data),
@@ -141,17 +248,23 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (res.ok) {
         const result = await res.json()
         const entry = result.entry ?? result
-        set((s) => ({ entries: [entry, ...s.entries] }))
+        set((s) => ({ entries: [entry, ...s.entries], isOffline: false }))
+        get().fetchStats()
         return true
+      }
+      if (res.status === 401) {
+        clearToken()
+        set({ user: null, isAuthenticated: false })
       }
       return false
     } catch {
+      set({ isOffline: true })
       return false
     }
   },
   updateEntry: async (id, data) => {
     try {
-      const res = await fetch(`/api/entries/${id}`, {
+      const res = await fetchWithRetry(`/api/entries/${id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify(data),
@@ -161,17 +274,19 @@ export const useAppStore = create<AppState>((set, get) => ({
         const updated = result.entry ?? result
         set((s) => ({
           entries: s.entries.map((e) => (e.id === id ? { ...e, ...updated } : e)),
+          isOffline: false,
         }))
         return true
       }
       return false
     } catch {
+      set({ isOffline: true })
       return false
     }
   },
   deleteEntry: async (id) => {
     try {
-      const res = await fetch(`/api/entries/${id}`, {
+      const res = await fetchWithRetry(`/api/entries/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders(),
       })
@@ -180,11 +295,14 @@ export const useAppStore = create<AppState>((set, get) => ({
           entries: s.entries.filter((e) => e.id !== id),
           activeModal: null,
           selectedEntry: null,
+          isOffline: false,
         }))
+        get().fetchStats()
         return true
       }
       return false
     } catch {
+      set({ isOffline: true })
       return false
     }
   },
@@ -194,13 +312,14 @@ export const useAppStore = create<AppState>((set, get) => ({
   fetchStats: async (month) => {
     try {
       const params = month ? `?month=${month}` : ''
-      const res = await fetch(`/api/stats${params}`, { headers: getAuthHeaders() })
+      const res = await fetchWithRetry(`/api/stats${params}`, { headers: getAuthHeaders() })
       if (res.ok) {
         const data = await res.json()
-        set({ stats: data })
+        set({ stats: data, isOffline: false })
       }
     } catch (e) {
       console.error('Failed to fetch stats:', e)
+      set({ isOffline: true })
     }
   },
 
@@ -217,6 +336,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   setCalendarMonth: (month) => set({ calendarMonth: month }),
   activeTab: 'calendar',
   setActiveTab: (tab) => set({ activeTab: tab }),
+
+  // Network status
+  isOffline: false,
+  setOffline: (offline) => set({ isOffline: offline }),
 }))
 
 // Re-export token helpers for use in components

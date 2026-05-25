@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { Eye, EyeOff, User, ImagePlus, Lock, Upload } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Eye, EyeOff, User, ImagePlus, Lock, Upload, RefreshCw } from 'lucide-react'
 import { useAppStore, getAuthHeaders, loadToken } from '@/lib/store'
 import { ModalOverlay, CloseBtn } from '@/components/modal-overlay'
 import { toast } from 'sonner'
@@ -129,7 +129,7 @@ export default function ProfileModal() {
         setNickError(data.message || 'Ошибка')
       }
     } catch {
-      setNickError('Ошибка соединения')
+      setNickError('Ошибка соединения. Проверьте интернет и попробуйте снова.')
     } finally {
       setNickLoading(false)
     }
@@ -185,10 +185,9 @@ export default function ProfileModal() {
         setAvatarError(data.message || 'Ошибка при загрузке')
       }
     } catch {
-      setAvatarError('Ошибка при загрузке файла')
+      setAvatarError('Ошибка при загрузке. Проверьте соединение.')
     } finally {
       setAvatarLoading(false)
-      // Reset file input so the same file can be selected again
       if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
@@ -214,7 +213,7 @@ export default function ProfileModal() {
         setAvatarError(data.message || 'Ошибка')
       }
     } catch {
-      setAvatarError('Ошибка соединения')
+      setAvatarError('Ошибка соединения. Попробуйте снова.')
     } finally {
       setAvatarLoading(false)
     }
@@ -283,7 +282,7 @@ export default function ProfileModal() {
         setPwError(data.message || 'Ошибка')
       }
     } catch {
-      setPwError('Ошибка соединения')
+      setPwError('Ошибка соединения. Проверьте интернет и попробуйте снова.')
     } finally {
       setPwLoading(false)
     }
@@ -361,7 +360,17 @@ export default function ProfileModal() {
               <p className="text-[11px] text-white/30 mt-2">От 2 до 20 символов</p>
 
               {nickError && (
-                <p className="text-red-400 text-xs mt-3">{nickError}</p>
+                <div className="flex items-center gap-3 p-3 mt-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                  <span className="text-red-400 text-xs flex-1">{nickError}</span>
+                  <button
+                    type="submit"
+                    disabled={nickLoading}
+                    className="flex items-center gap-1 px-2.5 py-1 bg-red-500/20 border border-red-500/30 text-red-400 text-[11px] font-medium cursor-pointer hover:bg-red-500/30 transition-colors rounded-md"
+                  >
+                    <RefreshCw size={10} className={nickLoading ? 'animate-spin' : ''} />
+                    Ещё раз
+                  </button>
+                </div>
               )}
 
               <button
@@ -369,7 +378,12 @@ export default function ProfileModal() {
                 disabled={nickLoading}
                 className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg mt-6"
               >
-                {nickLoading ? 'Сохранение...' : 'Сохранить никнейм'}
+                {nickLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <RefreshCw size={14} className="animate-spin" />
+                    Сохранение...
+                  </span>
+                ) : 'Сохранить никнейм'}
               </button>
             </form>
           )}
@@ -549,7 +563,17 @@ export default function ProfileModal() {
               </div>
 
               {pwError && (
-                <p className="text-red-400 text-xs mt-3">{pwError}</p>
+                <div className="flex items-center gap-3 p-3 mt-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                  <span className="text-red-400 text-xs flex-1">{pwError}</span>
+                  <button
+                    type="submit"
+                    disabled={pwLoading}
+                    className="flex items-center gap-1 px-2.5 py-1 bg-red-500/20 border border-red-500/30 text-red-400 text-[11px] font-medium cursor-pointer hover:bg-red-500/30 transition-colors rounded-md"
+                  >
+                    <RefreshCw size={10} className={pwLoading ? 'animate-spin' : ''} />
+                    Ещё раз
+                  </button>
+                </div>
               )}
 
               <button
@@ -557,7 +581,12 @@ export default function ProfileModal() {
                 disabled={pwLoading}
                 className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg mt-5"
               >
-                {pwLoading ? 'Сохранение...' : 'Изменить пароль'}
+                {pwLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <RefreshCw size={14} className="animate-spin" />
+                    Сохранение...
+                  </span>
+                ) : 'Изменить пароль'}
               </button>
             </form>
           )}

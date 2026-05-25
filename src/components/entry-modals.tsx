@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAppStore } from '@/lib/store'
 import { MOOD_LABELS, scoreToLabel } from '@/lib/mood-colors'
 import { ModalOverlay, CloseBtn } from '@/components/modal-overlay'
 import { toast } from 'sonner'
+import { RefreshCw } from 'lucide-react'
 
 function formatDateRu(dateStr: string): string {
   const [y, m, d] = dateStr.split('-').map(Number)
@@ -83,48 +84,33 @@ const btnDanger =
 
 // ═══════════════════════════════════════════
 // ADD ENTRY MODAL
+// Uses key={isOpen} to remount → auto-reset state
 // ═══════════════════════════════════════════
-function AddEntryModal() {
-  const { activeModal, setActiveModal, addEntry, pendingEntryDate, setPendingEntryDate } = useAppStore()
-  const isOpen = activeModal === 'add'
+function AddEntryForm() {
+  const { setActiveModal, addEntry, setPendingEntryDate } = useAppStore()
 
+  // Read pendingEntryDate at mount time (from store, not stale closure)
+  const pendingDate = useAppStore.getState().pendingEntryDate
   const today = new Date().toISOString().slice(0, 10)
-  const [date, setDate] = useState(today)
+
+  const [date, setDate] = useState(pendingDate || today)
   const [moodScore, setMoodScore] = useState(5)
-  const [moodLabel, setMoodLabel] = useState('Хорошее')
+  // moodLabel is derived from moodScore — no separate state needed
+  const moodLabel = scoreToLabel(moodScore)
   const [sleepHours, setSleepHours] = useState('')
   const [goodThing, setGoodThing] = useState('')
   const [badThing, setBadThing] = useState('')
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  // Reset form when opening
-  useEffect(() => {
-    if (isOpen) {
-      // pendingEntryDate is set by the calendar when clicking an empty day
-      // Read it from the store directly to avoid stale closure / re-trigger issues
-      const { pendingEntryDate: storedDate } = useAppStore.getState()
-      setDate(storedDate || today)
-      setMoodScore(5)
-      setMoodLabel('Хорошее')
-      setSleepHours('')
-      setGoodThing('')
-      setBadThing('')
-      setNotes('')
-      setLoading(false)
-      // Clear pending date after using it
-      setPendingEntryDate(null)
-    }
-  }, [isOpen])
-
-  // Auto-select label based on score
-  useEffect(() => {
-    setMoodLabel(scoreToLabel(moodScore))
-  }, [moodScore])
+  // Clear pending date after using it
+  useAppStore.getState().setPendingEntryDate(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setError('')
 
     const success = await addEntry({
       date,
@@ -142,18 +128,18 @@ function AddEntryModal() {
       toast.success('Запись добавлена!')
       setActiveModal(null)
     } else {
-      toast.error('Ошибка при добавлении записи')
+      setError('Не удалось сохранить. Проверьте соединение и попробуйте снова.')
     }
     setLoading(false)
   }
 
   return (
     <ModalOverlay
-      open={isOpen}
-      onClose={() => setActiveModal(null)}
+      open={true}
+      onClose={() => { setPendingEntryDate(null); setActiveModal(null) }}
       maxWidth="max-w-[800px]"
     >
-      <CloseBtn onClick={() => setActiveModal(null)} />
+      <CloseBtn onClick={() => { setPendingEntryDate(null); setActiveModal(null) }} />
       <h2 className="text-2xl font-medium tracking-[-0.5px] mb-2">Новая запись</h2>
       <p className="text-[13px] text-white/50 mb-7 pb-4 border-b border-white/[0.1]">
         Заполните форму, чтобы сохранить настроение дня
@@ -172,7 +158,7 @@ function AddEntryModal() {
 
             <div>
               <label className="label-sm">Описание настроения</label>
-              <select value={moodLabel} onChange={(e) => setMoodLabel(e.target.value)} className={selectCls}>
+              <select value={moodLabel} onChange={(e) => { /* moodLabel is derived from moodScore */ }} className={selectCls}>
                 {MOOD_LABELS.map((l) => <option key={l} value={l}>{l}</option>)}
               </select>
             </div>
@@ -187,27 +173,47 @@ function AddEntryModal() {
           <div className="flex flex-col gap-6">
             <div>
               <label className="label-sm">Что хорошего случилось?</label>
-              <textarea value={goodThing} onChange={(e) => setGoodThing(e.target.value)} placeholder="Позитивные моменты, достижения..." className={textareaCls} />
+              <textarea value={goodThing} onChange={(e) => setGoodThing(e.target.value)} placeholder="Позитивные моменты, достижения..." className={textareaCls} maxLength={2000} />
             </div>
 
             <div>
               <label className="label-sm">Что плохого случилось?</label>
-              <textarea value={badThing} onChange={(e) => setBadThing(e.target.value)} placeholder="Трудности, неприятности..." className={textareaCls} />
+              <textarea value={badThing} onChange={(e) => setBadThing(e.target.value)} placeholder="Трудности, неприятности..." className={textareaCls} maxLength={2000} />
             </div>
           </div>
 
           {/* Full width */}
           <div className="md:col-span-2">
             <label className="label-sm">Заметки</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Что произошло сегодня?" className={textareaCls} />
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Что произошло сегодня?" className={textareaCls} maxLength={2000} />
           </div>
+
+          {/* Error message with retry */}
+          {error && (
+            <div className="md:col-span-2 flex items-center gap-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+              <span className="text-red-400 text-sm flex-1">{error}</span>
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-medium cursor-pointer hover:bg-red-500/30 transition-colors rounded-md"
+              >
+                <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
+                Повторить
+              </button>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="md:col-span-2 flex gap-4 pt-6 border-t border-white/[0.1]">
             <button type="submit" disabled={loading} className={btnPrimary}>
-              {loading ? 'Сохранение...' : 'Сохранить запись'}
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <RefreshCw size={14} className="animate-spin" />
+                  Сохранение...
+                </span>
+              ) : 'Сохранить запись'}
             </button>
-            <button type="button" onClick={() => setActiveModal(null)} className={btnSecondary}>
+            <button type="button" onClick={() => { setPendingEntryDate(null); setActiveModal(null) }} className={btnSecondary}>
               Отмена
             </button>
           </div>
@@ -229,10 +235,12 @@ function EditEntryForm({ entry, onDone }: { entry: NonNullable<useAppStore['sele
   const [badThing, setBadThing] = useState(entry.badThing || '')
   const [notes, setNotes] = useState(entry.notes || '')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setError('')
 
     const success = await updateEntry(entry.id, {
       moodScore,
@@ -247,7 +255,7 @@ function EditEntryForm({ entry, onDone }: { entry: NonNullable<useAppStore['sele
       toast.success('Запись обновлена!')
       onDone()
     } else {
-      toast.error('Ошибка при обновлении')
+      setError('Не удалось сохранить изменения. Попробуйте снова.')
     }
     setLoading(false)
   }
@@ -279,23 +287,42 @@ function EditEntryForm({ entry, onDone }: { entry: NonNullable<useAppStore['sele
         <div className="flex flex-col gap-6">
           <div>
             <label className="label-sm">Что хорошего случилось?</label>
-            <textarea value={goodThing} onChange={(e) => setGoodThing(e.target.value)} placeholder="Позитивные моменты, достижения..." className={textareaCls} />
+            <textarea value={goodThing} onChange={(e) => setGoodThing(e.target.value)} placeholder="Позитивные моменты, достижения..." className={textareaCls} maxLength={2000} />
           </div>
 
           <div>
             <label className="label-sm">Что плохого случилось?</label>
-            <textarea value={badThing} onChange={(e) => setBadThing(e.target.value)} placeholder="Трудности, неприятности..." className={textareaCls} />
+            <textarea value={badThing} onChange={(e) => setBadThing(e.target.value)} placeholder="Трудности, неприятности..." className={textareaCls} maxLength={2000} />
           </div>
         </div>
 
         <div className="md:col-span-2">
           <label className="label-sm">Заметки</label>
-          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Что произошло сегодня?" className={textareaCls} />
+          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Что произошло сегодня?" className={textareaCls} maxLength={2000} />
         </div>
+
+        {error && (
+          <div className="md:col-span-2 flex items-center gap-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <span className="text-red-400 text-sm flex-1">{error}</span>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-medium cursor-pointer hover:bg-red-500/30 transition-colors rounded-md"
+            >
+              <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
+              Повторить
+            </button>
+          </div>
+        )}
 
         <div className="md:col-span-2 flex gap-4 pt-6 border-t border-white/[0.1]">
           <button type="submit" disabled={loading} className={btnPrimary}>
-            {loading ? 'Сохранение...' : 'Сохранить изменения'}
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <RefreshCw size={14} className="animate-spin" />
+                Сохранение...
+              </span>
+            ) : 'Сохранить изменения'}
           </button>
           <button type="button" onClick={onDone} className={btnSecondary}>
             Отмена
@@ -357,7 +384,6 @@ function ViewEntryModal() {
       </p>
 
       <div className="mb-6">
-        {/* Mood row */}
         <div className="flex mb-5 pb-3 border-b border-white/[0.08]">
           <div className="w-36 text-xs font-medium text-white/50 uppercase tracking-[0.3px] shrink-0">Настроение</div>
           <div className="flex-1 text-sm text-white/90">
@@ -367,7 +393,6 @@ function ViewEntryModal() {
           </div>
         </div>
 
-        {/* Sleep row */}
         <div className="flex mb-5 pb-3 border-b border-white/[0.08]">
           <div className="w-36 text-xs font-medium text-white/50 uppercase tracking-[0.3px] shrink-0">Сон</div>
           <div className="flex-1 text-sm text-white/90">
@@ -375,45 +400,26 @@ function ViewEntryModal() {
           </div>
         </div>
 
-        {/* Notes */}
         <div className="mb-5 p-4 bg-white/[0.03]">
           <div className="text-[11px] font-medium text-white/40 uppercase mb-2 tracking-[0.5px]">Заметки</div>
           <div className="text-sm text-white/80 leading-relaxed">{entry.notes || 'Нет заметок'}</div>
         </div>
 
-        {/* Good thing */}
         <div className="mb-5 p-4 bg-white/[0.03]">
           <div className="text-[11px] font-medium text-white/40 uppercase mb-2 tracking-[0.5px]">Что хорошего</div>
           <div className="text-sm text-white/80 leading-relaxed">{entry.goodThing || 'Не указано'}</div>
         </div>
 
-        {/* Bad thing */}
         <div className="mb-5 p-4 bg-white/[0.03]">
           <div className="text-[11px] font-medium text-white/40 uppercase mb-2 tracking-[0.5px]">Что плохого</div>
           <div className="text-sm text-white/80 leading-relaxed">{entry.badThing || 'Не указано'}</div>
         </div>
       </div>
 
-      {/* Actions */}
       <div className="flex gap-4 pt-6 border-t border-white/[0.1]">
-        <button
-          className={btnPrimary}
-          onClick={() => setActiveModal('edit')}
-        >
-          Редактировать
-        </button>
-        <button
-          className={btnDanger}
-          onClick={() => setActiveModal('delete')}
-        >
-          Удалить
-        </button>
-        <button
-          className={btnSecondary}
-          onClick={() => setActiveModal(null)}
-        >
-          Закрыть
-        </button>
+        <button className={btnPrimary} onClick={() => setActiveModal('edit')}>Редактировать</button>
+        <button className={btnDanger} onClick={() => setActiveModal('delete')}>Удалить</button>
+        <button className={btnSecondary} onClick={() => setActiveModal(null)}>Закрыть</button>
       </div>
     </ModalOverlay>
   )
@@ -426,15 +432,17 @@ function DeleteEntryModal() {
   const { activeModal, setActiveModal, selectedEntry, deleteEntry } = useAppStore()
   const isOpen = activeModal === 'delete'
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleDelete = async () => {
     if (!selectedEntry) return
     setLoading(true)
+    setError('')
     const success = await deleteEntry(selectedEntry.id)
     if (success) {
       toast.success('Запись удалена')
     } else {
-      toast.error('Ошибка при удалении')
+      setError('Не удалось удалить. Попробуйте снова.')
     }
     setLoading(false)
   }
@@ -451,9 +459,28 @@ function DeleteEntryModal() {
         Это действие нельзя отменить. Запись от {selectedEntry ? formatDateRu(selectedEntry.date) : ''} будет удалена навсегда.
       </p>
 
+      {error && (
+        <div className="flex items-center gap-3 p-3 mb-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+          <span className="text-red-400 text-sm flex-1">{error}</span>
+          <button
+            onClick={handleDelete}
+            disabled={loading}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-medium cursor-pointer hover:bg-red-500/30 transition-colors rounded-md"
+          >
+            <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
+            Повторить
+          </button>
+        </div>
+      )}
+
       <div className="flex gap-4">
         <button onClick={handleDelete} disabled={loading} className={btnDanger}>
-          {loading ? 'Удаление...' : 'Удалить'}
+          {loading ? (
+            <span className="flex items-center gap-2">
+              <RefreshCw size={14} className="animate-spin" />
+              Удаление...
+            </span>
+          ) : 'Удалить'}
         </button>
         <button onClick={() => setActiveModal(null)} className={btnSecondary}>
           Отмена
@@ -467,9 +494,12 @@ function DeleteEntryModal() {
 // EXPORT: All entry modals together
 // ═══════════════════════════════════════════
 export default function EntryModals() {
+  const { activeModal } = useAppStore()
+
   return (
     <>
-      <AddEntryModal />
+      {/* key forces remount when modal opens → all useState auto-reset */}
+      {activeModal === 'add' && <AddEntryForm key="add" />}
       <EditEntryModal />
       <ViewEntryModal />
       <DeleteEntryModal />
