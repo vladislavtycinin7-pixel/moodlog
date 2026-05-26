@@ -64,9 +64,11 @@ export function getAuthHeaders(): Record<string, string> {
 }
 
 // ─── Fetch with retry + auto-session-refresh + timeout ─── //
-const FETCH_MAX_RETRIES = 4      // More retries for resilience
-const FETCH_BASE_DELAY = 600
-const FETCH_TIMEOUT_MS = 15000   // 15s timeout — slower connections need more time
+// Reduced from 4 retries + 15s timeout to prevent the "frozen" feeling.
+// Total worst case: ~2 retries × 10s = ~20s max per call (was 4×15s = 60s+ before)
+const FETCH_MAX_RETRIES = 2
+const FETCH_BASE_DELAY = 400
+const FETCH_TIMEOUT_MS = 10000   // 10s timeout (was 15s)
 
 /**
  * Fetch with AbortController timeout — rejects if server doesn't respond in time.
@@ -112,7 +114,11 @@ async function tryRefreshSession(): Promise<boolean> {
  * Fetch with automatic retry on network errors, 5xx responses,
  * AND auto-session-refresh on 401.
  * Includes AbortController timeout to prevent page freeze.
- * Retries aggressively — user sees a loading spinner, not errors.
+ *
+ * RETRY STRATEGY (optimized for UX):
+ * - 2 retries max with exponential backoff (was 4)
+ * - 10s timeout per request (was 15s)
+ * - Total worst case: ~25s per fetchWithRetry call (was 60s+)
  */
 export async function fetchWithRetry(
   url: string,
@@ -155,25 +161,14 @@ export async function fetchWithRetry(
       // Retry on server errors (500, 502, 503, 504) and 429 (rate limit)
       if ((response.status >= 500 || response.status === 429) && attempt < retries) {
         const delay = Math.min(
-          FETCH_BASE_DELAY * Math.pow(2, attempt) + Math.random() * 500,
-          5000
+          FETCH_BASE_DELAY * Math.pow(2, attempt) + Math.random() * 300,
+          3000
         )
         console.warn(
           `[fetch] Server error ${response.status}, retry ${attempt + 1}/${retries} in ${Math.round(delay)}ms...`
         )
-        await new Promise((resolve) => setTimeout(resolve, delay))
-        continue
-      }
-
-      // On timeout (504), also retry — the server might just be slow
-      if (response.status === 504 && attempt < retries) {
-        const delay = Math.min(
-          FETCH_BASE_DELAY * Math.pow(2, attempt) + Math.random() * 500,
-          5000
-        )
-        console.warn(
-          `[fetch] Timeout 504, retry ${attempt + 1}/${retries} in ${Math.round(delay)}ms...`
-        )
+        // Show retry feedback in UI
+        updateRetryStatus(true)
         await new Promise((resolve) => setTimeout(resolve, delay))
         continue
       }
@@ -186,16 +181,18 @@ export async function fetchWithRetry(
       if (lastError.name === 'AbortError') {
         if (attempt < retries) {
           const delay = Math.min(
-            FETCH_BASE_DELAY * Math.pow(2, attempt) + Math.random() * 500,
-            5000
+            FETCH_BASE_DELAY * Math.pow(2, attempt) + Math.random() * 300,
+            3000
           )
           console.warn(
             `[fetch] Timeout on ${url}, retry ${attempt + 1}/${retries} in ${Math.round(delay)}ms...`
           )
+          updateRetryStatus(true)
           await new Promise((resolve) => setTimeout(resolve, delay))
           continue
         }
         // All retries exhausted for timeout
+        updateRetryStatus(false)
         return new Response(JSON.stringify({ success: false, message: 'Превышено время ожидания. Проверьте соединение.' }), {
           status: 504,
           headers: { 'Content-Type': 'application/json' },
@@ -204,31 +201,52 @@ export async function fetchWithRetry(
 
       if (attempt < retries) {
         const delay = Math.min(
-          FETCH_BASE_DELAY * Math.pow(2, attempt) + Math.random() * 500,
-          5000
+          FETCH_BASE_DELAY * Math.pow(2, attempt) + Math.random() * 300,
+          3000
         )
         console.warn(
           `[fetch] Network error, retry ${attempt + 1}/${retries} in ${Math.round(delay)}ms...`,
           lastError.message
         )
+        updateRetryStatus(true)
         await new Promise((resolve) => setTimeout(resolve, delay))
       }
     }
   }
 
+  updateRetryStatus(false)
   throw lastError || new Error('Fetch failed after retries')
+}
+
+// ─── Retry status for UI feedback ─── //
+let _isRetrying = false
+const _retryListeners = new Set<() => void>()
+
+function updateRetryStatus(retrying: boolean) {
+  _isRetrying = retrying
+  _retryListeners.forEach(fn => fn())
+}
+
+export function isRetrying(): boolean {
+  return _isRetrying
+}
+
+export function onRetryStatusChange(listener: () => void): () => void {
+  _retryListeners.add(listener)
+  return () => _retryListeners.delete(listener)
 }
 
 /**
  * Execute an async operation with automatic retry until success or max attempts.
- * Returns true on success, false on exhausted retries.
- * Shows a warning toast only after many failures — not on every transient error.
+ * REDUCED from 6 to 3 attempts to prevent the "frozen" feeling.
+ * Combined with fetchWithRetry (2 retries), total worst case: 3 × (2 retries × 10s) ≈ 60s max
+ * (was 6 × (4 × 15s) = potentially 6+ minutes before!)
  */
 async function retryUntilSuccess<T>(
   fn: () => Promise<T>,
   isSuccess: (result: T) => boolean,
-  maxAttempts: number = 6,
-  baseDelay: number = 800
+  maxAttempts: number = 3,
+  baseDelay: number = 600
 ): Promise<T | null> {
   let lastResult: T | null = null
   let lastError: unknown = null
@@ -237,6 +255,7 @@ async function retryUntilSuccess<T>(
     try {
       lastResult = await fn()
       if (isSuccess(lastResult)) {
+        updateRetryStatus(false)
         return lastResult
       }
     } catch (error) {
@@ -244,12 +263,14 @@ async function retryUntilSuccess<T>(
     }
 
     // Wait before retrying with exponential backoff
-    const delay = Math.min(baseDelay * Math.pow(2, attempt) + Math.random() * 400, 6000)
+    const delay = Math.min(baseDelay * Math.pow(2, attempt) + Math.random() * 300, 4000)
     console.warn(`[retryUntilSuccess] Attempt ${attempt + 1}/${maxAttempts} failed, retrying in ${Math.round(delay)}ms...`)
+    updateRetryStatus(true)
     await new Promise((resolve) => setTimeout(resolve, delay))
   }
 
   // All attempts exhausted
+  updateRetryStatus(false)
   if (lastError) throw lastError
   return lastResult
 }
@@ -392,8 +413,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         // Retry on everything else (5xx, network, timeout)
         return false
       },
-      6,  // up to 6 attempts total
-      800
+      3,  // up to 3 attempts total (was 6)
+      600
     )
 
     if (!result) {
@@ -447,8 +468,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         if (res.status === 401) return true // permanent, don't retry
         return false // retry on everything else
       },
-      6,
-      800
+      3,
+      600
     )
 
     if (!result) {
@@ -498,8 +519,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         if (res.status === 401) return true // permanent, don't retry
         return false
       },
-      6,
-      800
+      3,
+      600
     )
 
     if (!result) {

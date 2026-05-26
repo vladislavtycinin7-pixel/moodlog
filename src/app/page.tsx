@@ -20,6 +20,7 @@ import EntryModals from '@/components/entry-modals'
 import SettingsMenu from '@/components/settings-menu'
 import ProfileModal from '@/components/profile-modal'
 import ShareStatsModal from '@/components/share-stats-modal'
+import NetworkStatus from '@/components/network-status'
 
 const TABS: { key: MainTab; label: string; icon: React.ReactNode }[] = [
   { key: 'calendar', label: 'Календарь', icon: <CalendarDays size={18} /> },
@@ -284,6 +285,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0a0a0f] text-white">
+      {/* Network status indicator */}
+      <NetworkStatus />
+
       {/* Background gradient (always visible) */}
       <div
         className="fixed -top-1/2 -left-1/2 w-[200%] h-[200%] pointer-events-none z-0"
