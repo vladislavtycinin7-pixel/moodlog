@@ -205,3 +205,31 @@ Stage Summary:
 - Screenshots integrated for calendar and statistics views
 - Consistent title bar style across content slides (#211F40 dark purple)
 - File: /home/z/my-project/MoodLog_Presentation.pptx
+
+---
+Task ID: 12
+Agent: main
+Task: Test share-stats and forgot-password features, fix any issues
+
+Work Log:
+- Read all relevant files: settings-menu.tsx, profile-modal.tsx, share-stats-modal.tsx, auth-modals.tsx, store.ts, API routes
+- Found critical bug: ModalType in store.ts didn't include 'share-stats', so setActiveModal('share-stats') would fail TypeScript check and modal wouldn't open
+- Fixed ModalType: added 'share-stats' to the union type
+- Fixed typo in share-stats-modal.tsx: "Экспорт иSharing" → "Экспорт и обмен"
+- Removed .ppt-slides-backup directory that was causing turbopack crash (Permission denied error)
+- Tested reset-password API (POST): ✅ Returns resetId + 6-digit code
+- Tested reset-password API (PUT): ✅ Verifies code and changes password
+- Tested reset-password with non-existing user: ✅ Returns "Пользователь не найден"
+- Tested stats/share API (POST): ✅ Generates share token
+- Tested stats/public API (GET): ✅ Returns public stats for share token
+- Tested stats/share API (DELETE): ✅ Revokes share token
+- Tested stats/public after deletion: ✅ Returns "Ссылка недействительна"
+- Tested login after password reset: ✅ Works with new password
+- Lint passes cleanly with 0 errors
+
+Stage Summary:
+- Fixed ModalType to include 'share-stats' — this was preventing the share modal from opening
+- Fixed Russian typo in share-stats-modal subtitle
+- Both features (share stats + forgot password) are fully functional at API level
+- All API endpoints return correct responses
+- Prisma schema already had shareToken on User model and PasswordReset model

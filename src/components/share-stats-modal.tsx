@@ -199,7 +199,7 @@ export default function ShareStatsModal() {
         Статистика
       </h2>
       <p className="text-xs sm:text-[13px] text-white/50 mb-5 pb-4 border-b border-white/[0.08]">
-        Экспорт иSharing вашей статистики
+        Экспорт и обмен вашей статистики
       </p>
 
       {/* Tabs */}
