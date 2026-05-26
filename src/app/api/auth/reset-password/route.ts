@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   try {
     // Rate limiting: 3 reset requests per 5 minutes per IP
     const ip = getClientIp(request)
-    const rateCheck = checkRateLimit(`reset:${ip}`, { maxAttempts: 3, windowMs: 5 * 60 * 1000 })
+    const rateCheck = checkRateLimit(`reset:${ip}`, { limit: 3, windowMs: 5 * 60 * 1000 })
     if (!rateCheck.allowed) {
       return NextResponse.json(
         { success: false, message: 'Слишком много попыток. Попробуйте позже.' },
@@ -93,7 +93,7 @@ export async function PUT(request: NextRequest) {
   try {
     // Rate limiting: 5 verification attempts per 5 minutes per IP
     const ip = getClientIp(request)
-    const rateCheck = checkRateLimit(`reset-verify:${ip}`, { maxAttempts: 5, windowMs: 5 * 60 * 1000 })
+    const rateCheck = checkRateLimit(`reset-verify:${ip}`, { limit: 5, windowMs: 5 * 60 * 1000 })
     if (!rateCheck.allowed) {
       return NextResponse.json(
         { success: false, message: 'Слишком много попыток. Попробуйте позже.' },
