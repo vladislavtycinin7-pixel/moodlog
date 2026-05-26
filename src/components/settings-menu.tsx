@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { User, Palette, LogOut, X, Globe, Check } from 'lucide-react'
+import { User, Palette, LogOut, X, Globe, Check, Share2 } from 'lucide-react'
 import { useAppStore } from '@/lib/store'
 import { toast } from 'sonner'
 
@@ -146,6 +146,16 @@ export default function SettingsMenu() {
           >
             <User className="w-5 h-5" />
             <span className="text-sm font-[450] tracking-[0.3px]">Профиль</span>
+          </button>
+
+          {/* Поделиться статистикой */}
+          <button
+            type="button"
+            className="flex items-center gap-3.5 py-3.5 px-3 mb-1 cursor-pointer transition-colors text-white/70 hover:text-white hover:bg-white/[0.04] bg-transparent border-none w-full text-left font-[inherit]"
+            onClick={() => { close(); setActiveModal('share-stats') }}
+          >
+            <Share2 className="w-5 h-5" />
+            <span className="text-sm font-[450] tracking-[0.3px]">Поделиться статистикой</span>
           </button>
 
           {/* Язык */}
