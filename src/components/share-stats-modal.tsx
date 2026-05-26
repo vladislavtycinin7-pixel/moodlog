@@ -254,7 +254,7 @@ export default function ShareStatsModal() {
               <div className="space-y-1.5 pt-3 border-t border-white/[0.06]">
                 {Object.entries(stats.moodDistribution).map(([label, count]) => (
                   <div key={label} className="flex items-center gap-2">
-                    <span className="text-[11px] w-20 truncate" style={{ color: getMoodColor(label) }}>{label}</span>
+                    <span className="text-[11px] w-24 break-words" style={{ color: getMoodColor(label) }}>{label}</span>
                     <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full"

@@ -34,9 +34,9 @@ interface StatCardProps {
 
 function StatCard({ value, label, icon }: StatCardProps) {
   return (
-    <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-4 sm:p-5 text-center rounded-xl">
-      <div className="text-2xl sm:text-3xl font-semibold text-purple-500 mb-1 sm:mb-2 flex items-center justify-center gap-1">
-        <span className="truncate">{value}</span>
+    <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-4 sm:p-5 text-center rounded-xl min-w-0">
+      <div className="text-xl sm:text-2xl font-semibold text-purple-500 mb-1 sm:mb-2 flex items-center justify-center gap-1 min-w-0">
+        <span className="break-words hyphens-auto">{value}</span>
         {icon}
       </div>
       <div className="text-[11px] sm:text-xs text-white/50 uppercase tracking-wider leading-tight">
@@ -85,7 +85,7 @@ function MoodDistribution({
             <div key={label} className="flex items-center gap-2 sm:gap-3">
               {/* Label */}
               <span
-                className="text-xs sm:text-sm w-24 sm:w-28 shrink-0 truncate"
+                className="text-xs sm:text-sm w-24 sm:w-28 shrink-0"
                 style={{ color }}
               >
                 {label}

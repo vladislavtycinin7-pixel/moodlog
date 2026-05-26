@@ -163,7 +163,7 @@ function PublicStatsView({ token }: { token: string }) {
                 const barWidth = maxCount > 0 ? (count / maxCount) * 100 : 0
                 return (
                   <div key={label} className="flex items-center gap-2">
-                    <span className="text-xs w-24 shrink-0 truncate" style={{ color: getMoodColor(label) }}>
+                    <span className="text-xs w-28 shrink-0 break-words" style={{ color: getMoodColor(label) }}>
                       {label}
                     </span>
                     <div className="flex-1 h-4 bg-white/[0.04] rounded-sm overflow-hidden">
