@@ -23,6 +23,14 @@ export const metadata: Metadata = {
       { url: '/favicon-16.png', sizes: '16x16', type: 'image/png' },
       { url: '/icon.svg', type: 'image/svg+xml' },
     ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  openGraph: {
+    title: "MoodLog — Дневник настроения",
+    description: "Отслеживай свои эмоции, замечай тренды и становись лучше с каждым днём",
+    siteName: "MoodLog",
   },
 };
 
