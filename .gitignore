@@ -20,9 +20,6 @@ node_modules
 # production
 /build
 
-# local uploads (not for Vercel)
-/uploads/
-
 # database files (using Supabase PostgreSQL on Vercel)
 db/*.db
 db/*.sqlite
@@ -34,28 +31,48 @@ db/*.sqlite
 # debug
 npm-debug.log*
 yarn-debug.log*
+yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files — NEVER commit secrets
 .env*
 
 # vercel
 .vercel
 
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-local-*
+
+# logs
+*.log
+server.log
+
+# Sandbox / development tools (not needed for Vercel)
+.zscripts/
+Caddyfile
+setup.bat
+start-dev.sh
+agent-ctx/
+download/
+examples/
+mini-services/
+ppt-workspace/
+screenshots/
+skills/
+upload/
+worklog.md
+
+# Runtime uploads (avatars etc) — stored in Supabase or external
+/uploads/
+
+# Presentation files (not part of the app)
+*.pptx
+
+# AI/IDE config
 .claude
 .z-ai-config
-*.log
-dev.log
-dev.out.log
+local-*
 test
 prompt
-
-server.log
-# Skills directory
-/skills/
