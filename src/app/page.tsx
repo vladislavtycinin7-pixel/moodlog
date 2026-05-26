@@ -111,15 +111,15 @@ export default function Home() {
 
       {/* Main content */}
       {isAuthenticated ? (
-        <main className="relative z-[1] max-w-[1200px] w-full mx-auto px-4 sm:px-6 pt-[100px] pb-16 flex-1">
+        <main className="relative z-[1] max-w-[1200px] w-full mx-auto px-3 sm:px-4 md:px-6 pt-[80px] sm:pt-[100px] pb-12 sm:pb-16 flex-1">
           {/* Tab switcher + add entry button */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-8">
             <div className="flex gap-1 p-1 bg-white/[0.04] border border-white/[0.08] rounded-lg">
               {TABS.map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`flex items-center gap-2 px-5 py-2.5 text-sm font-medium cursor-pointer transition-all duration-200 border-none rounded-md ${
+                  className={`flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 text-sm font-medium cursor-pointer transition-all duration-200 border-none rounded-md flex-1 sm:flex-initial ${
                     activeTab === tab.key
                       ? 'bg-purple-500 text-white'
                       : 'bg-transparent text-white/50 hover:text-white/80'
@@ -133,7 +133,7 @@ export default function Home() {
 
             <button
               onClick={() => { setPendingEntryDate(null); setActiveModal('add') }}
-              className="flex items-center gap-2 px-5 py-2.5 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 rounded-lg"
+              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 rounded-lg"
             >
               <Plus size={18} />
               Добавить запись

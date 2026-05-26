@@ -102,7 +102,7 @@ export default function SettingsMenu() {
 
       {/* Side menu */}
       <div
-        className={`fixed top-0 right-0 w-[300px] max-[700px]:w-[280px] h-full z-[200] flex flex-col pt-20 px-6 pb-6 transition-all duration-[350ms] ease-[cubic-bezier(0.2,0.9,0.4,1.1)] ${
+        className={`fixed top-0 right-0 w-[280px] sm:w-[300px] h-full z-[200] flex flex-col pt-16 sm:pt-20 px-4 sm:px-6 pb-6 transition-all duration-[350ms] ease-[cubic-bezier(0.2,0.9,0.4,1.1)] ${
           settingsOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         style={{

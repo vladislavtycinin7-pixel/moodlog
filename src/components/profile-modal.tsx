@@ -301,8 +301,8 @@ export default function ProfileModal() {
       <CloseBtn onClick={() => setActiveModal(null)} />
 
       {/* Profile header */}
-        <div className="p-6 sm:p-8 pb-6 text-center border-b border-white/[0.08]">
-          <div className="w-16 h-16 mx-auto mb-3 overflow-hidden">
+        <div className="p-4 sm:p-6 md:p-8 pb-4 sm:pb-6 text-center border-b border-white/[0.08]">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-3 overflow-hidden">
             {user?.avatarUrl ? (
               <img
                 src={user.avatarUrl}
@@ -341,7 +341,7 @@ export default function ProfileModal() {
         </div>
 
         {/* Tab content */}
-        <div className="p-6 sm:p-8">
+        <div className="p-4 sm:p-6 md:p-8">
           {/* ═══ NICKNAME TAB ═══ */}
           {tab === 'nickname' && (
             <form onSubmit={handleNickSubmit}>

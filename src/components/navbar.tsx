@@ -35,7 +35,7 @@ export default function Navbar() {
       className="fixed top-0 w-full z-50 py-5 border-b border-white/[0.05]"
       style={{ background: 'rgba(10, 10, 15, 0.8)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
     >
-      <div className="max-w-[1400px] mx-auto px-6 sm:px-12 flex justify-between items-center">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12 flex justify-between items-center">
         {/* Logo */}
         <span
           className="text-[22px] font-medium text-white cursor-pointer select-none"

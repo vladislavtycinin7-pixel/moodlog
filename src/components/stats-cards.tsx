@@ -34,12 +34,12 @@ interface StatCardProps {
 
 function StatCard({ value, label, icon }: StatCardProps) {
   return (
-    <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-5 text-center rounded-xl">
-      <div className="text-3xl font-semibold text-purple-500 mb-2 flex items-center justify-center gap-1.5">
-        <span>{value}</span>
+    <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-3 sm:p-5 text-center rounded-xl">
+      <div className="text-2xl sm:text-3xl font-semibold text-purple-500 mb-1 sm:mb-2 flex items-center justify-center gap-1">
+        <span className="truncate">{value}</span>
         {icon}
       </div>
-      <div className="text-xs text-white/50 uppercase tracking-wider">
+      <div className="text-[10px] sm:text-xs text-white/50 uppercase tracking-wider leading-tight">
         {label}
       </div>
     </div>
@@ -74,7 +74,7 @@ function MoodDistribution({
   const maxCount = Math.max(...entries.map(([, count]) => count))
 
   return (
-    <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-6 rounded-xl">
+    <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-4 sm:p-6 rounded-xl">
       <div className="space-y-3">
         {entries.map(([label, count]) => {
           const color = getMoodColor(label)
@@ -82,17 +82,17 @@ function MoodDistribution({
           const barWidth = maxCount > 0 ? (count / maxCount) * 100 : 0
 
           return (
-            <div key={label} className="flex items-center gap-3">
+            <div key={label} className="flex items-center gap-2 sm:gap-3">
               {/* Label */}
               <span
-                className="text-sm w-28 shrink-0 truncate"
+                className="text-xs sm:text-sm w-20 sm:w-28 shrink-0 truncate"
                 style={{ color }}
               >
                 {label}
               </span>
 
               {/* Bar track */}
-              <div className="flex-1 h-5 bg-white/[0.04] rounded-sm overflow-hidden">
+              <div className="flex-1 h-4 sm:h-5 bg-white/[0.04] rounded-sm overflow-hidden">
                 <div
                   className="h-full rounded-sm transition-all duration-500"
                   style={{
@@ -104,9 +104,8 @@ function MoodDistribution({
               </div>
 
               {/* Count + percentage */}
-              <span className="text-xs text-white/50 w-16 text-right shrink-0 tabular-nums">
-                {count}&nbsp;
-                <span className="text-white/30">({percentage}%)</span>
+              <span className="text-[10px] sm:text-xs text-white/50 w-14 sm:w-16 text-right shrink-0 tabular-nums whitespace-nowrap">
+                {count} <span className="text-white/30">({percentage}%)</span>
               </span>
             </div>
           )
@@ -127,12 +126,12 @@ export function StatsCards() {
     : 0
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* ── Section 1: Общая ──────────────────────────────────── */}
       <section>
-        <h3 className="text-xl font-medium text-white mb-4">Общая</h3>
+        <h3 className="text-lg sm:text-xl font-medium text-white mb-3 sm:mb-4">Общая</h3>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
           {/* Всего записей */}
           <StatCard
             value={stats ? stats.totalEntries : '—'}
@@ -191,7 +190,7 @@ export function StatsCards() {
 
       {/* ── Section 2: Распределение эмоций ───────────────────── */}
       <section>
-        <h3 className="text-xl font-medium text-white mb-4">
+        <h3 className="text-lg sm:text-xl font-medium text-white mb-3 sm:mb-4">
           Распределение эмоций
         </h3>
 

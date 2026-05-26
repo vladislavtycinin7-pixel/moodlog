@@ -48,36 +48,36 @@ export default function LandingPage() {
         <div className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] bg-[radial-gradient(circle_at_30%_40%,rgba(139,92,246,0.4),transparent_60%),radial-gradient(circle_at_80%_70%,rgba(236,72,153,0.3),transparent_60%),radial-gradient(circle_at_50%_20%,rgba(168,85,247,0.35),transparent_50%)] blur-[80px] z-0" />
 
         {/* Hero content */}
-        <div className="relative z-[1] max-w-[1400px] mx-auto w-full px-6 sm:px-12 py-10 md:py-16 flex flex-col md:flex-row items-center gap-10 md:gap-20">
+        <div className="relative z-[1] max-w-[1400px] mx-auto w-full px-4 sm:px-6 md:px-12 py-8 sm:py-10 md:py-16 flex flex-col md:flex-row items-center gap-8 sm:gap-10 md:gap-20">
           {/* Left — text */}
           <div className="relative z-[1] max-w-[540px] text-center md:text-left">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-[-2px] leading-[1.1] mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-[-1px] sm:tracking-[-2px] leading-[1.1] mb-4 sm:mb-6">
               Дневник
               <br />
               настроения
             </h1>
-            <p className="text-lg text-white/60 mb-8">
+            <p className="text-base sm:text-lg text-white/60 mb-6 sm:mb-8">
               Отслеживай свои эмоции, замечай тренды и становись лучше с каждым
               днём. Просто записывай, как прошёл твой день.
             </p>
             <button
               onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-              className="inline-block px-6 py-2.5 text-sm font-medium border border-white/20 bg-transparent text-white/70 cursor-pointer transition-colors hover:border-white/40 hover:text-white rounded-lg"
+              className="inline-block px-5 sm:px-6 py-2.5 text-sm font-medium border border-white/20 bg-transparent text-white/70 cursor-pointer transition-colors hover:border-white/40 hover:text-white rounded-lg"
             >
               Узнать больше
             </button>
           </div>
 
           {/* Right — stats panel */}
-          <div className="flex-1 w-full md:w-auto bg-white/[0.03] p-8 border border-white/[0.08] rounded-xl">
+          <div className="flex-1 w-full md:w-auto bg-white/[0.03] p-4 sm:p-6 md:p-8 border border-white/[0.08] rounded-xl">
             {/* Header */}
-            <div className="flex justify-between mb-6 text-xs uppercase tracking-wider text-white/50">
+            <div className="flex justify-between mb-4 sm:mb-6 text-[10px] sm:text-xs uppercase tracking-wider text-white/50">
               <span>Динамика настроения</span>
-              <span>последние 7 дней</span>
+              <span>7 дней</span>
             </div>
 
             {/* Bar chart */}
-            <div className="flex items-end gap-3 mb-8 h-24 sm:h-28">
+            <div className="flex items-end gap-2 sm:gap-3 mb-6 sm:mb-8 h-20 sm:h-24 md:h-28">
               {barHeights.map((h, i) => (
                 <div
                   key={i}
@@ -88,9 +88,9 @@ export default function LandingPage() {
             </div>
 
             {/* Day labels */}
-            <div className="flex gap-3 mb-8">
+            <div className="flex gap-2 sm:gap-3 mb-6 sm:mb-8">
               {dayLabels.map((d) => (
-                <span key={d} className="flex-1 text-center text-xs text-white/40">
+                <span key={d} className="flex-1 text-center text-[10px] sm:text-xs text-white/40">
                   {d}
                 </span>
               ))}
@@ -101,7 +101,7 @@ export default function LandingPage() {
               {recentEntries.map((item) => (
                 <div
                   key={item.label}
-                  className="flex justify-between py-3 border-b border-white/[0.05] text-sm"
+                  className="flex justify-between py-2.5 sm:py-3 border-b border-white/[0.05] text-xs sm:text-sm"
                 >
                   <span className="text-white/50">{item.label}</span>
                   <span className="font-medium" style={{ color: getMoodColor(item.mood) }}>{item.mood}</span>
@@ -116,16 +116,16 @@ export default function LandingPage() {
       {/* ===== FEATURES ===== */}
       <section
         id="features"
-        className="py-24 px-6 sm:px-12 max-w-[1400px] mx-auto border-t border-white/[0.08] scroll-mt-20"
+        className="py-16 sm:py-24 px-4 sm:px-6 md:px-12 max-w-[1400px] mx-auto border-t border-white/[0.08] scroll-mt-20"
       >
-        <h2 className="text-3xl md:text-4xl font-medium tracking-[-1px] mb-4">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-[-1px] mb-3 sm:mb-4">
           Почему MoodLog?
         </h2>
-        <p className="text-white/50 mb-16 max-w-[600px]">
+        <p className="text-white/50 mb-10 sm:mb-16 max-w-[600px] text-sm sm:text-base">
           Веди дневник эмоций, анализируй тренды и улучшай качество жизни
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
           {features.map((f) => (
             <div key={f.title} className="border-t-2 border-purple-500 pt-5">
               <h3 className="text-lg font-medium mb-2">{f.title}</h3>

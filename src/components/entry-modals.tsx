@@ -143,15 +143,15 @@ function AddEntryForm() {
       maxWidth="max-w-[800px]"
     >
       <CloseBtn onClick={() => { setPendingEntryDate(null); setActiveModal(null) }} />
-      <h2 className="text-2xl font-medium tracking-[-0.5px] mb-2">Новая запись</h2>
-      <p className="text-[13px] text-white/50 mb-7 pb-4 border-b border-white/[0.1]">
+      <h2 className="text-xl sm:text-2xl font-medium tracking-[-0.5px] mb-2">Новая запись</h2>
+      <p className="text-[12px] sm:text-[13px] text-white/50 mb-5 sm:mb-7 pb-3 sm:pb-4 border-b border-white/[0.1]">
         Заполните форму, чтобы сохранить настроение дня
       </p>
 
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-10">
           {/* Left column */}
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4 sm:gap-6">
             <div>
               <label className="label-sm">Дата</label>
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} required />
@@ -173,7 +173,7 @@ function AddEntryForm() {
           </div>
 
           {/* Right column */}
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4 sm:gap-6">
             <div>
               <label className="label-sm">Что хорошего случилось?</label>
               <textarea value={goodThing} onChange={(e) => setGoodThing(e.target.value)} placeholder="Позитивные моменты, достижения..." className={textareaCls} maxLength={2000} />
@@ -207,7 +207,7 @@ function AddEntryForm() {
           )}
 
           {/* Actions */}
-          <div className="md:col-span-2 flex gap-4 pt-6 border-t border-white/[0.1]">
+          <div className="md:col-span-2 flex flex-wrap gap-3 pt-6 border-t border-white/[0.1]">
             <button type="submit" disabled={loading} className={btnPrimary}>
               {loading ? (
                 <span className="flex items-center gap-2">
@@ -265,8 +265,8 @@ function EditEntryForm({ entry, onDone }: { entry: NonNullable<useAppStore['sele
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
-        <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-10">
+        <div className="flex flex-col gap-4 sm:gap-6">
           <div>
             <label className="label-sm">Дата</label>
             <input type="text" value={formatDateRu(entry.date)} disabled className={`${inputCls} opacity-50 cursor-not-allowed`} />
@@ -287,7 +287,7 @@ function EditEntryForm({ entry, onDone }: { entry: NonNullable<useAppStore['sele
           </div>
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4 sm:gap-6">
           <div>
             <label className="label-sm">Что хорошего случилось?</label>
             <textarea value={goodThing} onChange={(e) => setGoodThing(e.target.value)} placeholder="Позитивные моменты, достижения..." className={textareaCls} maxLength={2000} />
@@ -318,7 +318,7 @@ function EditEntryForm({ entry, onDone }: { entry: NonNullable<useAppStore['sele
           </div>
         )}
 
-        <div className="md:col-span-2 flex gap-4 pt-6 border-t border-white/[0.1]">
+        <div className="md:col-span-2 flex flex-wrap gap-3 pt-6 border-t border-white/[0.1]">
           <button type="submit" disabled={loading} className={btnPrimary}>
             {loading ? (
               <span className="flex items-center gap-2">
@@ -347,8 +347,8 @@ function EditEntryModal() {
       maxWidth="max-w-[800px]"
     >
       <CloseBtn onClick={() => setActiveModal(null)} />
-      <h2 className="text-2xl font-medium tracking-[-0.5px] mb-2">Редактирование записи</h2>
-      <p className="text-[13px] text-white/50 mb-7 pb-4 border-b border-white/[0.1]">
+      <h2 className="text-xl sm:text-2xl font-medium tracking-[-0.5px] mb-2">Редактирование записи</h2>
+      <p className="text-[12px] sm:text-[13px] text-white/50 mb-5 sm:mb-7 pb-3 sm:pb-4 border-b border-white/[0.1]">
         Измените данные записи от {selectedEntry ? formatDateRu(selectedEntry.date) : ''}
       </p>
 
@@ -381,17 +381,17 @@ function ViewEntryModal() {
       maxWidth="max-w-[600px]"
     >
       <CloseBtn onClick={() => setActiveModal(null)} />
-      <h2 className="text-2xl font-medium tracking-[-0.5px] mb-2">Запись</h2>
-      <p className="text-[13px] text-white/50 mb-7 pb-4 border-b border-white/[0.1]">
+      <h2 className="text-xl sm:text-2xl font-medium tracking-[-0.5px] mb-2">Запись</h2>
+      <p className="text-[12px] sm:text-[13px] text-white/50 mb-5 sm:mb-7 pb-3 sm:pb-4 border-b border-white/[0.1]">
         {formatDateRu(entry.date)}
       </p>
 
       <div className="mb-6">
         <div className="flex mb-5 pb-3 border-b border-white/[0.08]">
-          <div className="w-36 text-xs font-medium text-white/50 uppercase tracking-[0.3px] shrink-0">Настроение</div>
+          <div className="w-24 sm:w-36 text-xs font-medium text-white/50 uppercase tracking-[0.3px] shrink-0">Настроение</div>
           <div className="flex-1 text-sm text-white/90">
             <span
-              className="inline-block px-3 py-1 text-[13px]"
+              className="inline-block px-2 sm:px-3 py-1 text-[12px] sm:text-[13px]"
               style={{
                 backgroundColor: `${getMoodColor(entry.moodLabel)}20`,
                 borderLeft: `2px solid ${getMoodColor(entry.moodLabel)}`,
@@ -403,29 +403,29 @@ function ViewEntryModal() {
         </div>
 
         <div className="flex mb-5 pb-3 border-b border-white/[0.08]">
-          <div className="w-36 text-xs font-medium text-white/50 uppercase tracking-[0.3px] shrink-0">Сон</div>
+          <div className="w-24 sm:w-36 text-xs font-medium text-white/50 uppercase tracking-[0.3px] shrink-0">Сон</div>
           <div className="flex-1 text-sm text-white/90">
             {entry.sleepHours ? `${entry.sleepHours} часов` : 'Не указано'}
           </div>
         </div>
 
-        <div className="mb-5 p-4 bg-white/[0.03]">
-          <div className="text-[11px] font-medium text-white/40 uppercase mb-2 tracking-[0.5px]">Заметки</div>
-          <div className="text-sm text-white/80 leading-relaxed">{entry.notes || 'Нет заметок'}</div>
+        <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-white/[0.03]">
+          <div className="text-[11px] font-medium text-white/40 uppercase mb-1.5 sm:mb-2 tracking-[0.5px]">Заметки</div>
+          <div className="text-xs sm:text-sm text-white/80 leading-relaxed">{entry.notes || 'Нет заметок'}</div>
         </div>
 
-        <div className="mb-5 p-4 bg-white/[0.03]">
-          <div className="text-[11px] font-medium text-white/40 uppercase mb-2 tracking-[0.5px]">Что хорошего</div>
-          <div className="text-sm text-white/80 leading-relaxed">{entry.goodThing || 'Не указано'}</div>
+        <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-white/[0.03]">
+          <div className="text-[11px] font-medium text-white/40 uppercase mb-1.5 sm:mb-2 tracking-[0.5px]">Что хорошего</div>
+          <div className="text-xs sm:text-sm text-white/80 leading-relaxed">{entry.goodThing || 'Не указано'}</div>
         </div>
 
-        <div className="mb-5 p-4 bg-white/[0.03]">
-          <div className="text-[11px] font-medium text-white/40 uppercase mb-2 tracking-[0.5px]">Что плохого</div>
-          <div className="text-sm text-white/80 leading-relaxed">{entry.badThing || 'Не указано'}</div>
+        <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-white/[0.03]">
+          <div className="text-[11px] font-medium text-white/40 uppercase mb-1.5 sm:mb-2 tracking-[0.5px]">Что плохого</div>
+          <div className="text-xs sm:text-sm text-white/80 leading-relaxed">{entry.badThing || 'Не указано'}</div>
         </div>
       </div>
 
-      <div className="flex gap-4 pt-6 border-t border-white/[0.1]">
+      <div className="flex flex-wrap gap-3 pt-6 border-t border-white/[0.1]">
         <button className={btnPrimary} onClick={() => setActiveModal('edit')}>Редактировать</button>
         <button className={btnDanger} onClick={() => setActiveModal('delete')}>Удалить</button>
         <button className={btnSecondary} onClick={() => setActiveModal(null)}>Закрыть</button>
@@ -463,8 +463,8 @@ function DeleteEntryModal() {
       maxWidth="max-w-[420px]"
     >
       <CloseBtn onClick={() => setActiveModal(null)} />
-      <h2 className="text-2xl font-medium tracking-[-0.5px] mb-2">Удалить запись?</h2>
-      <p className="text-[13px] text-white/50 mb-8">
+      <h2 className="text-xl sm:text-2xl font-medium tracking-[-0.5px] mb-2">Удалить запись?</h2>
+      <p className="text-[12px] sm:text-[13px] text-white/50 mb-6 sm:mb-8">
         Это действие нельзя отменить. Запись от {selectedEntry ? formatDateRu(selectedEntry.date) : ''} будет удалена навсегда.
       </p>
 
@@ -482,7 +482,7 @@ function DeleteEntryModal() {
         </div>
       )}
 
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-3">
         <button onClick={handleDelete} disabled={loading} className={btnDanger}>
           {loading ? (
             <span className="flex items-center gap-2">

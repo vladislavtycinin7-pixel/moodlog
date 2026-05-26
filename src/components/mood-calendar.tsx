@@ -135,21 +135,21 @@ export default function MoodCalendar() {
   const capitalizedTitle = monthTitle.charAt(0).toUpperCase() + monthTitle.slice(1)
 
   return (
-    <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-6 rounded-xl">
+    <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-3 sm:p-6 rounded-xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-medium text-white">{capitalizedTitle}</h2>
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <h2 className="text-lg sm:text-xl font-medium text-white">{capitalizedTitle}</h2>
         <div className="flex items-center gap-2">
           <button
             onClick={goToPrevMonth}
-            className="bg-transparent border border-white/20 text-white cursor-pointer px-3 py-1.5 hover:border-purple-500 hover:bg-purple-500/10 transition-colors rounded-lg"
+            className="bg-transparent border border-white/20 text-white cursor-pointer px-2.5 sm:px-3 py-1.5 hover:border-purple-500 hover:bg-purple-500/10 transition-colors rounded-lg"
             aria-label="Предыдущий месяц"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             onClick={goToNextMonth}
-            className="bg-transparent border border-white/20 text-white cursor-pointer px-3 py-1.5 hover:border-purple-500 hover:bg-purple-500/10 transition-colors rounded-lg"
+            className="bg-transparent border border-white/20 text-white cursor-pointer px-2.5 sm:px-3 py-1.5 hover:border-purple-500 hover:bg-purple-500/10 transition-colors rounded-lg"
             aria-label="Следующий месяц"
           >
             <ChevronRight className="w-4 h-4" />
@@ -158,11 +158,11 @@ export default function MoodCalendar() {
       </div>
 
       {/* Weekday headers */}
-      <div className="grid grid-cols-7 gap-2 mb-1">
+      <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-1">
         {WEEKDAYS.map((day) => (
           <div
             key={day}
-            className="text-center py-3 text-xs font-medium text-white/50 uppercase"
+            className="text-center py-2 sm:py-3 text-[10px] sm:text-xs font-medium text-white/50 uppercase"
           >
             {day}
           </div>
@@ -170,7 +170,7 @@ export default function MoodCalendar() {
       </div>
 
       {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-7 gap-1 sm:gap-2">
         {calendarDays.map((day, index) => {
           const dateStr = format(day, 'yyyy-MM-dd')
           const entry = entryMap.get(dateStr)
@@ -180,7 +180,7 @@ export default function MoodCalendar() {
 
           // Build class names based on states
           let cellClass =
-            'text-center py-3 px-2 text-sm cursor-pointer transition-all border bg-white/[0.02] '
+            'text-center py-2 sm:py-3 px-0.5 sm:px-2 text-xs sm:text-sm cursor-pointer transition-all border bg-white/[0.02] rounded sm:rounded-none '
 
           // Border state
           if (isToday) {
@@ -216,7 +216,7 @@ export default function MoodCalendar() {
               <span className={textClass}>{format(day, 'd')}</span>
               {entry && (
                 <div
-                  className="w-2 h-2 rounded-full mx-auto mt-1"
+                  className="w-2.5 h-2.5 sm:w-2 sm:h-2 rounded-full mx-auto mt-0.5 sm:mt-1"
                   style={{
                     backgroundColor: getMoodColor(entry.moodLabel),
                     boxShadow: `0 0 4px ${getMoodColorDef(entry.moodLabel).shadowRgba}`,
