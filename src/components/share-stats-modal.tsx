@@ -317,7 +317,7 @@ export default function ShareStatsModal() {
           </button>
 
           {/* Native share (mobile only) */}
-          {typeof navigator !== 'undefined' && navigator.share && (
+          {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
             <button
               onClick={nativeShare}
               className="w-full flex items-center gap-3 p-3.5 bg-white/[0.03] border border-white/[0.08] rounded-xl cursor-pointer transition-colors hover:bg-white/[0.06] hover:border-purple-500/30 text-left"
@@ -405,7 +405,7 @@ export default function ShareStatsModal() {
               </div>
 
               {/* Share via native */}
-              {typeof navigator !== 'undefined' && navigator.share && (
+              {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
                 <button
                   onClick={nativeShare}
                   className="w-full py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-sm text-white/70 font-medium cursor-pointer transition-colors hover:bg-white/[0.06] flex items-center justify-center gap-2"

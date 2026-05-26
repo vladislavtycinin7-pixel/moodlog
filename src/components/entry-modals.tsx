@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAppStore } from '@/lib/store'
+import { useAppStore, type MoodEntry } from '@/lib/store'
 import { MOOD_LABELS, scoreToLabel, type MoodLabel, getMoodColor } from '@/lib/mood-colors'
 
 // Reversed mood labels for select dropdowns: bad (left/top) → good (right/bottom)
@@ -233,7 +233,7 @@ function AddEntryForm() {
 // ═══════════════════════════════════════════
 // EDIT ENTRY MODAL (inner form re-mounts via key)
 // ═══════════════════════════════════════════
-function EditEntryForm({ entry, onDone }: { entry: NonNullable<useAppStore['selectedEntry']>; onDone: () => void }) {
+function EditEntryForm({ entry, onDone }: { entry: MoodEntry; onDone: () => void }) {
   const { updateEntry } = useAppStore()
   const [moodScore, setMoodScore] = useState(entry.moodScore)
   const moodLabel = scoreToLabel(moodScore)
