@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Eye, EyeOff, KeyRound, Mail, Loader2 } from 'lucide-react'
-import { useAppStore, saveToken } from '@/lib/store'
+import { useAppStore, saveToken, fetchWithRetry } from '@/lib/store'
 import { ModalOverlay, CloseBtn } from '@/components/modal-overlay'
 
 const inputCls =
@@ -87,7 +87,7 @@ export default function AuthModals() {
 
     setLoginLoading(true)
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetchWithRetry('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: loginUsername.trim(), password: loginPassword }),
@@ -102,7 +102,7 @@ export default function AuthModals() {
         setLoginError(data.message || 'Ошибка при входе')
       }
     } catch {
-      setLoginError('Ошибка соединения')
+      setLoginError('Ошибка соединения. Попробуйте снова.')
     } finally {
       setLoginLoading(false)
     }
@@ -125,7 +125,7 @@ export default function AuthModals() {
 
     setRegLoading(true)
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await fetchWithRetry('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -144,7 +144,7 @@ export default function AuthModals() {
         setRegError(data.message || 'Ошибка при регистрации')
       }
     } catch {
-      setRegError('Ошибка соединения')
+      setRegError('Ошибка соединения. Попробуйте снова.')
     } finally {
       setRegLoading(false)
     }
@@ -162,7 +162,7 @@ export default function AuthModals() {
 
     setForgotLoading(true)
     try {
-      const res = await fetch('/api/auth/reset-password', {
+      const res = await fetchWithRetry('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: forgotUsername.trim() }),
@@ -177,7 +177,7 @@ export default function AuthModals() {
         setForgotError(data.message || 'Пользователь не найден')
       }
     } catch {
-      setForgotError('Ошибка соединения')
+      setForgotError('Ошибка соединения. Попробуйте снова.')
     } finally {
       setForgotLoading(false)
     }
@@ -205,7 +205,7 @@ export default function AuthModals() {
 
     setForgotLoading(true)
     try {
-      const res = await fetch('/api/auth/reset-password', {
+      const res = await fetchWithRetry('/api/auth/reset-password', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -223,7 +223,7 @@ export default function AuthModals() {
         setForgotError(data.message || 'Ошибка при сбросе пароля')
       }
     } catch {
-      setForgotError('Ошибка соединения')
+      setForgotError('Ошибка соединения. Попробуйте снова.')
     } finally {
       setForgotLoading(false)
     }

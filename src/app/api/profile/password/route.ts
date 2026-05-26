@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSessionUser, hashPassword, verifyPassword } from '@/lib/auth'
+import { withRetry } from '@/lib/db-retry'
 
 export async function PUT(request: NextRequest) {
   try {
@@ -47,9 +48,11 @@ export async function PUT(request: NextRequest) {
     }
 
     // Fetch user with password
-    const user = await db.user.findUnique({
-      where: { id: sessionUser.id },
-    })
+    const user = await withRetry(() =>
+      db.user.findUnique({
+        where: { id: sessionUser.id },
+      })
+    )
 
     if (!user) {
       return NextResponse.json(
@@ -69,10 +72,12 @@ export async function PUT(request: NextRequest) {
 
     // Hash and save new password
     const hashedPassword = await hashPassword(newPassword)
-    await db.user.update({
-      where: { id: sessionUser.id },
-      data: { password: hashedPassword },
-    })
+    await withRetry(() =>
+      db.user.update({
+        where: { id: sessionUser.id },
+        data: { password: hashedPassword },
+      })
+    )
 
     return NextResponse.json({
       success: true,

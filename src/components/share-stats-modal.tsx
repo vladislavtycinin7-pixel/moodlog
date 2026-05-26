@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
-import { useAppStore, getAuthHeaders } from '@/lib/store'
+import { useAppStore, getAuthHeaders, fetchWithRetry } from '@/lib/store'
 import { ModalOverlay, CloseBtn } from '@/components/modal-overlay'
 import { toast } from 'sonner'
 import {
@@ -41,7 +41,7 @@ export default function ShareStatsModal() {
   const handleGenerateLink = async () => {
     setShareLoading(true)
     try {
-      const res = await fetch('/api/stats/share', {
+      const res = await fetchWithRetry('/api/stats/share', {
         method: 'POST',
         headers: getAuthHeaders(),
       })
@@ -52,7 +52,7 @@ export default function ShareStatsModal() {
         toast.error(data.message || 'Ошибка')
       }
     } catch {
-      toast.error('Ошибка соединения')
+      toast.error('Ошибка соединения. Попробуйте снова.')
     } finally {
       setShareLoading(false)
     }
@@ -62,7 +62,7 @@ export default function ShareStatsModal() {
   const handleRevokeLink = async () => {
     setShareDeleting(true)
     try {
-      const res = await fetch('/api/stats/share', {
+      const res = await fetchWithRetry('/api/stats/share', {
         method: 'DELETE',
         headers: getAuthHeaders(),
       })
@@ -71,7 +71,7 @@ export default function ShareStatsModal() {
         toast.success('Ссылка удалена')
       }
     } catch {
-      toast.error('Ошибка')
+      toast.error('Ошибка соединения. Попробуйте снова.')
     } finally {
       setShareDeleting(false)
     }

@@ -114,7 +114,7 @@ async function tryRefreshSession(): Promise<boolean> {
  * Includes AbortController timeout to prevent page freeze.
  * Retries aggressively — user sees a loading spinner, not errors.
  */
-async function fetchWithRetry(
+export async function fetchWithRetry(
   url: string,
   options: RequestInit = {},
   retries: number = FETCH_MAX_RETRIES

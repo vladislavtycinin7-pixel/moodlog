@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { verifyPassword, createSession, buildSessionCookieHeader } from '@/lib/auth'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit'
+import { withRetry } from '@/lib/db-retry'
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,10 +27,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user
-    const user = await db.user.findUnique({
-      where: { username: typeof username === 'string' ? username.trim() : username },
-      select: { id: true, username: true, password: true, avatarUrl: true, tokenVersion: true },
-    })
+    const user = await withRetry(() =>
+      db.user.findUnique({
+        where: { username: typeof username === 'string' ? username.trim() : username },
+        select: { id: true, username: true, password: true, avatarUrl: true, tokenVersion: true },
+      })
+    )
 
     if (!user) {
       return NextResponse.json(

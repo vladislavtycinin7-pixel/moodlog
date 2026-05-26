@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { hashPassword } from '@/lib/auth'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit'
 import { randomInt } from 'crypto'
+import { withRetry } from '@/lib/db-retry'
 
 // 6-digit code expiry: 15 minutes
 const CODE_EXPIRY_MS = 15 * 60 * 1000
@@ -34,9 +35,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user by username
-    const user = await db.user.findUnique({
-      where: { username: username.trim() },
-    })
+    const user = await withRetry(() =>
+      db.user.findUnique({
+        where: { username: username.trim() },
+      })
+    )
 
     if (!user) {
       return NextResponse.json(
@@ -46,22 +49,26 @@ export async function POST(request: NextRequest) {
     }
 
     // Invalidate any existing unused reset codes for this user
-    await db.passwordReset.updateMany({
-      where: { userId: user.id, used: false },
-      data: { used: true },
-    })
+    await withRetry(() =>
+      db.passwordReset.updateMany({
+        where: { userId: user.id, used: false },
+        data: { used: true },
+      })
+    )
 
     // Generate 6-digit code
     const code = String(randomInt(100000, 999999))
 
     // Save reset code to database
-    const resetEntry = await db.passwordReset.create({
-      data: {
-        code,
-        userId: user.id,
-        expiresAt: new Date(Date.now() + CODE_EXPIRY_MS),
-      },
-    })
+    const resetEntry = await withRetry(() =>
+      db.passwordReset.create({
+        data: {
+          code,
+          userId: user.id,
+          expiresAt: new Date(Date.now() + CODE_EXPIRY_MS),
+        },
+      })
+    )
 
     return NextResponse.json({
       success: true,
@@ -129,9 +136,11 @@ export async function PUT(request: NextRequest) {
     }
 
     // Find the reset entry
-    const resetEntry = await db.passwordReset.findUnique({
-      where: { id: resetId },
-    })
+    const resetEntry = await withRetry(() =>
+      db.passwordReset.findUnique({
+        where: { id: resetId },
+      })
+    )
 
     if (!resetEntry) {
       return NextResponse.json(
@@ -165,20 +174,24 @@ export async function PUT(request: NextRequest) {
     }
 
     // Mark code as used
-    await db.passwordReset.update({
-      where: { id: resetId },
-      data: { used: true },
-    })
+    await withRetry(() =>
+      db.passwordReset.update({
+        where: { id: resetId },
+        data: { used: true },
+      })
+    )
 
     // Hash and save new password
     const hashedPassword = await hashPassword(newPassword)
-    await db.user.update({
-      where: { id: resetEntry.userId },
-      data: {
-        password: hashedPassword,
-        tokenVersion: { increment: 1 }, // Invalidate all existing sessions
-      },
-    })
+    await withRetry(() =>
+      db.user.update({
+        where: { id: resetEntry.userId },
+        data: {
+          password: hashedPassword,
+          tokenVersion: { increment: 1 }, // Invalidate all existing sessions
+        },
+      })
+    )
 
     return NextResponse.json({
       success: true,

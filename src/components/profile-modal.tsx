@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Eye, EyeOff, User, ImagePlus, Lock, Upload, Loader2 } from 'lucide-react'
-import { useAppStore, getAuthHeaders, loadToken } from '@/lib/store'
+import { useAppStore, getAuthHeaders, loadToken, fetchWithRetry } from '@/lib/store'
 import { ModalOverlay, CloseBtn } from '@/components/modal-overlay'
 import { toast } from 'sonner'
 
@@ -115,7 +115,7 @@ export default function ProfileModal() {
 
     setNickLoading(true)
     try {
-      const res = await fetch('/api/profile/username', {
+      const res = await fetchWithRetry('/api/profile/username', {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({ username: newUsername.trim() }),
@@ -129,7 +129,7 @@ export default function ProfileModal() {
         setNickError(data.message || 'Ошибка')
       }
     } catch {
-      setNickError('Ошибка соединения. Проверьте интернет и попробуйте снова.')
+      setNickError('Ошибка соединения. Попробуйте снова.')
     } finally {
       setNickLoading(false)
     }
@@ -170,7 +170,7 @@ export default function ProfileModal() {
       if (token) headers['Authorization'] = `Bearer ${token}`
       // Don't set Content-Type for FormData — browser sets it with boundary
 
-      const res = await fetch('/api/upload/avatars', {
+      const res = await fetchWithRetry('/api/upload/avatars', {
         method: 'POST',
         headers,
         body: formData,
@@ -185,7 +185,7 @@ export default function ProfileModal() {
         setAvatarError(data.message || 'Ошибка при загрузке')
       }
     } catch {
-      setAvatarError('Ошибка при загрузке. Проверьте соединение.')
+      setAvatarError('Ошибка при загрузке. Попробуйте снова.')
     } finally {
       setAvatarLoading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
@@ -199,7 +199,7 @@ export default function ProfileModal() {
     setAvatarLoading(true)
 
     try {
-      const res = await fetch('/api/profile/avatar', {
+      const res = await fetchWithRetry('/api/profile/avatar', {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({ avatarUrl: avatarUrl.trim() || null }),
@@ -223,7 +223,7 @@ export default function ProfileModal() {
   const handleRemoveAvatar = async () => {
     setAvatarLoading(true)
     try {
-      const res = await fetch('/api/profile/avatar', {
+      const res = await fetchWithRetry('/api/profile/avatar', {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({ avatarUrl: null }),
@@ -236,7 +236,7 @@ export default function ProfileModal() {
         toast.success('Аватар удалён')
       }
     } catch {
-      // silent
+      toast.error('Не удалось удалить аватар')
     } finally {
       setAvatarLoading(false)
     }
@@ -262,7 +262,7 @@ export default function ProfileModal() {
 
     setPwLoading(true)
     try {
-      const res = await fetch('/api/profile/password', {
+      const res = await fetchWithRetry('/api/profile/password', {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -282,7 +282,7 @@ export default function ProfileModal() {
         setPwError(data.message || 'Ошибка')
       }
     } catch {
-      setPwError('Ошибка соединения. Проверьте интернет и попробуйте снова.')
+      setPwError('Ошибка соединения. Попробуйте снова.')
     } finally {
       setPwLoading(false)
     }

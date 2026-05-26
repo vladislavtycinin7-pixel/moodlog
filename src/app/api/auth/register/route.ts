@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { hashPassword, createSession, buildSessionCookieHeader } from '@/lib/auth'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit'
+import { withRetry } from '@/lib/db-retry'
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,9 +52,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Check username uniqueness
-    const existingUser = await db.user.findUnique({
-      where: { username: username.trim() },
-    })
+    const existingUser = await withRetry(() =>
+      db.user.findUnique({
+        where: { username: username.trim() },
+      })
+    )
 
     if (existingUser) {
       return NextResponse.json(
@@ -66,13 +69,15 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await hashPassword(password)
 
     // Create user in DB
-    const user = await db.user.create({
-      data: {
-        username: username.trim(),
-        password: hashedPassword,
-      },
-      select: { id: true, username: true, avatarUrl: true, tokenVersion: true },
-    })
+    const user = await withRetry(() =>
+      db.user.create({
+        data: {
+          username: username.trim(),
+          password: hashedPassword,
+        },
+        select: { id: true, username: true, avatarUrl: true, tokenVersion: true },
+      })
+    )
 
     // Create session (new user has tokenVersion = 0)
     const token = createSession(user.id, user.tokenVersion ?? 0)

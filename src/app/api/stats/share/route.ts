@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSessionUser } from '@/lib/auth'
 import { randomBytes } from 'crypto'
+import { withRetry } from '@/lib/db-retry'
 
 /**
  * POST /api/stats/share
@@ -18,10 +19,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already has a share token
-    const dbUser = await db.user.findUnique({
-      where: { id: user.id },
-      select: { shareToken: true },
-    })
+    const dbUser = await withRetry(() =>
+      db.user.findUnique({
+        where: { id: user.id },
+        select: { shareToken: true },
+      })
+    )
 
     if (dbUser?.shareToken) {
       return NextResponse.json({
@@ -30,20 +33,21 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Generate a new unique share token
     let shareToken: string
     let attempts = 0
     do {
       shareToken = randomBytes(6).toString('base64url')
       attempts++
-      const exists = await db.user.findUnique({ where: { shareToken } })
+      const exists = await withRetry(() => db.user.findUnique({ where: { shareToken } }))
       if (!exists) break
     } while (attempts < 10)
 
-    await db.user.update({
-      where: { id: user.id },
-      data: { shareToken },
-    })
+    await withRetry(() =>
+      db.user.update({
+        where: { id: user.id },
+        data: { shareToken },
+      })
+    )
 
     return NextResponse.json({
       success: true,
@@ -72,10 +76,12 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    await db.user.update({
-      where: { id: user.id },
-      data: { shareToken: null },
-    })
+    await withRetry(() =>
+      db.user.update({
+        where: { id: user.id },
+        data: { shareToken: null },
+      })
+    )
 
     return NextResponse.json({ success: true })
   } catch (error) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSessionUser } from '@/lib/auth'
+import { withRetry } from '@/lib/db-retry'
 
 export async function PUT(request: NextRequest) {
   try {
@@ -31,9 +32,11 @@ export async function PUT(request: NextRequest) {
     const trimmedUsername = username.trim()
 
     // Check if username is already taken by another user
-    const existingUser = await db.user.findUnique({
-      where: { username: trimmedUsername },
-    })
+    const existingUser = await withRetry(() =>
+      db.user.findUnique({
+        where: { username: trimmedUsername },
+      })
+    )
 
     if (existingUser && existingUser.id !== sessionUser.id) {
       return NextResponse.json(
@@ -43,11 +46,13 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update username
-    const updatedUser = await db.user.update({
-      where: { id: sessionUser.id },
-      data: { username: trimmedUsername },
-      select: { id: true, username: true, avatarUrl: true, createdAt: true },
-    })
+    const updatedUser = await withRetry(() =>
+      db.user.update({
+        where: { id: sessionUser.id },
+        data: { username: trimmedUsername },
+        select: { id: true, username: true, avatarUrl: true, createdAt: true },
+      })
+    )
 
     return NextResponse.json({
       success: true,

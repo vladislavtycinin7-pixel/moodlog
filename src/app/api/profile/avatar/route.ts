@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSessionUser } from '@/lib/auth'
+import { withRetry } from '@/lib/db-retry'
 
 export async function PUT(request: NextRequest) {
   try {
@@ -56,11 +57,13 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update avatar
-    const updatedUser = await db.user.update({
-      where: { id: sessionUser.id },
-      data: { avatarUrl: cleanedAvatarUrl },
-      select: { id: true, username: true, avatarUrl: true, createdAt: true },
-    })
+    const updatedUser = await withRetry(() =>
+      db.user.update({
+        where: { id: sessionUser.id },
+        data: { avatarUrl: cleanedAvatarUrl },
+        select: { id: true, username: true, avatarUrl: true, createdAt: true },
+      })
+    )
 
     return NextResponse.json({
       success: true,
