@@ -54,14 +54,14 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               </div>
             </div>
             <div className="space-y-2">
-              <h2 className="text-xl font-semibold text-white">Что-то пошло не так</h2>
-              <p className="text-white/50 text-sm">
+              <h2 className="text-xl font-semibold text-foreground">Что-то пошло не так</h2>
+              <p className="text-text-muted text-sm">
                 Произошла неожиданная ошибка. Попробуйте обновить страницу или нажать кнопку ниже.
               </p>
             </div>
             {this.state.error && (
-              <details className="text-left bg-white/[0.03] border border-white/[0.08] rounded-lg p-3">
-                <summary className="text-xs text-white/30 cursor-pointer">Детали ошибки</summary>
+              <details className="text-left bg-surface border border-border rounded-lg p-3">
+                <summary className="text-xs text-text-muted cursor-pointer">Детали ошибки</summary>
                 <pre className="mt-2 text-xs text-red-400/80 whitespace-pre-wrap break-words">
                   {this.state.error.message}
                 </pre>
@@ -70,7 +70,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             <div className="flex gap-3 justify-center">
               <button
                 onClick={this.handleRetry}
-                className="flex items-center gap-2 px-4 py-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.1] rounded-lg text-white/70 hover:text-white text-sm transition-colors cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2 bg-surface hover:bg-surface-elevated border border-border rounded-lg text-text-secondary hover:text-foreground text-sm transition-colors cursor-pointer"
               >
                 <RefreshCw size={16} />
                 Попробовать снова

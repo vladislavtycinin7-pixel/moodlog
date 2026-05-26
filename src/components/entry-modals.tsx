@@ -40,23 +40,24 @@ function MoodSlider({
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
           className="range-slider w-full appearance-none bg-transparent cursor-pointer
-            [&::-webkit-slider-runnable-track]:h-2 [&::-webkit-slider-runnable-track]:bg-[#2b2a33] [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:border-none
+            [&::-webkit-slider-runnable-track]:h-2 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:border-none
             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:-mt-2 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-[0_0_0_4px_#a855f7_inset] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-shadow [&::-webkit-slider-thumb]:duration-300
             [&::-webkit-slider-thumb]:hover:shadow-[0_0_0_8px_#a855f7_inset]
             [&::-webkit-slider-thumb]:active:shadow-[0_0_0_20px_#a855f7_inset]
-            [&::-moz-range-track]:h-2 [&::-moz-range-track]:bg-[#2b2a33] [&::-moz-range-track]:rounded-full [&::-moz-range-track]:border-none
+            [&::-moz-range-track]:h-2 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:border-none
             [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:shadow-[0_0_0_4px_#a855f7_inset] [&::-moz-range-thumb]:cursor-pointer
             [&::-moz-range-progress]:h-2 [&::-moz-range-progress]:rounded-full [&::-moz-range-progress]:bg-purple-500
           "
+          style={{ '--slider-track': 'var(--slider-track)' } as React.CSSProperties}
         />
       </div>
       <div className="mt-3 px-3">
         <div className="flex justify-between mb-1.5">
           {Array.from({ length: 10 }, (_, i) => (
-            <div key={i} className="w-px h-1.5 bg-white/30" />
+            <div key={i} className="w-px h-1.5 bg-text-muted" />
           ))}
         </div>
-        <div className="flex justify-between text-[10px] text-white/50">
+        <div className="flex justify-between text-[10px] text-text-muted">
           {Array.from({ length: 10 }, (_, i) => (
             <span key={i}>{i + 1}</span>
           ))}
@@ -66,21 +67,21 @@ function MoodSlider({
   )
 }
 
-// Shared input styles
+// Shared input styles — all use CSS vars for light/dark theme
 const inputCls =
-  'w-full py-2.5 bg-transparent border-none border-b border-white/20 text-white text-sm font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-white/30 placeholder:text-[13px]'
+  'w-full py-2.5 bg-transparent border-none border-b border-border text-foreground text-sm font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-text-muted placeholder:text-[13px]'
 
 const selectCls =
-  'w-full py-2.5 bg-transparent border-none border-b border-white/20 text-white text-sm font-[inherit] transition-colors focus:outline-none focus:border-purple-400 cursor-pointer [&>option]:bg-[#1a1a24]'
+  'w-full py-2.5 bg-transparent border-none border-b border-border text-foreground text-sm font-[inherit] transition-colors focus:outline-none focus:border-purple-400 cursor-pointer'
 
 const textareaCls =
-  'w-full py-2.5 bg-transparent border-none border-b border-white/20 text-white text-sm font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-white/30 placeholder:text-[13px] resize-vertical min-h-[70px]'
+  'w-full py-2.5 bg-transparent border-none border-b border-border text-foreground text-sm font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-text-muted placeholder:text-[13px] resize-vertical min-h-[70px]'
 
 const btnPrimary =
   'py-2.5 px-7 text-sm font-medium cursor-pointer bg-purple-500 text-white hover:bg-purple-600 transition-colors border-none rounded-lg disabled:opacity-60 disabled:cursor-not-allowed'
 
 const btnSecondary =
-  'py-2.5 px-7 text-sm font-medium cursor-pointer bg-transparent border border-white/30 text-white/80 hover:border-white/50 hover:text-white transition-colors rounded-lg'
+  'py-2.5 px-7 text-sm font-medium cursor-pointer bg-transparent border border-border text-text-secondary hover:border-purple-400 hover:text-foreground transition-colors rounded-lg'
 
 const btnDanger =
   'py-2.5 px-7 text-sm font-medium cursor-pointer bg-red-500 text-white hover:bg-red-600 transition-colors border-none rounded-lg disabled:opacity-60 disabled:cursor-not-allowed'
@@ -182,7 +183,7 @@ function AddEntryForm() {
     >
       <CloseBtn onClick={close} />
       <h2 className="text-xl sm:text-2xl font-medium tracking-[-0.5px] mb-2">Новая запись</h2>
-      <p className="text-[12px] sm:text-[13px] text-white/50 mb-5 sm:mb-7 pb-3 sm:pb-4 border-b border-white/[0.1]">
+      <p className="text-[12px] sm:text-[13px] text-text-muted mb-5 sm:mb-7 pb-3 sm:pb-4 border-b border-border">
         Заполните форму, чтобы сохранить настроение дня
       </p>
 
@@ -230,7 +231,7 @@ function AddEntryForm() {
           </div>
 
           {/* Actions */}
-          <div className="md:col-span-2 flex flex-wrap gap-3 pt-6 border-t border-white/[0.1]">
+          <div className="md:col-span-2 flex flex-wrap gap-3 pt-6 border-t border-border">
             <button type="submit" disabled={loading} className={btnPrimary}>
               {loading ? (
                 <LoadingSpinner text="Сохранение" />
@@ -333,7 +334,7 @@ function EditEntryForm({ entry, onDone }: { entry: MoodEntry; onDone: () => void
           <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Что произошло сегодня?" className={textareaCls} maxLength={2000} />
         </div>
 
-        <div className="md:col-span-2 flex flex-wrap gap-3 pt-6 border-t border-white/[0.1]">
+        <div className="md:col-span-2 flex flex-wrap gap-3 pt-6 border-t border-border">
           <button type="submit" disabled={loading} className={btnPrimary}>
             {loading ? (
               <LoadingSpinner text="Сохранение" />
@@ -360,7 +361,7 @@ function EditEntryModal() {
     >
       <CloseBtn onClick={() => setActiveModal(null)} />
       <h2 className="text-xl sm:text-2xl font-medium tracking-[-0.5px] mb-2">Редактирование записи</h2>
-      <p className="text-[12px] sm:text-[13px] text-white/50 mb-5 sm:mb-7 pb-3 sm:pb-4 border-b border-white/[0.1]">
+      <p className="text-[12px] sm:text-[13px] text-text-muted mb-5 sm:mb-7 pb-3 sm:pb-4 border-b border-border">
         Измените данные записи от {selectedEntry ? formatDateRu(selectedEntry.date) : ''}
       </p>
 
@@ -394,14 +395,14 @@ function ViewEntryModal() {
     >
       <CloseBtn onClick={() => setActiveModal(null)} />
       <h2 className="text-xl sm:text-2xl font-medium tracking-[-0.5px] mb-2">Запись</h2>
-      <p className="text-[12px] sm:text-[13px] text-white/50 mb-5 sm:mb-7 pb-3 sm:pb-4 border-b border-white/[0.1]">
+      <p className="text-[12px] sm:text-[13px] text-text-muted mb-5 sm:mb-7 pb-3 sm:pb-4 border-b border-border">
         {formatDateRu(entry.date)}
       </p>
 
       <div className="mb-6">
-        <div className="flex mb-5 pb-3 border-b border-white/[0.08]">
-          <div className="w-24 sm:w-36 text-xs font-medium text-white/50 uppercase tracking-[0.3px] shrink-0">Настроение</div>
-          <div className="flex-1 text-sm text-white/90">
+        <div className="flex mb-5 pb-3 border-b border-border">
+          <div className="w-24 sm:w-36 text-xs font-medium text-text-muted uppercase tracking-[0.3px] shrink-0">Настроение</div>
+          <div className="flex-1 text-sm text-foreground">
             <span
               className="inline-block px-2 sm:px-3 py-1 text-[12px] sm:text-[13px]"
               style={{
@@ -414,30 +415,30 @@ function ViewEntryModal() {
           </div>
         </div>
 
-        <div className="flex mb-5 pb-3 border-b border-white/[0.08]">
-          <div className="w-24 sm:w-36 text-xs font-medium text-white/50 uppercase tracking-[0.3px] shrink-0">Сон</div>
-          <div className="flex-1 text-sm text-white/90">
+        <div className="flex mb-5 pb-3 border-b border-border">
+          <div className="w-24 sm:w-36 text-xs font-medium text-text-muted uppercase tracking-[0.3px] shrink-0">Сон</div>
+          <div className="flex-1 text-sm text-foreground">
             {entry.sleepHours ? `${entry.sleepHours} часов` : 'Не указано'}
           </div>
         </div>
 
-        <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-white/[0.03]">
-          <div className="text-[11px] font-medium text-white/40 uppercase mb-1.5 sm:mb-2 tracking-[0.5px]">Заметки</div>
-          <div className="text-xs sm:text-sm text-white/80 leading-relaxed">{entry.notes || 'Нет заметок'}</div>
+        <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-surface rounded-lg">
+          <div className="text-[11px] font-medium text-text-muted uppercase mb-1.5 sm:mb-2 tracking-[0.5px]">Заметки</div>
+          <div className="text-xs sm:text-sm text-text-secondary leading-relaxed">{entry.notes || 'Нет заметок'}</div>
         </div>
 
-        <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-white/[0.03]">
-          <div className="text-[11px] font-medium text-white/40 uppercase mb-1.5 sm:mb-2 tracking-[0.5px]">Что хорошего</div>
-          <div className="text-xs sm:text-sm text-white/80 leading-relaxed">{entry.goodThing || 'Не указано'}</div>
+        <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-surface rounded-lg">
+          <div className="text-[11px] font-medium text-text-muted uppercase mb-1.5 sm:mb-2 tracking-[0.5px]">Что хорошего</div>
+          <div className="text-xs sm:text-sm text-text-secondary leading-relaxed">{entry.goodThing || 'Не указано'}</div>
         </div>
 
-        <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-white/[0.03]">
-          <div className="text-[11px] font-medium text-white/40 uppercase mb-1.5 sm:mb-2 tracking-[0.5px]">Что плохого</div>
-          <div className="text-xs sm:text-sm text-white/80 leading-relaxed">{entry.badThing || 'Не указано'}</div>
+        <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-surface rounded-lg">
+          <div className="text-[11px] font-medium text-text-muted uppercase mb-1.5 sm:mb-2 tracking-[0.5px]">Что плохого</div>
+          <div className="text-xs sm:text-sm text-text-secondary leading-relaxed">{entry.badThing || 'Не указано'}</div>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3 pt-6 border-t border-white/[0.1]">
+      <div className="flex flex-wrap gap-3 pt-6 border-t border-border">
         <button className={btnPrimary} onClick={() => setActiveModal('edit')}>Редактировать</button>
         <button className={btnDanger} onClick={() => setActiveModal('delete')}>Удалить</button>
         <button className={btnSecondary} onClick={() => setActiveModal(null)}>Закрыть</button>
@@ -485,7 +486,7 @@ function DeleteEntryModal() {
     >
       <CloseBtn onClick={() => setActiveModal(null)} />
       <h2 className="text-xl sm:text-2xl font-medium tracking-[-0.5px] mb-2">Удалить запись?</h2>
-      <p className="text-[12px] sm:text-[13px] text-white/50 mb-6 sm:mb-8">
+      <p className="text-[12px] sm:text-[13px] text-text-muted mb-6 sm:mb-8">
         Это действие нельзя отменить. Запись от {selectedEntry ? formatDateRu(selectedEntry.date) : ''} будет удалена навсегда.
       </p>
 

@@ -61,20 +61,20 @@
   --radius: 0.625rem;
   --background: #faf7f2;
   --foreground: #1e1b2e;
-  --card: rgba(255, 255, 255, 0.92);
+  --card: rgba(255, 255, 255, 0.85);
   --card-foreground: #1e1b2e;
-  --popover: rgba(255, 255, 255, 0.98);
+  --popover: rgba(255, 255, 255, 0.96);
   --popover-foreground: #1e1b2e;
   --primary: #a855f7;
   --primary-foreground: #ffffff;
-  --secondary: #f0ece6;
+  --secondary: #eee9e2;
   --secondary-foreground: #3a3650;
-  --muted: #f5f1eb;
+  --muted: #f0ebe4;
   --muted-foreground: #6e6b80;
-  --accent: rgba(168, 85, 247, 0.1);
+  --accent: rgba(168, 85, 247, 0.12);
   --accent-foreground: #1e1b2e;
   --destructive: #ef4444;
-  --border: #e2ddd5;
+  --border: #e0d9d0;
   --input: #d4d0c9;
   --ring: #a855f7;
   --chart-1: #a855f7;
@@ -86,30 +86,30 @@
   --sidebar-foreground: #1e1b2e;
   --sidebar-primary: #a855f7;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: rgba(168, 85, 247, 0.1);
+  --sidebar-accent: rgba(168, 85, 247, 0.12);
   --sidebar-accent-foreground: #1e1b2e;
-  --sidebar-border: #e2ddd5;
+  --sidebar-border: #e0d9d0;
   --sidebar-ring: #a855f7;
-  /* Custom tokens */
-  --surface: rgba(0, 0, 0, 0.025);
-  --surface-elevated: rgba(0, 0, 0, 0.045);
+  /* Custom tokens — warm cream with soft shadows */
+  --surface: rgba(0, 0, 0, 0.035);
+  --surface-elevated: rgba(0, 0, 0, 0.055);
   --text-primary: #1e1b2e;
   --text-secondary: #4a4660;
   --text-muted: #8a869e;
-  --navbar-bg: rgba(250, 247, 242, 0.82);
-  --panel-bg: rgba(255, 255, 255, 0.98);
-  --overlay-bg: rgba(0, 0, 0, 0.25);
-  --footer-bg: #f3efe8;
-  --gradient-1: rgba(139, 92, 246, 0.07);
-  --gradient-2: rgba(236, 72, 153, 0.05);
-  --gradient-3: rgba(168, 85, 247, 0.06);
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
-  --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.03);
+  --navbar-bg: rgba(250, 247, 242, 0.85);
+  --panel-bg: rgba(255, 255, 255, 0.96);
+  --overlay-bg: rgba(30, 27, 46, 0.2);
+  --footer-bg: #f0ebe4;
+  --gradient-1: rgba(139, 92, 246, 0.12);
+  --gradient-2: rgba(236, 72, 153, 0.08);
+  --gradient-3: rgba(168, 85, 247, 0.10);
+  --shadow-card: 0 1px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+  --shadow-card-hover: 0 6px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
   --track-bg: rgba(0, 0, 0, 0.06);
-  --slider-track: #e2ddd5;
+  --slider-track: #ddd7cf;
   --select-option-bg: #ffffff;
-  --input-placeholder: rgba(30, 27, 46, 0.3);
-  --input-border: #ccc8c0;
+  --input-placeholder: rgba(30, 27, 46, 0.35);
+  --input-border: #d4cec6;
   --focus-border: #a855f7;
 }
 
@@ -229,4 +229,17 @@
 /* Light theme card shadow */
 :root .theme-card-shadow {
   box-shadow: var(--shadow-card);
+}
+
+/* Range slider track — uses CSS variable for theme support */
+input[type="range"]::-webkit-slider-runnable-track {
+  background: var(--slider-track);
+}
+input[type="range"]::-moz-range-track {
+  background: var(--slider-track);
+}
+
+/* Select dropdown option background */
+select option {
+  background: var(--select-option-bg);
 }

@@ -9,7 +9,7 @@ import { toast } from 'sonner'
 type Tab = 'nickname' | 'avatar' | 'password'
 
 const inputCls =
-  'w-full py-3 bg-transparent border-none border-b border-white/20 text-white text-[15px] font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-white/30'
+  'w-full py-3 bg-transparent border-none border-b border-border text-foreground text-[15px] font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-text-muted'
 
 /**
  * Resize an image file to fit within maxDim x maxDim on the client side.
@@ -301,7 +301,7 @@ export default function ProfileModal() {
       <CloseBtn onClick={() => setActiveModal(null)} />
 
       {/* Profile header */}
-        <div className="p-4 sm:p-6 md:p-8 pb-4 sm:pb-6 text-center border-b border-white/[0.08]">
+        <div className="p-4 sm:p-6 md:p-8 pb-4 sm:pb-6 text-center border-b border-border">
           <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-3 overflow-hidden">
             {user?.avatarUrl ? (
               <img
@@ -315,14 +315,14 @@ export default function ProfileModal() {
               </div>
             )}
           </div>
-          <h2 className="text-[22px] font-medium tracking-[-0.5px] text-white">
+          <h2 className="text-[22px] font-medium tracking-[-0.5px] text-foreground">
             Профиль
           </h2>
-          <p className="text-[13px] text-white/50 mt-1">{user?.username}</p>
+          <p className="text-[13px] text-text-muted mt-1">{user?.username}</p>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-white/[0.08]">
+        <div className="flex border-b border-border">
           {tabs.map((t) => (
             <button
               key={t.key}
@@ -330,7 +330,7 @@ export default function ProfileModal() {
               className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-[13px] font-medium cursor-pointer transition-colors border-none bg-transparent ${
                 tab === t.key
                   ? 'text-purple-400 border-b-2 border-b-purple-400'
-                  : 'text-white/50 hover:text-white/70'
+                  : 'text-text-muted hover:text-text-secondary'
               }`}
               style={tab === t.key ? { borderBottom: '2px solid #a855f7' } : {}}
             >
@@ -357,7 +357,7 @@ export default function ProfileModal() {
                 minLength={2}
                 maxLength={20}
               />
-              <p className="text-[11px] text-white/30 mt-2">От 2 до 20 символов</p>
+              <p className="text-[11px] text-text-muted mt-2">От 2 до 20 символов</p>
 
               {nickError && (
                 <div className="flex items-center gap-3 p-3 mt-3 bg-red-500/10 border border-red-500/20 rounded-lg">
@@ -376,7 +376,7 @@ export default function ProfileModal() {
               <button
                 type="submit"
                 disabled={nickLoading}
-                className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg mt-6"
+                className="w-full py-3 bg-purple-500 border-none text-foreground text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg mt-6"
               >
                 {nickLoading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -407,8 +407,8 @@ export default function ProfileModal() {
                   )}
                 </div>
                 <div>
-                  <p className="text-sm text-white/80">Текущий аватар</p>
-                  <p className="text-[11px] text-white/40">
+                  <p className="text-sm text-text-secondary">Текущий аватар</p>
+                  <p className="text-[11px] text-text-muted">
                     {user?.avatarUrl ? 'Загружен' : 'Инициалы по умолчанию'}
                   </p>
                 </div>
@@ -420,7 +420,7 @@ export default function ProfileModal() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={avatarLoading}
-                  className="w-full py-3.5 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg flex items-center justify-center gap-2"
+                  className="w-full py-3.5 bg-purple-500 border-none text-foreground text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg flex items-center justify-center gap-2"
                 >
                   <Upload size={16} />
                   {avatarLoading ? 'Загрузка...' : 'Загрузить с устройства'}
@@ -432,16 +432,16 @@ export default function ProfileModal() {
                   className="hidden"
                   onChange={handleFileUpload}
                 />
-                <p className="text-[11px] text-white/30 mt-2 text-center">
+                <p className="text-[11px] text-text-muted mt-2 text-center">
                   JPEG, PNG, GIF или WebP — до 5MB
                 </p>
               </div>
 
               {/* Divider */}
               <div className="flex items-center gap-3 mb-6">
-                <div className="flex-1 h-px bg-white/10" />
-                <span className="text-[11px] text-white/30 uppercase tracking-wider">или</span>
-                <div className="flex-1 h-px bg-white/10" />
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-[11px] text-text-muted uppercase tracking-wider">или</span>
+                <div className="flex-1 h-px bg-border" />
               </div>
 
               {/* URL input */}
@@ -456,7 +456,7 @@ export default function ProfileModal() {
                   className={inputCls}
                   placeholder="https://example.com/avatar.jpg"
                 />
-                <p className="text-[11px] text-white/30 mt-2">
+                <p className="text-[11px] text-text-muted mt-2">
                   Вставьте ссылку на изображение
                 </p>
 
@@ -477,7 +477,7 @@ export default function ProfileModal() {
                       type="button"
                       onClick={handleRemoveAvatar}
                       disabled={avatarLoading}
-                      className="py-3 px-5 bg-transparent border border-white/20 text-white/70 text-sm cursor-pointer transition-colors hover:border-white/40 hover:text-white disabled:opacity-60"
+                      className="py-3 px-5 bg-transparent border border-border text-text-secondary text-sm cursor-pointer transition-colors hover:border-purple-400 hover:text-foreground disabled:opacity-60"
                     >
                       Удалить
                     </button>
@@ -506,7 +506,7 @@ export default function ProfileModal() {
                   />
                   <button
                     type="button"
-                    className="absolute right-0 bottom-3 cursor-pointer text-white/40 hover:text-white transition-colors bg-transparent border-none p-0"
+                    className="absolute right-0 bottom-3 cursor-pointer text-text-muted hover:text-foreground transition-colors bg-transparent border-none p-0"
                     onClick={() => setShowCurrentPw(!showCurrentPw)}
                   >
                     {showCurrentPw ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -530,7 +530,7 @@ export default function ProfileModal() {
                   />
                   <button
                     type="button"
-                    className="absolute right-0 bottom-3 cursor-pointer text-white/40 hover:text-white transition-colors bg-transparent border-none p-0"
+                    className="absolute right-0 bottom-3 cursor-pointer text-text-muted hover:text-foreground transition-colors bg-transparent border-none p-0"
                     onClick={() => setShowNewPw(!showNewPw)}
                   >
                     {showNewPw ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -554,7 +554,7 @@ export default function ProfileModal() {
                   />
                   <button
                     type="button"
-                    className="absolute right-0 bottom-3 cursor-pointer text-white/40 hover:text-white transition-colors bg-transparent border-none p-0"
+                    className="absolute right-0 bottom-3 cursor-pointer text-text-muted hover:text-foreground transition-colors bg-transparent border-none p-0"
                     onClick={() => setShowConfirmPw(!showConfirmPw)}
                   >
                     {showConfirmPw ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -590,7 +590,7 @@ export default function ProfileModal() {
               <button
                 type="submit"
                 disabled={pwLoading}
-                className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg mt-5"
+                className="w-full py-3 bg-purple-500 border-none text-foreground text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg mt-5"
               >
                 {pwLoading ? (
                   <span className="flex items-center justify-center gap-2">

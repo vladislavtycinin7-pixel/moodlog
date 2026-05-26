@@ -1,13 +1,25 @@
 'use client'
 
-import { Menu, X, Settings } from 'lucide-react'
-import { useState } from 'react'
+import { Menu, X, Settings, Sun, Moon } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { useAppStore } from '@/lib/store'
+import { useTheme } from 'next-themes'
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { isAuthenticated, setActiveModal, settingsOpen, setSettingsOpen, setActiveTab } =
     useAppStore()
+
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  // next-themes needs mount check to avoid hydration mismatch
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setMounted(true), [])
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark')
+  }
 
   const handleLogoClick = () => {
     setActiveTab('calendar')
@@ -74,6 +86,17 @@ export default function Navbar() {
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             >
               {mobileOpen ? <X size={26} /> : <Menu size={26} />}
+            </button>
+          )}
+
+          {/* Theme toggle */}
+          {mounted && (
+            <button
+              className="text-text-secondary hover:text-foreground transition-colors bg-transparent border-none cursor-pointer p-2.5"
+              onClick={toggleTheme}
+              aria-label={theme === 'dark' ? 'Переключить на светлую тему' : 'Переключить на тёмную тему'}
+            >
+              {theme === 'dark' ? <Sun size={22} /> : <Moon size={22} />}
             </button>
           )}
 

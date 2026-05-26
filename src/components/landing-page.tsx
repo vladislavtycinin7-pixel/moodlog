@@ -72,7 +72,7 @@ export default function LandingPage() {
           </div>
 
           {/* Right — stats panel */}
-          <div className="flex-1 w-full md:w-auto bg-white/[0.03] p-5 sm:p-6 md:p-8 border border-white/[0.08] rounded-xl">
+          <div className="flex-1 w-full md:w-auto bg-surface p-5 sm:p-6 md:p-8 border border-border rounded-xl">
             {/* Header */}
             <div className="flex justify-between mb-5 sm:mb-6 text-[11px] sm:text-xs uppercase tracking-wider text-text-muted">
               <span>Динамика настроения</span>
@@ -100,11 +100,11 @@ export default function LandingPage() {
             </div>
 
             {/* Recent entries */}
-            <div className="border-t border-white/[0.08]">
+            <div className="border-t border-border">
               {recentEntries.map((item) => (
                 <div
                   key={item.label}
-                  className="flex justify-between py-3 sm:py-3 border-b border-white/[0.05] text-sm sm:text-sm"
+                  className="flex justify-between py-3 sm:py-3 border-b border-border text-sm sm:text-sm"
                 >
                   <span className="text-text-muted">{item.label}</span>
                   <span className="font-medium" style={{ color: getMoodColor(item.mood) }}>{item.mood}</span>
@@ -119,7 +119,7 @@ export default function LandingPage() {
       {/* ===== FEATURES ===== */}
       <section
         id="features"
-        className="py-16 sm:py-24 px-5 sm:px-6 md:px-12 max-w-[1400px] mx-auto border-t border-white/[0.08] scroll-mt-20"
+        className="py-16 sm:py-24 px-5 sm:px-6 md:px-12 max-w-[1400px] mx-auto border-t border-border scroll-mt-20"
       >
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-[-1px] mb-4 sm:mb-4">
           Почему MoodLog?

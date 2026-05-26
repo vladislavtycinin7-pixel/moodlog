@@ -6,7 +6,7 @@ import { useAppStore, saveToken, fetchWithRetry } from '@/lib/store'
 import { ModalOverlay, CloseBtn } from '@/components/modal-overlay'
 
 const inputCls =
-  'w-full py-3 bg-transparent border-none border-b border-white/20 text-white text-[15px] font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-white/30'
+  'w-full py-3 bg-transparent border-none border-b border-border text-foreground text-[15px] font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-text-muted'
 
 export default function AuthModals() {
   const { activeModal, setActiveModal, setUser } = useAppStore()
@@ -239,10 +239,10 @@ export default function AuthModals() {
       {/* ═══════ LOGIN MODAL ═══════ */}
       <ModalOverlay open={loginOpen} onClose={close} maxWidth="max-w-[420px]">
         <CloseBtn onClick={close} />
-        <h2 className="text-[26px] font-medium tracking-[-0.5px] mb-2 text-white">
+        <h2 className="text-[26px] font-medium tracking-[-0.5px] mb-2 text-foreground">
           Вход
         </h2>
-        <p className="text-[13px] text-white/50 mb-8">Войдите в свой аккаунт</p>
+        <p className="text-[13px] text-text-muted mb-8">Войдите в свой аккаунт</p>
 
         <form onSubmit={handleLogin}>
           <div className="mb-6">
@@ -270,7 +270,7 @@ export default function AuthModals() {
               />
               <button
                 type="button"
-                className="absolute right-0 bottom-3 cursor-pointer text-white/40 hover:text-white transition-colors bg-transparent border-none p-0"
+                className="absolute right-0 bottom-3 cursor-pointer text-text-muted hover:text-foreground transition-colors bg-transparent border-none p-0"
                 onClick={() => setLoginShowPw(!loginShowPw)}
                 aria-label={loginShowPw ? 'Скрыть пароль' : 'Показать пароль'}
               >
@@ -297,7 +297,7 @@ export default function AuthModals() {
           </button>
         </form>
 
-        <div className="text-center mt-6 text-[13px] text-white/50">
+        <div className="text-center mt-6 text-[13px] text-text-muted">
           <button
             type="button"
             className="text-purple-400 cursor-pointer hover:underline bg-transparent border-none p-0 font-[inherit] text-[inherit]"
@@ -307,7 +307,7 @@ export default function AuthModals() {
           </button>
         </div>
 
-        <div className="text-center mt-4 pt-4 border-t border-white/[0.08] text-[13px] text-white/50">
+        <div className="text-center mt-4 pt-4 border-t border-border text-[13px] text-text-muted">
           Нет аккаунта?{' '}
           <button
             type="button"
@@ -322,10 +322,10 @@ export default function AuthModals() {
       {/* ═══════ REGISTER MODAL ═══════ */}
       <ModalOverlay open={registerOpen} onClose={close} maxWidth="max-w-[420px]">
         <CloseBtn onClick={close} />
-        <h2 className="text-[26px] font-medium tracking-[-0.5px] mb-2 text-white">
+        <h2 className="text-[26px] font-medium tracking-[-0.5px] mb-2 text-foreground">
           Регистрация
         </h2>
-        <p className="text-[13px] text-white/50 mb-8">
+        <p className="text-[13px] text-text-muted mb-8">
           Создайте аккаунт, чтобы начать
         </p>
 
@@ -355,7 +355,7 @@ export default function AuthModals() {
               />
               <button
                 type="button"
-                className="absolute right-0 bottom-3 cursor-pointer text-white/40 hover:text-white transition-colors bg-transparent border-none p-0"
+                className="absolute right-0 bottom-3 cursor-pointer text-text-muted hover:text-foreground transition-colors bg-transparent border-none p-0"
                 onClick={() => setRegShowPw(!regShowPw)}
                 aria-label={regShowPw ? 'Скрыть пароль' : 'Показать пароль'}
               >
@@ -377,7 +377,7 @@ export default function AuthModals() {
               />
               <button
                 type="button"
-                className="absolute right-0 bottom-3 cursor-pointer text-white/40 hover:text-white transition-colors bg-transparent border-none p-0"
+                className="absolute right-0 bottom-3 cursor-pointer text-text-muted hover:text-foreground transition-colors bg-transparent border-none p-0"
                 onClick={() => setRegShowConfirm(!regShowConfirm)}
                 aria-label={regShowConfirm ? 'Скрыть пароль' : 'Показать пароль'}
               >
@@ -404,7 +404,7 @@ export default function AuthModals() {
           </button>
         </form>
 
-        <div className="text-center mt-8 pt-6 border-t border-white/[0.08] text-[13px] text-white/50">
+        <div className="text-center mt-8 pt-6 border-t border-border text-[13px] text-text-muted">
           Уже есть аккаунт?{' '}
           <button
             type="button"
@@ -428,10 +428,10 @@ export default function AuthModals() {
                 <KeyRound className="w-8 h-8 text-emerald-400" />
               </div>
             </div>
-            <h2 className="text-[26px] font-medium tracking-[-0.5px] mb-2 text-white text-center">
+            <h2 className="text-[26px] font-medium tracking-[-0.5px] mb-2 text-foreground text-center">
               Пароль изменён!
             </h2>
-            <p className="text-[13px] text-white/50 mb-8 text-center">
+            <p className="text-[13px] text-text-muted mb-8 text-center">
               Теперь вы можете войти с новым паролем
             </p>
             <button
@@ -450,10 +450,10 @@ export default function AuthModals() {
                 <Mail className="w-8 h-8 text-purple-400" />
               </div>
             </div>
-            <h2 className="text-[26px] font-medium tracking-[-0.5px] mb-2 text-white text-center">
+            <h2 className="text-[26px] font-medium tracking-[-0.5px] mb-2 text-foreground text-center">
               Забыли пароль?
             </h2>
-            <p className="text-[13px] text-white/50 mb-8 text-center">
+            <p className="text-[13px] text-text-muted mb-8 text-center">
               Введите имя пользователя, и мы сгенерируем код для сброса пароля
             </p>
 
@@ -488,7 +488,7 @@ export default function AuthModals() {
               </button>
             </form>
 
-            <div className="text-center mt-8 pt-6 border-t border-white/[0.08] text-[13px] text-white/50">
+            <div className="text-center mt-8 pt-6 border-t border-border text-[13px] text-text-muted">
               Вспомнили пароль?{' '}
               <button
                 type="button"
@@ -507,10 +507,10 @@ export default function AuthModals() {
                 <KeyRound className="w-8 h-8 text-purple-400" />
               </div>
             </div>
-            <h2 className="text-[26px] font-medium tracking-[-0.5px] mb-2 text-white text-center">
+            <h2 className="text-[26px] font-medium tracking-[-0.5px] mb-2 text-foreground text-center">
               Сброс пароля
             </h2>
-            <p className="text-[13px] text-white/50 mb-2 text-center">
+            <p className="text-[13px] text-text-muted mb-2 text-center">
               Ваш код сброса:
             </p>
             <div className="bg-purple-500/15 border border-purple-500/30 rounded-lg px-4 py-3 text-center mb-6">
@@ -518,7 +518,7 @@ export default function AuthModals() {
                 {forgotCode}
               </span>
             </div>
-            <p className="text-[11px] text-white/30 mb-6 text-center">
+            <p className="text-[11px] text-text-muted mb-6 text-center">
               Код действителен 15 минут. Введите его ниже и задайте новый пароль.
             </p>
 
@@ -549,7 +549,7 @@ export default function AuthModals() {
                   />
                   <button
                     type="button"
-                    className="absolute right-0 bottom-3 cursor-pointer text-white/40 hover:text-white transition-colors bg-transparent border-none p-0"
+                    className="absolute right-0 bottom-3 cursor-pointer text-text-muted hover:text-foreground transition-colors bg-transparent border-none p-0"
                     onClick={() => setForgotShowPw(!forgotShowPw)}
                     aria-label={forgotShowPw ? 'Скрыть пароль' : 'Показать пароль'}
                   >
@@ -571,7 +571,7 @@ export default function AuthModals() {
                   />
                   <button
                     type="button"
-                    className="absolute right-0 bottom-3 cursor-pointer text-white/40 hover:text-white transition-colors bg-transparent border-none p-0"
+                    className="absolute right-0 bottom-3 cursor-pointer text-text-muted hover:text-foreground transition-colors bg-transparent border-none p-0"
                     onClick={() => setForgotShowConfirmPw(!forgotShowConfirmPw)}
                     aria-label={forgotShowConfirmPw ? 'Скрыть пароль' : 'Показать пароль'}
                   >
@@ -598,7 +598,7 @@ export default function AuthModals() {
               </button>
             </form>
 
-            <div className="text-center mt-6 text-[13px] text-white/50">
+            <div className="text-center mt-6 text-[13px] text-text-muted">
               <button
                 type="button"
                 className="text-purple-400 cursor-pointer hover:underline bg-transparent border-none p-0 font-[inherit] text-[inherit]"
