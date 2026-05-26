@@ -133,24 +133,38 @@ function AddEntryForm() {
     e.preventDefault()
     setLoading(true)
 
-    const success = await addEntry({
-      date,
-      moodScore,
-      moodLabel,
-      notes: notes || null,
-      sleepHours: sleepHours ? parseFloat(sleepHours) : null,
-      activityLevel: null,
-      stressLevel: null,
-      goodThing: goodThing || null,
-      badThing: badThing || null,
-    })
+    // Safety timeout: if addEntry takes more than 20s, stop loading and show error
+    const safetyTimeout = setTimeout(() => {
+      setLoading(false)
+      toast.error('Сервер не отвечает. Попробуйте позже.')
+    }, 20_000)
 
-    if (success) {
-      toast.success('Запись добавлена!')
-      setActiveModal(null)
+    try {
+      const success = await addEntry({
+        date,
+        moodScore,
+        moodLabel,
+        notes: notes || null,
+        sleepHours: sleepHours ? parseFloat(sleepHours) : null,
+        activityLevel: null,
+        stressLevel: null,
+        goodThing: goodThing || null,
+        badThing: badThing || null,
+      })
+
+      clearTimeout(safetyTimeout)
+
+      if (success) {
+        toast.success('Запись добавлена!')
+        setActiveModal(null)
+      }
+      // If failed, the store already showed a toast — keep modal open, stop loading
+      setLoading(false)
+    } catch {
+      clearTimeout(safetyTimeout)
+      setLoading(false)
+      toast.error('Ошибка соединения. Попробуйте позже.')
     }
-    // If failed, the store already showed a toast — keep modal open, stop loading
-    setLoading(false)
   }
 
   const close = () => {
@@ -247,20 +261,33 @@ function EditEntryForm({ entry, onDone }: { entry: MoodEntry; onDone: () => void
     e.preventDefault()
     setLoading(true)
 
-    const success = await updateEntry(entry.id, {
-      moodScore,
-      moodLabel,
-      notes: notes || null,
-      sleepHours: sleepHours ? parseFloat(sleepHours) : null,
-      goodThing: goodThing || null,
-      badThing: badThing || null,
-    })
+    const safetyTimeout = setTimeout(() => {
+      setLoading(false)
+      toast.error('Сервер не отвечает. Попробуйте позже.')
+    }, 20_000)
 
-    if (success) {
-      toast.success('Запись обновлена!')
-      onDone()
+    try {
+      const success = await updateEntry(entry.id, {
+        moodScore,
+        moodLabel,
+        notes: notes || null,
+        sleepHours: sleepHours ? parseFloat(sleepHours) : null,
+        goodThing: goodThing || null,
+        badThing: badThing || null,
+      })
+
+      clearTimeout(safetyTimeout)
+
+      if (success) {
+        toast.success('Запись обновлена!')
+        onDone()
+      }
+      setLoading(false)
+    } catch {
+      clearTimeout(safetyTimeout)
+      setLoading(false)
+      toast.error('Ошибка соединения. Попробуйте позже.')
     }
-    setLoading(false)
   }
 
   return (
@@ -428,12 +455,24 @@ function DeleteEntryModal() {
   const handleDelete = async () => {
     if (!selectedEntry) return
     setLoading(true)
-    const success = await deleteEntry(selectedEntry.id)
-    if (success) {
-      toast.success('Запись удалена')
+
+    const safetyTimeout = setTimeout(() => {
+      setLoading(false)
+      toast.error('Сервер не отвечает. Попробуйте позже.')
+    }, 20_000)
+
+    try {
+      const success = await deleteEntry(selectedEntry.id)
+      clearTimeout(safetyTimeout)
+      if (success) {
+        toast.success('Запись удалена')
+      }
+      setLoading(false)
+    } catch {
+      clearTimeout(safetyTimeout)
+      setLoading(false)
+      toast.error('Ошибка соединения. Попробуйте позже.')
     }
-    // On failure, the store shows toast and we just stop loading
-    setLoading(false)
   }
 
   return (

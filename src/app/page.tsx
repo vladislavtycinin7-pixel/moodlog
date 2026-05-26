@@ -213,10 +213,12 @@ export default function Home() {
   }, [])
 
   // Check session on mount — use Authorization header with stored token
-  // Retry up to 3 times to avoid logging out on transient DB errors
+  // Retry up to 2 times with timeout to avoid logging out on transient DB errors
   useEffect(() => {
     const checkSession = async () => {
-      const MAX_RETRIES = 3
+      const MAX_RETRIES = 2
+      const REQUEST_TIMEOUT = 5000 // 5s per attempt
+
       for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
         try {
           const token = loadToken()
@@ -228,7 +230,18 @@ export default function Home() {
           const headers: Record<string, string> = {
             'Authorization': `Bearer ${token}`,
           }
-          const res = await fetch('/api/auth/session', { headers })
+
+          // Add AbortController timeout to prevent hanging forever
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT)
+
+          let res: Response
+          try {
+            res = await fetch('/api/auth/session', { headers, signal: controller.signal })
+          } finally {
+            clearTimeout(timeoutId)
+          }
+
           if (res.ok) {
             const data = await res.json()
             if (data.authenticated && data.user) {
@@ -236,9 +249,8 @@ export default function Home() {
               return
             }
             // Server says not authenticated — but could be a transient DB error
-            // Only log out if server explicitly says authenticated: false AND we've retried
             if (attempt < MAX_RETRIES - 1) {
-              await new Promise(r => setTimeout(r, 800 * (attempt + 1)))
+              await new Promise(r => setTimeout(r, 500 * (attempt + 1)))
               continue
             }
             setUser(null)
@@ -246,16 +258,19 @@ export default function Home() {
           }
           // Non-200 response (e.g. 500) — retry, don't log out on server error
           if (attempt < MAX_RETRIES - 1) {
-            await new Promise(r => setTimeout(r, 800 * (attempt + 1)))
+            await new Promise(r => setTimeout(r, 500 * (attempt + 1)))
             continue
           }
           setUser(null)
         } catch {
-          // Network error — retry, don't log out on connection failure
+          // Network error or timeout — retry once, then give up
           if (attempt < MAX_RETRIES - 1) {
-            await new Promise(r => setTimeout(r, 800 * (attempt + 1)))
+            await new Promise(r => setTimeout(r, 500 * (attempt + 1)))
             continue
           }
+          // On timeout/network error, DON'T log out — just show as unauthenticated
+          // The user can refresh the page to try again
+          console.warn('[session] All session check attempts failed — showing login page')
           setUser(null)
         }
       }

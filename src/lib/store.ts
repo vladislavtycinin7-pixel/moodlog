@@ -65,10 +65,11 @@ export function getAuthHeaders(): Record<string, string> {
 
 // ─── Fetch with retry + auto-session-refresh + timeout ─── //
 // Single layer of retry — no more nested retryUntilSuccess wrapping fetchWithRetry.
-// Max 3 retries × 8s timeout = ~30s worst case per call (previously 60s+ with nested retries).
-const FETCH_MAX_RETRIES = 3
-const FETCH_BASE_DELAY = 500
-const FETCH_TIMEOUT_MS = 8000   // 8s timeout
+// Max 2 retries × 5s timeout = ~15s worst case per call.
+// Reduced from 3 retries × 8s to avoid "infinite loading" feeling on Vercel.
+const FETCH_MAX_RETRIES = 2
+const FETCH_BASE_DELAY = 300
+const FETCH_TIMEOUT_MS = 5000   // 5s timeout (Vercel hobby = 10s max)
 
 /**
  * Fetch with AbortController timeout — rejects if server doesn't respond in time.
@@ -95,7 +96,7 @@ async function tryRefreshSession(): Promise<boolean> {
     if (token) {
       headers['Authorization'] = `Bearer ${token}`
     }
-    const res = await fetchWithTimeout('/api/auth/session', { headers }, 5000)
+    const res = await fetchWithTimeout('/api/auth/session', { headers }, 3000)
     if (res.ok) {
       const data = await res.json()
       if (data.authenticated && data.user) {
@@ -115,10 +116,10 @@ async function tryRefreshSession(): Promise<boolean> {
  * AND auto-session-refresh on 401.
  * Includes AbortController timeout to prevent page freeze.
  *
- * RETRY STRATEGY (optimized for UX):
- * - 3 retries max with exponential backoff
- * - 8s timeout per request
- * - Total worst case: ~30s per fetchWithRetry call
+ * RETRY STRATEGY (optimized for Vercel serverless):
+ * - 2 retries max with exponential backoff
+ * - 5s timeout per request (Vercel hobby = 10s function timeout)
+ * - Total worst case: ~15s per fetchWithRetry call
  */
 export async function fetchWithRetry(
   url: string,
