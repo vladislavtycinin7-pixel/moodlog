@@ -2,7 +2,10 @@
 
 import { useState } from 'react'
 import { useAppStore } from '@/lib/store'
-import { MOOD_LABELS, scoreToLabel } from '@/lib/mood-colors'
+import { MOOD_LABELS, scoreToLabel, type MoodLabel } from '@/lib/mood-colors'
+
+// Reversed mood labels for select dropdowns: bad (left/top) → good (right/bottom)
+const MOOD_LABELS_REVERSED: readonly MoodLabel[] = [...MOOD_LABELS].reverse()
 import { ModalOverlay, CloseBtn } from '@/components/modal-overlay'
 import { toast } from 'sonner'
 import { RefreshCw } from 'lucide-react'
@@ -159,7 +162,7 @@ function AddEntryForm() {
             <div>
               <label className="label-sm">Описание настроения</label>
               <select value={moodLabel} onChange={(e) => { /* moodLabel is derived from moodScore */ }} className={selectCls}>
-                {MOOD_LABELS.map((l) => <option key={l} value={l}>{l}</option>)}
+                {MOOD_LABELS_REVERSED.map((l) => <option key={l} value={l}>{l}</option>)}
               </select>
             </div>
 
@@ -274,7 +277,7 @@ function EditEntryForm({ entry, onDone }: { entry: NonNullable<useAppStore['sele
           <div>
             <label className="label-sm">Описание настроения</label>
             <select value={moodLabel} onChange={(e) => { /* moodLabel is derived from moodScore */ }} className={selectCls}>
-              {MOOD_LABELS.map((l) => <option key={l} value={l}>{l}</option>)}
+              {MOOD_LABELS_REVERSED.map((l) => <option key={l} value={l}>{l}</option>)}
             </select>
           </div>
 
