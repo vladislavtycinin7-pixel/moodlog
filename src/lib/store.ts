@@ -1,6 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
+import { toast } from 'sonner'
 
 export interface MoodEntry {
   id: string
@@ -62,9 +63,24 @@ export function getAuthHeaders(): Record<string, string> {
   return headers
 }
 
-// ─── Fetch with retry + auto-session-refresh ─── //
+// ─── Fetch with retry + auto-session-refresh + timeout ─── //
 const FETCH_MAX_RETRIES = 2
 const FETCH_BASE_DELAY = 500
+const FETCH_TIMEOUT_MS = 10000 // 10s timeout — prevents page freeze
+
+/**
+ * Fetch with AbortController timeout — rejects if server doesn't respond in time.
+ */
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs: number = FETCH_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
+  try {
+    return await fetch(url, { ...options, signal: controller.signal })
+  } finally {
+    clearTimeout(timeoutId)
+  }
+}
 
 /**
  * Try to refresh the session by re-checking /api/auth/session.
@@ -77,7 +93,7 @@ async function tryRefreshSession(): Promise<boolean> {
     if (token) {
       headers['Authorization'] = `Bearer ${token}`
     }
-    const res = await fetch('/api/auth/session', { headers })
+    const res = await fetchWithTimeout('/api/auth/session', { headers }, 5000)
     if (res.ok) {
       const data = await res.json()
       if (data.authenticated && data.user) {
@@ -95,6 +111,7 @@ async function tryRefreshSession(): Promise<boolean> {
 /**
  * Fetch with automatic retry on network errors, 5xx responses,
  * AND auto-session-refresh on 401.
+ * Includes AbortController timeout to prevent page freeze.
  */
 async function fetchWithRetry(
   url: string,
@@ -105,7 +122,7 @@ async function fetchWithRetry(
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      const response = await fetch(url, options)
+      const response = await fetchWithTimeout(url, options)
 
       // On 401 — try to refresh session once before giving up
       if (response.status === 401 && attempt === 0) {
@@ -117,7 +134,7 @@ async function fetchWithRetry(
           if (token) {
             (newHeaders as Record<string, string>)['Authorization'] = `Bearer ${token}`
           }
-          const retryRes = await fetch(url, { ...options, headers: newHeaders })
+          const retryRes = await fetchWithTimeout(url, { ...options, headers: newHeaders })
           if (retryRes.ok || retryRes.status < 500) {
             return retryRes
           }
@@ -142,6 +159,15 @@ async function fetchWithRetry(
       return response
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error))
+
+      // If aborted (timeout), don't retry — return a synthetic error response
+      if (lastError.name === 'AbortError') {
+        console.warn(`[fetch] Request to ${url} timed out after ${FETCH_TIMEOUT_MS}ms`)
+        return new Response(JSON.stringify({ success: false, message: 'Превышено время ожидания. Проверьте соединение.' }), {
+          status: 504,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
 
       if (attempt < retries) {
         const delay = Math.min(
@@ -258,14 +284,18 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (res.status === 401) {
         clearToken()
         set({ user: null, isAuthenticated: false })
-      }
-      if (res.status === 409) {
-        // Duplicate entry — show specific error
+        toast.error('Сессия истекла. Войдите заново.')
+      } else if (res.status === 409) {
         toast.error('Запись за эту дату уже существует')
+      } else if (res.status === 504) {
+        toast.error('Превышено время ожидания. Проверьте соединение.')
+      } else {
+        toast.error('Не удалось сохранить запись')
       }
       return false
     } catch {
       set({ isOffline: true })
+      toast.error('Нет связи с сервером')
       return false
     }
   },

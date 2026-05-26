@@ -16,9 +16,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "MoodLog — Дневник настроения",
   description: "Отслеживай свои эмоции, замечай тренды и становись лучше с каждым днём",
-  icons: {
-    icon: "/logo.svg",
-  },
 };
 
 // Security headers applied to all responses
