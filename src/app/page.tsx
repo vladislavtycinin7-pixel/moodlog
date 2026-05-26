@@ -200,6 +200,7 @@ export default function Home() {
     setActiveTab,
     setActiveModal,
     setPendingEntryDate,
+    calendarMonth,
   } = useAppStore()
 
   // Check for ?share=TOKEN in URL (useMemo to avoid lint issue with setState in effect)
@@ -234,22 +235,12 @@ export default function Home() {
     checkSession()
   }, [setUser])
 
-  // Fetch data when authenticated
+  // Fetch data when authenticated, tab changes, or calendar month changes
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchEntries()
-      fetchStats()
-    }
-  }, [isAuthenticated, fetchEntries, fetchStats])
-
-  // Refresh data when switching to stats tab
-  useEffect(() => {
-    if (isAuthenticated && activeTab === 'stats') {
-      const month = useAppStore.getState().calendarMonth
-      fetchStats(month)
-      fetchEntries(month)
-    }
-  }, [activeTab, isAuthenticated, fetchStats, fetchEntries])
+    if (!isAuthenticated) return
+    fetchEntries(calendarMonth)
+    fetchStats(calendarMonth)
+  }, [isAuthenticated, calendarMonth, activeTab, fetchEntries, fetchStats])
 
   // ─── Public share view ───
   if (shareToken) {

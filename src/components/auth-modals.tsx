@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Eye, EyeOff, KeyRound, Mail } from 'lucide-react'
+import { Eye, EyeOff, KeyRound, Mail, Loader2 } from 'lucide-react'
 import { useAppStore, saveToken } from '@/lib/store'
 import { ModalOverlay, CloseBtn } from '@/components/modal-overlay'
 
@@ -288,7 +288,12 @@ export default function AuthModals() {
             disabled={loginLoading}
             className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg"
           >
-            {loginLoading ? 'Вход...' : 'Войти'}
+            {loginLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 size={16} className="animate-spin" />
+                Вход
+              </span>
+            ) : 'Войти'}
           </button>
         </form>
 
@@ -390,7 +395,12 @@ export default function AuthModals() {
             disabled={regLoading}
             className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg"
           >
-            {regLoading ? 'Регистрация...' : 'Зарегистрироваться'}
+            {regLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 size={16} className="animate-spin" />
+                Регистрация
+              </span>
+            ) : 'Зарегистрироваться'}
           </button>
         </form>
 
@@ -469,7 +479,12 @@ export default function AuthModals() {
                 disabled={forgotLoading}
                 className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg"
               >
-                {forgotLoading ? 'Генерация кода...' : 'Получить код сброса'}
+                {forgotLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 size={16} className="animate-spin" />
+                    Генерация кода
+                  </span>
+                ) : 'Получить код сброса'}
               </button>
             </form>
 
@@ -574,7 +589,12 @@ export default function AuthModals() {
                 disabled={forgotLoading}
                 className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg"
               >
-                {forgotLoading ? 'Сохранение...' : 'Сменить пароль'}
+                {forgotLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 size={16} className="animate-spin" />
+                    Сохранение
+                  </span>
+                ) : 'Сменить пароль'}
               </button>
             </form>
 

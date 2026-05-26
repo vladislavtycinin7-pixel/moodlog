@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAppStore } from '@/lib/store'
 import { MOOD_LABELS, scoreToLabel, type MoodLabel, getMoodColor } from '@/lib/mood-colors'
 
@@ -8,7 +8,7 @@ import { MOOD_LABELS, scoreToLabel, type MoodLabel, getMoodColor } from '@/lib/m
 const MOOD_LABELS_REVERSED: readonly MoodLabel[] = [...MOOD_LABELS].reverse()
 import { ModalOverlay, CloseBtn } from '@/components/modal-overlay'
 import { toast } from 'sonner'
-import { RefreshCw } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 function formatDateRu(dateStr: string): string {
   const [y, m, d] = dateStr.split('-').map(Number)
@@ -77,13 +77,33 @@ const textareaCls =
   'w-full py-2.5 bg-transparent border-none border-b border-white/20 text-white text-sm font-[inherit] transition-colors focus:outline-none focus:border-purple-400 placeholder:text-white/30 placeholder:text-[13px] resize-vertical min-h-[70px]'
 
 const btnPrimary =
-  'py-2.5 px-7 text-sm font-medium cursor-pointer bg-purple-500 text-white hover:bg-purple-600 transition-colors border-none rounded-lg'
+  'py-2.5 px-7 text-sm font-medium cursor-pointer bg-purple-500 text-white hover:bg-purple-600 transition-colors border-none rounded-lg disabled:opacity-60 disabled:cursor-not-allowed'
 
 const btnSecondary =
   'py-2.5 px-7 text-sm font-medium cursor-pointer bg-transparent border border-white/30 text-white/80 hover:border-white/50 hover:text-white transition-colors rounded-lg'
 
 const btnDanger =
-  'py-2.5 px-7 text-sm font-medium cursor-pointer bg-red-500 text-white hover:bg-red-600 transition-colors border-none rounded-lg'
+  'py-2.5 px-7 text-sm font-medium cursor-pointer bg-red-500 text-white hover:bg-red-600 transition-colors border-none rounded-lg disabled:opacity-60 disabled:cursor-not-allowed'
+
+// ═══════════════════════════════════════════
+// Loading spinner component for buttons
+// ═══════════════════════════════════════════
+function LoadingSpinner({ text }: { text: string }) {
+  // Animate the dots in the loading text
+  const [dots, setDots] = useState(1)
+  useEffect(() => {
+    if (!text) return
+    const timer = setInterval(() => setDots((d) => (d % 3) + 1), 500)
+    return () => clearInterval(timer)
+  }, [text])
+
+  return (
+    <span className="flex items-center gap-2">
+      <Loader2 size={14} className="animate-spin" />
+      {text}{'.'.repeat(dots)}
+    </span>
+  )
+}
 
 // ═══════════════════════════════════════════
 // ADD ENTRY MODAL
@@ -105,7 +125,6 @@ function AddEntryForm() {
   const [badThing, setBadThing] = useState('')
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
   // Clear pending date after using it
   useAppStore.getState().setPendingEntryDate(null)
@@ -113,7 +132,6 @@ function AddEntryForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError('')
 
     const success = await addEntry({
       date,
@@ -130,19 +148,23 @@ function AddEntryForm() {
     if (success) {
       toast.success('Запись добавлена!')
       setActiveModal(null)
-    } else {
-      setError('Не удалось сохранить. Проверьте соединение и попробуйте снова.')
     }
+    // If failed, the store already showed a toast — keep modal open, stop loading
     setLoading(false)
+  }
+
+  const close = () => {
+    setPendingEntryDate(null)
+    setActiveModal(null)
   }
 
   return (
     <ModalOverlay
       open={true}
-      onClose={() => { setPendingEntryDate(null); setActiveModal(null) }}
+      onClose={close}
       maxWidth="max-w-[800px]"
     >
-      <CloseBtn onClick={() => { setPendingEntryDate(null); setActiveModal(null) }} />
+      <CloseBtn onClick={close} />
       <h2 className="text-xl sm:text-2xl font-medium tracking-[-0.5px] mb-2">Новая запись</h2>
       <p className="text-[12px] sm:text-[13px] text-white/50 mb-5 sm:mb-7 pb-3 sm:pb-4 border-b border-white/[0.1]">
         Заполните форму, чтобы сохранить настроение дня
@@ -191,32 +213,14 @@ function AddEntryForm() {
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Что произошло сегодня?" className={textareaCls} maxLength={2000} />
           </div>
 
-          {/* Error message with retry */}
-          {error && (
-            <div className="md:col-span-2 flex items-center gap-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-              <span className="text-red-400 text-sm flex-1">{error}</span>
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-medium cursor-pointer hover:bg-red-500/30 transition-colors rounded-md"
-              >
-                <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
-                Повторить
-              </button>
-            </div>
-          )}
-
           {/* Actions */}
           <div className="md:col-span-2 flex flex-wrap gap-3 pt-6 border-t border-white/[0.1]">
             <button type="submit" disabled={loading} className={btnPrimary}>
               {loading ? (
-                <span className="flex items-center gap-2">
-                  <RefreshCw size={14} className="animate-spin" />
-                  Сохранение...
-                </span>
+                <LoadingSpinner text="Сохранение" />
               ) : 'Сохранить запись'}
             </button>
-            <button type="button" onClick={() => { setPendingEntryDate(null); setActiveModal(null) }} className={btnSecondary}>
+            <button type="button" onClick={close} disabled={loading} className={btnSecondary}>
               Отмена
             </button>
           </div>
@@ -230,7 +234,7 @@ function AddEntryForm() {
 // EDIT ENTRY MODAL (inner form re-mounts via key)
 // ═══════════════════════════════════════════
 function EditEntryForm({ entry, onDone }: { entry: NonNullable<useAppStore['selectedEntry']>; onDone: () => void }) {
-  const { setActiveModal, updateEntry } = useAppStore()
+  const { updateEntry } = useAppStore()
   const [moodScore, setMoodScore] = useState(entry.moodScore)
   const moodLabel = scoreToLabel(moodScore)
   const [sleepHours, setSleepHours] = useState(entry.sleepHours?.toString() || '')
@@ -238,12 +242,10 @@ function EditEntryForm({ entry, onDone }: { entry: NonNullable<useAppStore['sele
   const [badThing, setBadThing] = useState(entry.badThing || '')
   const [notes, setNotes] = useState(entry.notes || '')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError('')
 
     const success = await updateEntry(entry.id, {
       moodScore,
@@ -257,8 +259,6 @@ function EditEntryForm({ entry, onDone }: { entry: NonNullable<useAppStore['sele
     if (success) {
       toast.success('Запись обновлена!')
       onDone()
-    } else {
-      setError('Не удалось сохранить изменения. Попробуйте снова.')
     }
     setLoading(false)
   }
@@ -304,30 +304,13 @@ function EditEntryForm({ entry, onDone }: { entry: NonNullable<useAppStore['sele
           <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Что произошло сегодня?" className={textareaCls} maxLength={2000} />
         </div>
 
-        {error && (
-          <div className="md:col-span-2 flex items-center gap-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-            <span className="text-red-400 text-sm flex-1">{error}</span>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-medium cursor-pointer hover:bg-red-500/30 transition-colors rounded-md"
-            >
-              <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
-              Повторить
-            </button>
-          </div>
-        )}
-
         <div className="md:col-span-2 flex flex-wrap gap-3 pt-6 border-t border-white/[0.1]">
           <button type="submit" disabled={loading} className={btnPrimary}>
             {loading ? (
-              <span className="flex items-center gap-2">
-                <RefreshCw size={14} className="animate-spin" />
-                Сохранение...
-              </span>
+              <LoadingSpinner text="Сохранение" />
             ) : 'Сохранить изменения'}
           </button>
-          <button type="button" onClick={onDone} className={btnSecondary}>
+          <button type="button" onClick={onDone} disabled={loading} className={btnSecondary}>
             Отмена
           </button>
         </div>
@@ -441,18 +424,15 @@ function DeleteEntryModal() {
   const { activeModal, setActiveModal, selectedEntry, deleteEntry } = useAppStore()
   const isOpen = activeModal === 'delete'
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
   const handleDelete = async () => {
     if (!selectedEntry) return
     setLoading(true)
-    setError('')
     const success = await deleteEntry(selectedEntry.id)
     if (success) {
       toast.success('Запись удалена')
-    } else {
-      setError('Не удалось удалить. Попробуйте снова.')
     }
+    // On failure, the store shows toast and we just stop loading
     setLoading(false)
   }
 
@@ -468,30 +448,13 @@ function DeleteEntryModal() {
         Это действие нельзя отменить. Запись от {selectedEntry ? formatDateRu(selectedEntry.date) : ''} будет удалена навсегда.
       </p>
 
-      {error && (
-        <div className="flex items-center gap-3 p-3 mb-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-          <span className="text-red-400 text-sm flex-1">{error}</span>
-          <button
-            onClick={handleDelete}
-            disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-medium cursor-pointer hover:bg-red-500/30 transition-colors rounded-md"
-          >
-            <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
-            Повторить
-          </button>
-        </div>
-      )}
-
       <div className="flex flex-wrap gap-3">
         <button onClick={handleDelete} disabled={loading} className={btnDanger}>
           {loading ? (
-            <span className="flex items-center gap-2">
-              <RefreshCw size={14} className="animate-spin" />
-              Удаление...
-            </span>
+            <LoadingSpinner text="Удаление" />
           ) : 'Удалить'}
         </button>
-        <button onClick={() => setActiveModal(null)} className={btnSecondary}>
+        <button onClick={() => setActiveModal(null)} disabled={loading} className={btnSecondary}>
           Отмена
         </button>
       </div>

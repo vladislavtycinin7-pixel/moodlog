@@ -64,9 +64,9 @@ export function getAuthHeaders(): Record<string, string> {
 }
 
 // ─── Fetch with retry + auto-session-refresh + timeout ─── //
-const FETCH_MAX_RETRIES = 2
-const FETCH_BASE_DELAY = 500
-const FETCH_TIMEOUT_MS = 10000 // 10s timeout — prevents page freeze
+const FETCH_MAX_RETRIES = 4      // More retries for resilience
+const FETCH_BASE_DELAY = 600
+const FETCH_TIMEOUT_MS = 15000   // 15s timeout — slower connections need more time
 
 /**
  * Fetch with AbortController timeout — rejects if server doesn't respond in time.
@@ -112,6 +112,7 @@ async function tryRefreshSession(): Promise<boolean> {
  * Fetch with automatic retry on network errors, 5xx responses,
  * AND auto-session-refresh on 401.
  * Includes AbortController timeout to prevent page freeze.
+ * Retries aggressively — user sees a loading spinner, not errors.
  */
 async function fetchWithRetry(
   url: string,
@@ -119,16 +120,18 @@ async function fetchWithRetry(
   retries: number = FETCH_MAX_RETRIES
 ): Promise<Response> {
   let lastError: Error | null = null
+  let sessionRefreshAttempted = false
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const response = await fetchWithTimeout(url, options)
 
-      // On 401 — try to refresh session once before giving up
-      if (response.status === 401 && attempt === 0) {
+      // On 401 — try to refresh session (only once across all attempts)
+      if (response.status === 401 && !sessionRefreshAttempted) {
+        sessionRefreshAttempted = true
         const refreshed = await tryRefreshSession()
         if (refreshed) {
-          // Retry with fresh headers (token might still be valid, DB was just slow)
+          // Retry with fresh headers
           const newHeaders = { ...options.headers }
           const token = loadToken()
           if (token) {
@@ -138,19 +141,38 @@ async function fetchWithRetry(
           if (retryRes.ok || retryRes.status < 500) {
             return retryRes
           }
+          // Even after refresh, got another error — continue retrying
         }
-        // Session truly invalid — don't retry, let caller handle 401
+        // Session truly invalid — return 401 so caller can handle
+        if (!refreshed) return response
+      }
+
+      // On 401 after session refresh already attempted — don't retry, return
+      if (response.status === 401 && sessionRefreshAttempted) {
         return response
       }
 
-      // Retry on server errors (500, 502, 503, 504)
-      if (response.status >= 500 && attempt < retries) {
+      // Retry on server errors (500, 502, 503, 504) and 429 (rate limit)
+      if ((response.status >= 500 || response.status === 429) && attempt < retries) {
         const delay = Math.min(
-          FETCH_BASE_DELAY * Math.pow(2, attempt) + Math.random() * 300,
-          3000
+          FETCH_BASE_DELAY * Math.pow(2, attempt) + Math.random() * 500,
+          5000
         )
         console.warn(
           `[fetch] Server error ${response.status}, retry ${attempt + 1}/${retries} in ${Math.round(delay)}ms...`
+        )
+        await new Promise((resolve) => setTimeout(resolve, delay))
+        continue
+      }
+
+      // On timeout (504), also retry — the server might just be slow
+      if (response.status === 504 && attempt < retries) {
+        const delay = Math.min(
+          FETCH_BASE_DELAY * Math.pow(2, attempt) + Math.random() * 500,
+          5000
+        )
+        console.warn(
+          `[fetch] Timeout 504, retry ${attempt + 1}/${retries} in ${Math.round(delay)}ms...`
         )
         await new Promise((resolve) => setTimeout(resolve, delay))
         continue
@@ -160,9 +182,20 @@ async function fetchWithRetry(
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error))
 
-      // If aborted (timeout), don't retry — return a synthetic error response
+      // If aborted (timeout), retry with longer timeout — server may be slow
       if (lastError.name === 'AbortError') {
-        console.warn(`[fetch] Request to ${url} timed out after ${FETCH_TIMEOUT_MS}ms`)
+        if (attempt < retries) {
+          const delay = Math.min(
+            FETCH_BASE_DELAY * Math.pow(2, attempt) + Math.random() * 500,
+            5000
+          )
+          console.warn(
+            `[fetch] Timeout on ${url}, retry ${attempt + 1}/${retries} in ${Math.round(delay)}ms...`
+          )
+          await new Promise((resolve) => setTimeout(resolve, delay))
+          continue
+        }
+        // All retries exhausted for timeout
         return new Response(JSON.stringify({ success: false, message: 'Превышено время ожидания. Проверьте соединение.' }), {
           status: 504,
           headers: { 'Content-Type': 'application/json' },
@@ -171,8 +204,8 @@ async function fetchWithRetry(
 
       if (attempt < retries) {
         const delay = Math.min(
-          FETCH_BASE_DELAY * Math.pow(2, attempt) + Math.random() * 300,
-          3000
+          FETCH_BASE_DELAY * Math.pow(2, attempt) + Math.random() * 500,
+          5000
         )
         console.warn(
           `[fetch] Network error, retry ${attempt + 1}/${retries} in ${Math.round(delay)}ms...`,
@@ -186,6 +219,41 @@ async function fetchWithRetry(
   throw lastError || new Error('Fetch failed after retries')
 }
 
+/**
+ * Execute an async operation with automatic retry until success or max attempts.
+ * Returns true on success, false on exhausted retries.
+ * Shows a warning toast only after many failures — not on every transient error.
+ */
+async function retryUntilSuccess<T>(
+  fn: () => Promise<T>,
+  isSuccess: (result: T) => boolean,
+  maxAttempts: number = 6,
+  baseDelay: number = 800
+): Promise<T | null> {
+  let lastResult: T | null = null
+  let lastError: unknown = null
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      lastResult = await fn()
+      if (isSuccess(lastResult)) {
+        return lastResult
+      }
+    } catch (error) {
+      lastError = error
+    }
+
+    // Wait before retrying with exponential backoff
+    const delay = Math.min(baseDelay * Math.pow(2, attempt) + Math.random() * 400, 6000)
+    console.warn(`[retryUntilSuccess] Attempt ${attempt + 1}/${maxAttempts} failed, retrying in ${Math.round(delay)}ms...`)
+    await new Promise((resolve) => setTimeout(resolve, delay))
+  }
+
+  // All attempts exhausted
+  if (lastError) throw lastError
+  return lastResult
+}
+
 interface AppState {
   // Auth
   user: { id: string; username: string; avatarUrl?: string | null } | null
@@ -197,6 +265,7 @@ interface AppState {
 
   // Entries
   entries: MoodEntry[]
+  entriesLoading: boolean
   setEntries: (entries: MoodEntry[]) => void
   fetchEntries: (month?: string) => Promise<void>
   addEntry: (data: Omit<MoodEntry, 'id' | 'createdAt' | 'userId'>) => Promise<boolean>
@@ -246,109 +315,173 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // Entries
   entries: [],
+  entriesLoading: false,
   setEntries: (entries) => set({ entries }),
   fetchEntries: async (month) => {
+    set({ entriesLoading: true })
     try {
       const params = month ? `?month=${month}` : ''
       const res = await fetchWithRetry(`/api/entries${params}`, { headers: getAuthHeaders() })
       if (res.ok) {
         const data = await res.json()
-        set({ entries: data.entries ?? data, isOffline: false })
+        set({ entries: data.entries ?? data, isOffline: false, entriesLoading: false })
       } else if (res.status === 401) {
         // Token truly expired after refresh attempt
         clearToken()
-        set({ user: null, isAuthenticated: false, entries: [] })
+        set({ user: null, isAuthenticated: false, entries: [], entriesLoading: false })
+      } else {
+        set({ entriesLoading: false })
       }
     } catch (e) {
       console.error('Failed to fetch entries:', e)
-      set({ isOffline: true })
+      set({ isOffline: true, entriesLoading: false })
     }
   },
   addEntry: async (data) => {
-    try {
-      const res = await fetchWithRetry('/api/entries', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data),
-      })
-      if (res.ok) {
-        const result = await res.json()
-        const entry = result.entry ?? result
-        set((s) => ({ entries: [entry, ...s.entries], isOffline: false }))
-        // Refresh stats for the currently viewed month
-        const currentMonth = get().calendarMonth
-        get().fetchStats(currentMonth)
-        get().fetchEntries(currentMonth)
-        return true
-      }
-      if (res.status === 401) {
-        clearToken()
-        set({ user: null, isAuthenticated: false })
-        toast.error('Сессия истекла. Войдите заново.')
-      } else if (res.status === 409) {
-        toast.error('Запись за эту дату уже существует')
-      } else if (res.status === 504) {
-        toast.error('Превышено время ожидания. Проверьте соединение.')
-      } else {
-        toast.error('Не удалось сохранить запись')
-      }
-      return false
-    } catch {
-      set({ isOffline: true })
-      toast.error('Нет связи с сервером')
+    // Use retryUntilSuccess — keeps trying while user sees loading spinner
+    const result = await retryUntilSuccess(
+      async () => {
+        const res = await fetchWithRetry('/api/entries', {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(data),
+        })
+        return res
+      },
+      (res) => {
+        // Success if 200-299
+        if (res.ok) return true
+        // Don't retry on 401 (session invalid) or 409 (duplicate) — these are permanent
+        if (res.status === 401 || res.status === 409) return true
+        // Retry on everything else (5xx, network, timeout)
+        return false
+      },
+      6,  // up to 6 attempts total
+      800
+    )
+
+    if (!result) {
+      toast.error('Не удалось сохранить запись. Попробуйте позже.')
       return false
     }
+
+    if (result.status === 401) {
+      clearToken()
+      set({ user: null, isAuthenticated: false })
+      toast.error('Сессия истекла. Войдите заново.')
+      return false
+    }
+
+    if (result.status === 409) {
+      toast.error('Запись за эту дату уже существует')
+      return false
+    }
+
+    if (result.ok) {
+      const resData = await result.json()
+      const entry = resData.entry ?? resData
+      set((s) => ({ entries: [entry, ...s.entries], isOffline: false }))
+      const currentMonth = get().calendarMonth
+      get().fetchStats(currentMonth)
+      get().fetchEntries(currentMonth)
+      return true
+    }
+
+    toast.error('Не удалось сохранить запись. Попробуйте позже.')
+    return false
   },
   updateEntry: async (id, data) => {
-    try {
-      const res = await fetchWithRetry(`/api/entries/${id}`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data),
-      })
-      if (res.ok) {
-        const result = await res.json()
-        const updated = result.entry ?? result
-        set((s) => ({
-          entries: s.entries.map((e) => (e.id === id ? { ...e, ...updated } : e)),
-          isOffline: false,
-        }))
-        // Refresh stats for the currently viewed month
-        const currentMonth = get().calendarMonth
-        get().fetchStats(currentMonth)
-        get().fetchEntries(currentMonth)
-        return true
-      }
-      return false
-    } catch {
-      set({ isOffline: true })
+    const result = await retryUntilSuccess(
+      async () => {
+        const res = await fetchWithRetry(`/api/entries/${id}`, {
+          method: 'PUT',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(data),
+        })
+        return res
+      },
+      (res) => {
+        if (res.ok) return true
+        if (res.status === 401) return true // permanent, don't retry
+        return false // retry on everything else
+      },
+      6,
+      800
+    )
+
+    if (!result) {
+      toast.error('Не удалось сохранить изменения.')
       return false
     }
+
+    if (result.status === 401) {
+      clearToken()
+      set({ user: null, isAuthenticated: false })
+      toast.error('Сессия истекла. Войдите заново.')
+      return false
+    }
+
+    if (result.ok) {
+      const resData = await result.json()
+      const updated = resData.entry ?? resData
+      set((s) => ({
+        entries: s.entries.map((e) => (e.id === id ? { ...e, ...updated } : e)),
+        isOffline: false,
+      }))
+      const currentMonth = get().calendarMonth
+      get().fetchStats(currentMonth)
+      get().fetchEntries(currentMonth)
+      return true
+    }
+
+    toast.error('Не удалось сохранить изменения.')
+    return false
   },
   deleteEntry: async (id) => {
-    try {
-      const res = await fetchWithRetry(`/api/entries/${id}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-      })
-      if (res.ok) {
-        set((s) => ({
-          entries: s.entries.filter((e) => e.id !== id),
-          activeModal: null,
-          selectedEntry: null,
-          isOffline: false,
-        }))
-        // Refresh stats for the currently viewed month
-        const currentMonth = get().calendarMonth
-        get().fetchStats(currentMonth)
-        get().fetchEntries(currentMonth)
-        return true
-      }
-      return false
-    } catch {
-      set({ isOffline: true })
+    const result = await retryUntilSuccess(
+      async () => {
+        const res = await fetchWithRetry(`/api/entries/${id}`, {
+          method: 'DELETE',
+          headers: getAuthHeaders(),
+        })
+        return res
+      },
+      (res) => {
+        if (res.ok) return true
+        if (res.status === 401) return true // permanent, don't retry
+        return false
+      },
+      6,
+      800
+    )
+
+    if (!result) {
+      toast.error('Не удалось удалить запись.')
       return false
     }
+
+    if (result.status === 401) {
+      clearToken()
+      set({ user: null, isAuthenticated: false })
+      toast.error('Сессия истекла. Войдите заново.')
+      return false
+    }
+
+    if (result.ok) {
+      set((s) => ({
+        entries: s.entries.filter((e) => e.id !== id),
+        activeModal: null,
+        selectedEntry: null,
+        isOffline: false,
+      }))
+      const currentMonth = get().calendarMonth
+      get().fetchStats(currentMonth)
+      get().fetchEntries(currentMonth)
+      return true
+    }
+
+    toast.error('Не удалось удалить запись.')
+    return false
   },
 
   // Stats

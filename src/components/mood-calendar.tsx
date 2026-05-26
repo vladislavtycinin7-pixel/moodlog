@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { useAppStore, MoodEntry } from '@/lib/store'
 import { getMoodColor, getMoodColorDef } from '@/lib/mood-colors'
 import {
@@ -24,6 +24,7 @@ const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 export default function MoodCalendar() {
   const {
     entries,
+    entriesLoading,
     calendarMonth,
     setCalendarMonth,
     fetchEntries,
@@ -109,10 +110,7 @@ export default function MoodCalendar() {
   }
 
   // Fetch entries and stats when month changes
-  useEffect(() => {
-    fetchEntries(calendarMonth)
-    fetchStats(calendarMonth)
-  }, [calendarMonth, fetchEntries, fetchStats])
+  // (handled in page.tsx via useEffect on calendarMonth)
 
   // Handle day click
   const handleDayClick = (day: Date) => {
@@ -135,7 +133,17 @@ export default function MoodCalendar() {
   const capitalizedTitle = monthTitle.charAt(0).toUpperCase() + monthTitle.slice(1)
 
   return (
-    <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-4 sm:p-6 rounded-xl">
+    <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-4 sm:p-6 rounded-xl relative">
+      {/* Loading overlay */}
+      {entriesLoading && (
+        <div className="absolute inset-0 z-10 bg-black/30 backdrop-blur-[2px] rounded-xl flex items-center justify-center">
+          <div className="flex items-center gap-3 bg-[rgba(18,18,24,0.9)] px-5 py-3 rounded-lg border border-white/10">
+            <Loader2 size={18} className="animate-spin text-purple-400" />
+            <span className="text-sm text-white/70">Загрузка записей</span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <h2 className="text-lg sm:text-xl font-medium text-white">{capitalizedTitle}</h2>

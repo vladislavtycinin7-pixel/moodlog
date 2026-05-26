@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Eye, EyeOff, User, ImagePlus, Lock, Upload, RefreshCw } from 'lucide-react'
+import { Eye, EyeOff, User, ImagePlus, Lock, Upload, Loader2 } from 'lucide-react'
 import { useAppStore, getAuthHeaders, loadToken } from '@/lib/store'
 import { ModalOverlay, CloseBtn } from '@/components/modal-overlay'
 import { toast } from 'sonner'
@@ -367,7 +367,7 @@ export default function ProfileModal() {
                     disabled={nickLoading}
                     className="flex items-center gap-1 px-2.5 py-1 bg-red-500/20 border border-red-500/30 text-red-400 text-[11px] font-medium cursor-pointer hover:bg-red-500/30 transition-colors rounded-md"
                   >
-                    <RefreshCw size={10} className={nickLoading ? 'animate-spin' : ''} />
+                    <Loader2 size={10} className={nickLoading ? 'animate-spin' : ''} />
                     Ещё раз
                   </button>
                 </div>
@@ -380,8 +380,8 @@ export default function ProfileModal() {
               >
                 {nickLoading ? (
                   <span className="flex items-center justify-center gap-2">
-                    <RefreshCw size={14} className="animate-spin" />
-                    Сохранение...
+                    <Loader2 size={14} className="animate-spin" />
+                    Сохранение
                   </span>
                 ) : 'Сохранить никнейм'}
               </button>
@@ -581,7 +581,7 @@ export default function ProfileModal() {
                     disabled={pwLoading}
                     className="flex items-center gap-1 px-2.5 py-1 bg-red-500/20 border border-red-500/30 text-red-400 text-[11px] font-medium cursor-pointer hover:bg-red-500/30 transition-colors rounded-md"
                   >
-                    <RefreshCw size={10} className={pwLoading ? 'animate-spin' : ''} />
+                    <Loader2 size={10} className={pwLoading ? 'animate-spin' : ''} />
                     Ещё раз
                   </button>
                 </div>
@@ -594,8 +594,8 @@ export default function ProfileModal() {
               >
                 {pwLoading ? (
                   <span className="flex items-center justify-center gap-2">
-                    <RefreshCw size={14} className="animate-spin" />
-                    Сохранение...
+                    <Loader2 size={14} className="animate-spin" />
+                    Сохранение
                   </span>
                 ) : 'Изменить пароль'}
               </button>
