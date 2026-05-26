@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAppStore, MoodEntry } from '@/lib/store'
-import { getMoodColorDef } from '@/lib/mood-colors'
+import { getMoodColor, getMoodColorDef } from '@/lib/mood-colors'
 import {
   startOfMonth,
   endOfMonth,
@@ -214,9 +214,13 @@ export default function MoodCalendar() {
               aria-label={`${format(day, 'd MMMM', { locale: ru })}${entry ? `, настроение: ${entry.moodScore}` : ''}`}
             >
               <span className={textClass}>{format(day, 'd')}</span>
-              {entry && moodDef && (
+              {entry && (
                 <div
-                  className={`w-2 h-2 rounded-full mx-auto mt-1 ${moodDef.bg} ${moodDef.shadow}`}
+                  className="w-2 h-2 rounded-full mx-auto mt-1"
+                  style={{
+                    backgroundColor: getMoodColor(entry.moodLabel),
+                    boxShadow: `0 0 4px ${getMoodColorDef(entry.moodLabel).shadowRgba}`,
+                  }}
                 />
               )}
             </button>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useAppStore } from '@/lib/store'
+import { getMoodColor } from '@/lib/mood-colors'
 import Footer from '@/components/footer'
 
 // Relative bar heights (percentage of container)
@@ -103,7 +104,7 @@ export default function LandingPage() {
                   className="flex justify-between py-3 border-b border-white/[0.05] text-sm"
                 >
                   <span className="text-white/50">{item.label}</span>
-                  <span className="font-medium">{item.mood}</span>
+                  <span className="font-medium" style={{ color: getMoodColor(item.mood) }}>{item.mood}</span>
                   <span className="font-medium">{item.score}</span>
                 </div>
               ))}

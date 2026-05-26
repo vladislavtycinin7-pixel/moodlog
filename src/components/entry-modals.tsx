@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useAppStore } from '@/lib/store'
-import { MOOD_LABELS, scoreToLabel, type MoodLabel } from '@/lib/mood-colors'
+import { MOOD_LABELS, scoreToLabel, type MoodLabel, getMoodColor } from '@/lib/mood-colors'
 
 // Reversed mood labels for select dropdowns: bad (left/top) → good (right/bottom)
 const MOOD_LABELS_REVERSED: readonly MoodLabel[] = [...MOOD_LABELS].reverse()
@@ -390,7 +390,13 @@ function ViewEntryModal() {
         <div className="flex mb-5 pb-3 border-b border-white/[0.08]">
           <div className="w-36 text-xs font-medium text-white/50 uppercase tracking-[0.3px] shrink-0">Настроение</div>
           <div className="flex-1 text-sm text-white/90">
-            <span className="inline-block px-3 py-1 bg-purple-500/20 border-l-2 border-purple-500 text-[13px]">
+            <span
+              className="inline-block px-3 py-1 text-[13px]"
+              style={{
+                backgroundColor: `${getMoodColor(entry.moodLabel)}20`,
+                borderLeft: `2px solid ${getMoodColor(entry.moodLabel)}`,
+              }}
+            >
               {entry.moodLabel} · {entry.moodScore}/10
             </span>
           </div>

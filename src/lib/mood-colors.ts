@@ -86,10 +86,11 @@ export function getMoodColorDef(label: string): MoodColorDef {
  * Used when creating a new entry — slider value → label.
  */
 export function scoreToLabel(score: number): MoodLabel {
-  if (score >= 8) return 'Отличное'
-  if (score >= 6) return 'Хорошее'
-  if (score === 5) return 'Нейтральное'
-  if (score >= 3) return 'Грустное'
-  if (score === 2) return 'Тревожное'
-  return 'Уставшее'
+  if (score >= 8) return 'Отличное'      // 8-10
+  if (score >= 6) return 'Хорошее'       // 6-7
+  if (score === 5) return 'Нейтральное'  // 5
+  if (score === 4) return 'Уставшее'     // 4
+  if (score === 3) return 'Тревожное'    // 3
+  if (score === 2) return 'Раздраженное' // 2
+  return 'Грустное'                      // 1
 }
