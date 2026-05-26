@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAppStore, type MoodEntry } from '@/lib/store'
 import { MOOD_LABELS, scoreToLabel, type MoodLabel, getMoodColor } from '@/lib/mood-colors'
 
@@ -112,11 +112,11 @@ function LoadingSpinner({ text }: { text: string }) {
 function AddEntryForm() {
   const { setActiveModal, addEntry, setPendingEntryDate } = useAppStore()
 
-  // Read pendingEntryDate at mount time (from store, not stale closure)
-  const pendingDate = useAppStore.getState().pendingEntryDate
+  // Read pendingEntryDate at mount time using a ref (stable across re-renders)
+  const pendingDateRef = useRef(useAppStore.getState().pendingEntryDate)
   const today = new Date().toISOString().slice(0, 10)
 
-  const [date, setDate] = useState(pendingDate || today)
+  const [date, setDate] = useState(pendingDateRef.current || today)
   const [moodScore, setMoodScore] = useState(5)
   // moodLabel is derived from moodScore — no separate state needed
   const moodLabel = scoreToLabel(moodScore)
@@ -126,18 +126,20 @@ function AddEntryForm() {
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // Clear pending date after using it
-  useAppStore.getState().setPendingEntryDate(null)
+  // Clear pending date AFTER mount (in useEffect, not during render)
+  useEffect(() => {
+    setPendingEntryDate(null)
+  }, [setPendingEntryDate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
-    // Safety timeout: if addEntry takes more than 20s, stop loading and show error
+    // Safety timeout: if addEntry takes more than 15s, stop loading and show error
     const safetyTimeout = setTimeout(() => {
       setLoading(false)
       toast.error('Сервер не отвечает. Попробуйте позже.')
-    }, 20_000)
+    }, 15_000)
 
     try {
       const success = await addEntry({
@@ -264,7 +266,7 @@ function EditEntryForm({ entry, onDone }: { entry: MoodEntry; onDone: () => void
     const safetyTimeout = setTimeout(() => {
       setLoading(false)
       toast.error('Сервер не отвечает. Попробуйте позже.')
-    }, 20_000)
+    }, 15_000)
 
     try {
       const success = await updateEntry(entry.id, {
@@ -459,7 +461,7 @@ function DeleteEntryModal() {
     const safetyTimeout = setTimeout(() => {
       setLoading(false)
       toast.error('Сервер не отвечает. Попробуйте позже.')
-    }, 20_000)
+    }, 15_000)
 
     try {
       const success = await deleteEntry(selectedEntry.id)

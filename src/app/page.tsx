@@ -192,18 +192,18 @@ function PublicStatsView({ token }: { token: string }) {
 }
 
 export default function Home() {
-  const {
-    isAuthenticated,
-    isAuthLoading,
-    setUser,
-    fetchEntries,
-    fetchStats,
-    activeTab,
-    setActiveTab,
-    setActiveModal,
-    setPendingEntryDate,
-    calendarMonth,
-  } = useAppStore()
+  // Use zustand selector to only subscribe to needed state — prevents
+  // unnecessary re-renders when other state (like activeModal, entries, etc.) changes
+  const isAuthenticated = useAppStore((s) => s.isAuthenticated)
+  const isAuthLoading = useAppStore((s) => s.isAuthLoading)
+  const setUser = useAppStore((s) => s.setUser)
+  const fetchEntries = useAppStore((s) => s.fetchEntries)
+  const fetchStats = useAppStore((s) => s.fetchStats)
+  const activeTab = useAppStore((s) => s.activeTab)
+  const setActiveTab = useAppStore((s) => s.setActiveTab)
+  const setActiveModal = useAppStore((s) => s.setActiveModal)
+  const setPendingEntryDate = useAppStore((s) => s.setPendingEntryDate)
+  const calendarMonth = useAppStore((s) => s.calendarMonth)
 
   // Check for ?share=TOKEN in URL (useMemo to avoid lint issue with setState in effect)
   const shareToken = useMemo(() => {
@@ -285,13 +285,22 @@ export default function Home() {
     fetchStats(calendarMonth)
   }, [isAuthenticated, calendarMonth, activeTab, fetchEntries, fetchStats])
 
+  // Safety: if auth loading takes more than 15s, force-show the page
+  // (either logged in or not) to prevent the user from being stuck on "Загрузка..." forever
+  const [authLoadTimedOut, setAuthLoadTimedOut] = useState(false)
+  useEffect(() => {
+    if (!isAuthLoading) return
+    const timer = setTimeout(() => setAuthLoadTimedOut(true), 15_000)
+    return () => clearTimeout(timer)
+  }, [isAuthLoading])
+
   // ─── Public share view ───
   if (shareToken) {
     return <PublicStatsView token={shareToken} />
   }
 
   // Loading state
-  if (isAuthLoading) {
+  if (isAuthLoading && !authLoadTimedOut) {
     return (
       <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
         <div className="text-white/50 text-sm">Загрузка...</div>
