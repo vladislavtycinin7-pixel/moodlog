@@ -562,6 +562,17 @@ export default function ProfileModal() {
                 </div>
               </div>
 
+              {/* Forgot password link */}
+              <div className="mt-1 mb-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveModal('forgot-password')}
+                  className="text-xs text-purple-400/80 hover:text-purple-400 transition-colors bg-transparent border-none cursor-pointer p-0 font-[inherit]"
+                >
+                  Забыл пароль?
+                </button>
+              </div>
+
               {pwError && (
                 <div className="flex items-center gap-3 p-3 mt-3 bg-red-500/10 border border-red-500/20 rounded-lg">
                   <span className="text-red-400 text-xs flex-1">{pwError}</span>
