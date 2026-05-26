@@ -28,6 +28,9 @@ export async function PUT(request: NextRequest) {
       const trimmed = avatarUrl.trim()
       if (!trimmed) {
         cleanedAvatarUrl = null
+      } else if (trimmed.startsWith('data:image/')) {
+        // Allow base64 data URLs (from upload)
+        cleanedAvatarUrl = trimmed
       } else if (trimmed.startsWith('/api/upload/avatars/')) {
         // Allow local uploaded avatar paths
         cleanedAvatarUrl = trimmed
@@ -46,7 +49,7 @@ export async function PUT(request: NextRequest) {
       } else {
         // Reject javascript:, data:, and any other schemes
         return NextResponse.json(
-          { success: false, message: 'URL аватара должен начинаться с /api/upload/avatars/ или https://' },
+          { success: false, message: 'URL аватара должен начинаться с data:image/, /api/upload/avatars/ или https://' },
           { status: 400 }
         )
       }
