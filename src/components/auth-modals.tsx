@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, KeyRound, Mail } from 'lucide-react'
 import { useAppStore, saveToken } from '@/lib/store'
 import { ModalOverlay, CloseBtn } from '@/components/modal-overlay'
 
@@ -13,6 +13,7 @@ export default function AuthModals() {
 
   const loginOpen = activeModal === 'login'
   const registerOpen = activeModal === 'register'
+  const forgotOpen = activeModal === 'forgot-password'
 
   // ─── Login state ───
   const [loginUsername, setLoginUsername] = useState('')
@@ -30,6 +31,19 @@ export default function AuthModals() {
   const [regError, setRegError] = useState('')
   const [regLoading, setRegLoading] = useState(false)
 
+  // ─── Forgot password state ───
+  const [forgotStep, setForgotStep] = useState<'request' | 'verify'>('request')
+  const [forgotUsername, setForgotUsername] = useState('')
+  const [forgotResetId, setForgotResetId] = useState('')
+  const [forgotCode, setForgotCode] = useState('')
+  const [forgotNewPw, setForgotNewPw] = useState('')
+  const [forgotConfirmPw, setForgotConfirmPw] = useState('')
+  const [forgotShowPw, setForgotShowPw] = useState(false)
+  const [forgotShowConfirmPw, setForgotShowConfirmPw] = useState(false)
+  const [forgotError, setForgotError] = useState('')
+  const [forgotLoading, setForgotLoading] = useState(false)
+  const [forgotSuccess, setForgotSuccess] = useState(false)
+
   // ─── Reset form state when modal changes ───
   useEffect(() => {
     if (activeModal === 'login') {
@@ -46,6 +60,18 @@ export default function AuthModals() {
       setRegShowConfirm(false)
       setRegError('')
       setRegLoading(false)
+    } else if (activeModal === 'forgot-password') {
+      setForgotStep('request')
+      setForgotUsername('')
+      setForgotResetId('')
+      setForgotCode('')
+      setForgotNewPw('')
+      setForgotConfirmPw('')
+      setForgotShowPw(false)
+      setForgotShowConfirmPw(false)
+      setForgotError('')
+      setForgotLoading(false)
+      setForgotSuccess(false)
     }
   }, [activeModal])
 
@@ -124,9 +150,89 @@ export default function AuthModals() {
     }
   }
 
+  // ─── Forgot password: request code ───
+  const handleForgotRequest = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setForgotError('')
+
+    if (!forgotUsername.trim()) {
+      setForgotError('Введите имя пользователя')
+      return
+    }
+
+    setForgotLoading(true)
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: forgotUsername.trim() }),
+      })
+      const data = await res.json()
+
+      if (data.success) {
+        setForgotResetId(data.resetId)
+        setForgotCode(data.code) // Pre-fill the code since we show it
+        setForgotStep('verify')
+      } else {
+        setForgotError(data.message || 'Пользователь не найден')
+      }
+    } catch {
+      setForgotError('Ошибка соединения')
+    } finally {
+      setForgotLoading(false)
+    }
+  }
+
+  // ─── Forgot password: verify code & set new password ───
+  const handleForgotVerify = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setForgotError('')
+
+    if (!forgotCode || !forgotNewPw || !forgotConfirmPw) {
+      setForgotError('Заполните все поля')
+      return
+    }
+
+    if (forgotNewPw !== forgotConfirmPw) {
+      setForgotError('Пароли не совпадают')
+      return
+    }
+
+    if (forgotNewPw.length < 6) {
+      setForgotError('Пароль должен содержать минимум 6 символов')
+      return
+    }
+
+    setForgotLoading(true)
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resetId: forgotResetId,
+          code: forgotCode,
+          newPassword: forgotNewPw,
+          confirmPassword: forgotConfirmPw,
+        }),
+      })
+      const data = await res.json()
+
+      if (data.success) {
+        setForgotSuccess(true)
+      } else {
+        setForgotError(data.message || 'Ошибка при сбросе пароля')
+      }
+    } catch {
+      setForgotError('Ошибка соединения')
+    } finally {
+      setForgotLoading(false)
+    }
+  }
+
   const close = () => setActiveModal(null)
   const switchToRegister = () => setActiveModal('register')
   const switchToLogin = () => setActiveModal('login')
+  const switchToForgot = () => setActiveModal('forgot-password')
 
   return (
     <>
@@ -186,7 +292,17 @@ export default function AuthModals() {
           </button>
         </form>
 
-        <div className="text-center mt-8 pt-6 border-t border-white/[0.08] text-[13px] text-white/50">
+        <div className="text-center mt-6 text-[13px] text-white/50">
+          <button
+            type="button"
+            className="text-purple-400 cursor-pointer hover:underline bg-transparent border-none p-0 font-[inherit] text-[inherit]"
+            onClick={switchToForgot}
+          >
+            Забыли пароль?
+          </button>
+        </div>
+
+        <div className="text-center mt-4 pt-4 border-t border-white/[0.08] text-[13px] text-white/50">
           Нет аккаунта?{' '}
           <button
             type="button"
@@ -288,6 +404,191 @@ export default function AuthModals() {
             Войдите
           </button>
         </div>
+      </ModalOverlay>
+
+      {/* ═══════ FORGOT PASSWORD MODAL ═══════ */}
+      <ModalOverlay open={forgotOpen} onClose={close} maxWidth="max-w-[420px]">
+        <CloseBtn onClick={close} />
+
+        {/* Success state */}
+        {forgotSuccess ? (
+          <>
+            <div className="flex items-center justify-center mb-6">
+              <div className="w-16 h-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
+                <KeyRound className="w-8 h-8 text-emerald-400" />
+              </div>
+            </div>
+            <h2 className="text-[26px] font-medium tracking-[-0.5px] mb-2 text-white text-center">
+              Пароль изменён!
+            </h2>
+            <p className="text-[13px] text-white/50 mb-8 text-center">
+              Теперь вы можете войти с новым паролем
+            </p>
+            <button
+              type="button"
+              onClick={switchToLogin}
+              className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 rounded-lg"
+            >
+              Войти
+            </button>
+          </>
+        ) : forgotStep === 'request' ? (
+          /* Step 1: Enter username */
+          <>
+            <div className="flex items-center justify-center mb-6">
+              <div className="w-16 h-16 rounded-full bg-purple-500/15 flex items-center justify-center">
+                <Mail className="w-8 h-8 text-purple-400" />
+              </div>
+            </div>
+            <h2 className="text-[26px] font-medium tracking-[-0.5px] mb-2 text-white text-center">
+              Забыли пароль?
+            </h2>
+            <p className="text-[13px] text-white/50 mb-8 text-center">
+              Введите имя пользователя, и мы сгенерируем код для сброса пароля
+            </p>
+
+            <form onSubmit={handleForgotRequest}>
+              <div className="mb-6">
+                <label className="label-sm">Имя пользователя</label>
+                <input
+                  type="text"
+                  className={inputCls}
+                  placeholder="username"
+                  value={forgotUsername}
+                  onChange={(e) => setForgotUsername(e.target.value)}
+                  autoComplete="username"
+                />
+              </div>
+
+              {forgotError && (
+                <p className="text-red-400 text-xs mb-4">{forgotError}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={forgotLoading}
+                className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg"
+              >
+                {forgotLoading ? 'Генерация кода...' : 'Получить код сброса'}
+              </button>
+            </form>
+
+            <div className="text-center mt-8 pt-6 border-t border-white/[0.08] text-[13px] text-white/50">
+              Вспомнили пароль?{' '}
+              <button
+                type="button"
+                className="text-purple-500 cursor-pointer hover:underline bg-transparent border-none p-0 font-[inherit] text-[inherit]"
+                onClick={switchToLogin}
+              >
+                Войти
+              </button>
+            </div>
+          </>
+        ) : (
+          /* Step 2: Enter code + new password */
+          <>
+            <div className="flex items-center justify-center mb-6">
+              <div className="w-16 h-16 rounded-full bg-purple-500/15 flex items-center justify-center">
+                <KeyRound className="w-8 h-8 text-purple-400" />
+              </div>
+            </div>
+            <h2 className="text-[26px] font-medium tracking-[-0.5px] mb-2 text-white text-center">
+              Сброс пароля
+            </h2>
+            <p className="text-[13px] text-white/50 mb-2 text-center">
+              Ваш код сброса:
+            </p>
+            <div className="bg-purple-500/15 border border-purple-500/30 rounded-lg px-4 py-3 text-center mb-6">
+              <span className="text-2xl font-mono font-bold text-purple-400 tracking-[0.3em]">
+                {forgotCode}
+              </span>
+            </div>
+            <p className="text-[11px] text-white/30 mb-6 text-center">
+              Код действителен 15 минут. Введите его ниже и задайте новый пароль.
+            </p>
+
+            <form onSubmit={handleForgotVerify}>
+              <div className="mb-5">
+                <label className="label-sm">Код сброса</label>
+                <input
+                  type="text"
+                  className={inputCls}
+                  placeholder="000000"
+                  value={forgotCode}
+                  onChange={(e) => setForgotCode(e.target.value)}
+                  maxLength={6}
+                  autoComplete="one-time-code"
+                />
+              </div>
+
+              <div className="mb-5">
+                <label className="label-sm">Новый пароль</label>
+                <div className="relative">
+                  <input
+                    type={forgotShowPw ? 'text' : 'password'}
+                    className={`${inputCls} pr-10`}
+                    placeholder="Минимум 6 символов"
+                    value={forgotNewPw}
+                    onChange={(e) => setForgotNewPw(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-0 bottom-3 cursor-pointer text-white/40 hover:text-white transition-colors bg-transparent border-none p-0"
+                    onClick={() => setForgotShowPw(!forgotShowPw)}
+                    aria-label={forgotShowPw ? 'Скрыть пароль' : 'Показать пароль'}
+                  >
+                    {forgotShowPw ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <label className="label-sm">Подтвердить новый пароль</label>
+                <div className="relative">
+                  <input
+                    type={forgotShowConfirmPw ? 'text' : 'password'}
+                    className={`${inputCls} pr-10`}
+                    placeholder="Повторите пароль"
+                    value={forgotConfirmPw}
+                    onChange={(e) => setForgotConfirmPw(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-0 bottom-3 cursor-pointer text-white/40 hover:text-white transition-colors bg-transparent border-none p-0"
+                    onClick={() => setForgotShowConfirmPw(!forgotShowConfirmPw)}
+                    aria-label={forgotShowConfirmPw ? 'Скрыть пароль' : 'Показать пароль'}
+                  >
+                    {forgotShowConfirmPw ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              {forgotError && (
+                <p className="text-red-400 text-xs mb-4">{forgotError}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={forgotLoading}
+                className="w-full py-3 bg-purple-500 border-none text-white text-sm font-medium cursor-pointer transition-colors hover:bg-purple-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg"
+              >
+                {forgotLoading ? 'Сохранение...' : 'Сменить пароль'}
+              </button>
+            </form>
+
+            <div className="text-center mt-6 text-[13px] text-white/50">
+              <button
+                type="button"
+                className="text-purple-400 cursor-pointer hover:underline bg-transparent border-none p-0 font-[inherit] text-[inherit]"
+                onClick={() => { setForgotStep('request'); setForgotError('') }}
+              >
+                Запросить новый код
+              </button>
+            </div>
+          </>
+        )}
       </ModalOverlay>
     </>
   )

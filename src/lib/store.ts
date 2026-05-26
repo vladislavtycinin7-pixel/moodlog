@@ -30,7 +30,7 @@ export interface Stats {
   mostFrequentMood: string | null
 }
 
-export type ModalType = 'add' | 'edit' | 'view' | 'login' | 'register' | 'delete' | 'profile' | null
+export type ModalType = 'add' | 'edit' | 'view' | 'login' | 'register' | 'delete' | 'profile' | 'forgot-password' | null
 
 export type MainTab = 'calendar' | 'stats'
 
