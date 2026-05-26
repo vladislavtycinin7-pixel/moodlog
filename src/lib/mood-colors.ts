@@ -60,10 +60,10 @@ const MOOD_COLOR_MAP: Record<MoodLabel, MoodColorDef> = {
     shadowRgba: 'rgba(239,68,68,0.6)',
   },
   'Уставшее': {
-    hex: '#06b6d4',
-    bg: 'bg-cyan-500',
-    shadow: 'shadow-[0_0_4px_rgba(6,182,212,0.6)]',
-    shadowRgba: 'rgba(6,182,212,0.6)',
+    hex: '#ec4899',
+    bg: 'bg-pink-500',
+    shadow: 'shadow-[0_0_4px_rgba(236,72,153,0.6)]',
+    shadowRgba: 'rgba(236,72,153,0.6)',
   },
 }
 
