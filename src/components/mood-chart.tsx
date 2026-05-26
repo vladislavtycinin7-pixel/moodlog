@@ -40,8 +40,8 @@ function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null
   const value = payload[0].value
   return (
-    <div className="bg-[rgba(18,18,24,0.95)] border border-purple-500/30 px-3 py-2 text-sm rounded-lg">
-      <p className="text-white/70">{label}</p>
+    <div className="bg-panel-bg border border-purple-500/30 px-3 py-2 text-sm rounded-lg">
+      <p className="text-text-secondary">{label}</p>
       <p className="text-purple-400 font-medium">
         {value !== null && value !== undefined
           ? `Настроение: ${value}/10`
@@ -149,7 +149,7 @@ export default function MoodChart() {
   }, [period, chartData.length])
 
   return (
-    <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-4 sm:p-6 rounded-xl">
+    <div className="bg-surface border border-border backdrop-blur-[4px] p-4 sm:p-6 rounded-xl" style={{ boxShadow: 'var(--shadow-card)' }}>
       {/* Period selector */}
       <div className="flex gap-2 sm:gap-3 justify-end mb-4 sm:mb-6">
         <button
@@ -157,7 +157,7 @@ export default function MoodChart() {
           className={`px-4 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-base cursor-pointer transition-colors rounded-md ${
             period === 'week'
               ? 'bg-purple-500 border border-purple-500 text-white'
-              : 'bg-transparent border border-white/20 text-white/70 hover:border-purple-500'
+              : 'bg-transparent border border-border text-text-secondary hover:border-purple-500'
           }`}
         >
           Неделя
@@ -167,7 +167,7 @@ export default function MoodChart() {
           className={`px-4 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-base cursor-pointer transition-colors rounded-md ${
             period === 'month'
               ? 'bg-purple-500 border border-purple-500 text-white'
-              : 'bg-transparent border border-white/20 text-white/70 hover:border-purple-500'
+              : 'bg-transparent border border-border text-text-secondary hover:border-purple-500'
           }`}
         >
           Месяц
@@ -177,7 +177,7 @@ export default function MoodChart() {
           className={`px-4 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-base cursor-pointer transition-colors rounded-md ${
             period === 'year'
               ? 'bg-purple-500 border border-purple-500 text-white'
-              : 'bg-transparent border border-white/20 text-white/70 hover:border-purple-500'
+              : 'bg-transparent border border-border text-text-secondary hover:border-purple-500'
           }`}
         >
           Год
@@ -196,21 +196,21 @@ export default function MoodChart() {
             </defs>
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="rgba(255,255,255,0.08)"
+              stroke="var(--border)"
             />
             <XAxis
               dataKey="label"
-              tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
+              tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
               tickLine={false}
-              axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+              axisLine={{ stroke: 'var(--border)' }}
               interval={xAxisInterval}
             />
             <YAxis
               domain={[0, 10]}
               ticks={[0, 2, 4, 6, 8, 10]}
-              tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
+              tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
               tickLine={false}
-              axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+              axisLine={{ stroke: 'var(--border)' }}
             />
             <Tooltip content={<CustomTooltip />} />
             <Line
@@ -220,13 +220,13 @@ export default function MoodChart() {
               strokeWidth={2.5}
               dot={{
                 fill: '#a855f7',
-                stroke: '#ffffff',
+                stroke: 'var(--text-primary)',
                 strokeWidth: 1.5,
                 r: 4,
               }}
               activeDot={{
                 fill: '#a855f7',
-                stroke: '#ffffff',
+                stroke: 'var(--text-primary)',
                 strokeWidth: 2,
                 r: 6,
               }}
@@ -238,7 +238,7 @@ export default function MoodChart() {
       </div>
 
       {/* Legend */}
-      <div className="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-white/[0.08] flex gap-4 sm:gap-5 flex-wrap text-xs sm:text-sm text-white/40">
+      <div className="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-border flex gap-4 sm:gap-5 flex-wrap text-xs sm:text-sm text-text-muted">
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-3 h-3 sm:w-2.5 sm:h-2.5 rounded-full bg-purple-500" />
           Есть запись
@@ -254,7 +254,7 @@ export default function MoodChart() {
       </div>
 
       {/* Info note */}
-      <div className="mt-3 sm:mt-4 bg-purple-500/10 border-l-2 border-purple-500 px-4 sm:px-4 py-3 sm:py-3 text-xs sm:text-sm text-white/60 leading-relaxed">
+      <div className="mt-3 sm:mt-4 bg-purple-500/10 border-l-2 border-purple-500 px-4 sm:px-4 py-3 sm:py-3 text-xs sm:text-sm text-muted-foreground leading-relaxed">
         Пропуски в графике означают дни, когда вы не делали запись. Чем чаще
         заполняете дневник, тем точнее график.
       </div>

@@ -125,7 +125,7 @@ export default function MoodCalendar() {
   const capitalizedTitle = monthTitle.charAt(0).toUpperCase() + monthTitle.slice(1)
 
   return (
-    <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-4 sm:p-6 rounded-xl relative">
+    <div className="bg-surface border border-border backdrop-blur-[4px] p-4 sm:p-6 rounded-xl relative" style={{ boxShadow: 'var(--shadow-card)' }}>
       {/* Loading indicator — non-blocking, subtle progress bar at the top */}
       {entriesLoading && (
         <div className="absolute top-0 left-0 right-0 z-10 h-0.5 rounded-t-xl overflow-hidden">
@@ -135,18 +135,18 @@ export default function MoodCalendar() {
 
       {/* Header */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
-        <h2 className="text-lg sm:text-xl font-medium text-white">{capitalizedTitle}</h2>
+        <h2 className="text-lg sm:text-xl font-medium text-foreground">{capitalizedTitle}</h2>
         <div className="flex items-center gap-3">
           <button
             onClick={goToPrevMonth}
-            className="bg-transparent border border-white/20 text-white cursor-pointer p-2.5 sm:p-3 hover:border-purple-500 hover:bg-purple-500/10 transition-colors rounded-lg"
+            className="bg-transparent border border-border text-foreground cursor-pointer p-2.5 sm:p-3 hover:border-purple-500 hover:bg-purple-500/10 transition-colors rounded-lg"
             aria-label="Предыдущий месяц"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
             onClick={goToNextMonth}
-            className="bg-transparent border border-white/20 text-white cursor-pointer p-2.5 sm:p-3 hover:border-purple-500 hover:bg-purple-500/10 transition-colors rounded-lg"
+            className="bg-transparent border border-border text-foreground cursor-pointer p-2.5 sm:p-3 hover:border-purple-500 hover:bg-purple-500/10 transition-colors rounded-lg"
             aria-label="Следующий месяц"
           >
             <ChevronRight className="w-5 h-5" />
@@ -159,7 +159,7 @@ export default function MoodCalendar() {
         {WEEKDAYS.map((day) => (
           <div
             key={day}
-            className="text-center py-2 sm:py-3 text-xs sm:text-sm font-medium text-white/50 uppercase"
+            className="text-center py-2 sm:py-3 text-xs sm:text-sm font-medium text-text-muted uppercase"
           >
             {day}
           </div>
@@ -176,7 +176,7 @@ export default function MoodCalendar() {
 
           // Build class names based on states
           let cellClass =
-            'text-center py-2.5 sm:py-3 px-0.5 sm:px-2 text-sm sm:text-base cursor-pointer transition-all border bg-white/[0.02] rounded-lg sm:rounded-none '
+            'text-center py-2.5 sm:py-3 px-0.5 sm:px-2 text-sm sm:text-base cursor-pointer transition-all border bg-surface rounded-lg sm:rounded-none '
 
           // Border state
           if (isToday) {
@@ -200,7 +200,7 @@ export default function MoodCalendar() {
           }
 
           // Text color for other month days
-          const textClass = isCurrentMonth ? 'text-white' : 'text-white/20'
+          const textClass = isCurrentMonth ? 'text-foreground' : 'text-text-muted'
 
           return (
             <button

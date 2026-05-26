@@ -36,13 +36,14 @@ export function ModalOverlay({
 
   return (
     <div
-      className={`fixed inset-0 bg-black/75 backdrop-blur-[6px] z-[200] flex justify-center items-center transition-[visibility,opacity] duration-300 ${
+      className={`fixed inset-0 backdrop-blur-[6px] z-[200] flex justify-center items-center transition-[visibility,opacity] duration-300 ${
         open ? 'visible opacity-100' : 'invisible opacity-0'
       }`}
+      style={{ background: 'var(--overlay-bg)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
-        className={`relative w-full ${maxWidth || 'max-w-[800px]'} max-h-[90vh] sm:max-h-[85vh] overflow-y-auto bg-[rgba(18,18,24,0.98)] border border-white/[0.1] rounded-xl p-4 sm:p-6 md:p-10 mx-2 sm:mx-4 transition-transform duration-200 ${
+        className={`relative w-full ${maxWidth || 'max-w-[800px]'} max-h-[90vh] sm:max-h-[85vh] overflow-y-auto bg-panel-bg border border-border rounded-xl p-4 sm:p-6 md:p-10 mx-2 sm:mx-4 transition-transform duration-200 ${
           open ? 'scale-100' : 'scale-95'
         }`}
       >
@@ -59,7 +60,7 @@ export function CloseBtn({ onClick }: { onClick: () => void }) {
   return (
     <button
       type="button"
-      className="absolute top-3 right-3 sm:top-5 sm:right-6 text-2xl cursor-pointer text-white/50 hover:text-white transition-colors bg-transparent border-none leading-none z-10"
+      className="absolute top-3 right-3 sm:top-5 sm:right-6 text-2xl cursor-pointer text-text-muted hover:text-foreground transition-colors bg-transparent border-none leading-none z-10"
       onClick={onClick}
       aria-label="Закрыть"
     >

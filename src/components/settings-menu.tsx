@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { User, Palette, LogOut, X, Globe, Check, Share2 } from 'lucide-react'
 import { useAppStore } from '@/lib/store'
 import { toast } from 'sonner'
+import { useTheme } from 'next-themes'
 
 const LANGUAGES = [
   { code: 'ru', label: 'Русский' },
@@ -11,18 +12,21 @@ const LANGUAGES = [
 ]
 
 const THEMES = [
-  { code: 'dark', label: 'Тёмная', desc: 'Текущая тема' },
-  { code: 'light', label: 'Светлая', desc: 'Скоро' },
-  { code: 'auto', label: 'Авто', desc: 'Скоро' },
+  { code: 'dark', label: 'Тёмная' },
+  { code: 'light', label: 'Светлая' },
+  { code: 'system', label: 'Авто' },
 ]
 
 export default function SettingsMenu() {
   const { settingsOpen, setSettingsOpen, user, logout, setActiveModal } = useAppStore()
+  const { theme, setTheme } = useTheme()
 
   const [showLangPicker, setShowLangPicker] = useState(false)
   const [showThemePicker, setShowThemePicker] = useState(false)
   const [selectedLang, setSelectedLang] = useState('ru')
-  const [selectedTheme, setSelectedTheme] = useState('dark')
+
+  // Use theme from next-themes as source of truth (defaults to 'system' during SSR)
+  const selectedTheme = theme ?? 'system'
 
   const close = () => {
     setSettingsOpen(false)
@@ -74,14 +78,7 @@ export default function SettingsMenu() {
   }
 
   const handleThemeSelect = (code: string) => {
-    if (code !== 'dark') {
-      toast('Смена темы будет доступна в будущих обновлениях', {
-        description: code === 'light' ? 'Светлая тема скоро появится' : 'Автоматическая тема скоро появится',
-        duration: 3000,
-      })
-      return
-    }
-    setSelectedTheme(code)
+    setTheme(code)
     setShowThemePicker(false)
   }
 
@@ -93,9 +90,10 @@ export default function SettingsMenu() {
     <>
       {/* Overlay */}
       <div
-        className={`fixed inset-0 bg-black/60 backdrop-blur-[4px] z-[150] transition-all duration-300 ${
+        className={`fixed inset-0 backdrop-blur-[4px] z-[150] transition-all duration-300 ${
           settingsOpen ? 'visible opacity-100' : 'invisible opacity-0'
         }`}
+        style={{ background: 'var(--overlay-bg)' }}
         onClick={close}
         aria-hidden="true"
       />
@@ -106,15 +104,15 @@ export default function SettingsMenu() {
           settingsOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         style={{
-          background: 'rgba(18, 18, 24, 0.98)',
+          background: 'var(--panel-bg)',
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
-          borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+          borderLeft: '1px solid var(--border)',
         }}
       >
         {/* Close button */}
         <button
-          className="absolute top-6 right-5 text-white/50 hover:text-white transition-colors bg-transparent border-none cursor-pointer"
+          className="absolute top-6 right-5 text-text-muted hover:text-foreground transition-colors bg-transparent border-none cursor-pointer"
           onClick={close}
           aria-label="Close settings"
         >
@@ -122,7 +120,7 @@ export default function SettingsMenu() {
         </button>
 
         {/* Profile section */}
-        <div className="text-center pb-7 mb-7 border-b border-white/[0.08]">
+        <div className="text-center pb-7 mb-7 border-b border-border">
           <div className="w-14 h-14 mx-auto mb-3.5 overflow-hidden">
             {user?.avatarUrl ? (
               <img src={user.avatarUrl} alt="Аватар" className="w-full h-full object-cover rounded-full" />
@@ -133,7 +131,7 @@ export default function SettingsMenu() {
             )}
           </div>
           <div className="text-[17px] font-medium mb-1">{displayName}</div>
-          <div className="text-xs text-white/40">{displayEmail}</div>
+          <div className="text-xs text-text-muted">{displayEmail}</div>
         </div>
 
         {/* Menu items */}
@@ -141,7 +139,7 @@ export default function SettingsMenu() {
           {/* Профиль */}
           <button
             type="button"
-            className="flex items-center gap-3.5 py-3.5 px-3 mb-1 cursor-pointer transition-colors text-white/70 hover:text-white hover:bg-white/[0.04] bg-transparent border-none w-full text-left font-[inherit]"
+            className="flex items-center gap-3.5 py-3.5 px-3 mb-1 cursor-pointer transition-colors text-text-secondary hover:text-foreground hover:bg-surface bg-transparent border-none w-full text-left font-[inherit]"
             onClick={() => { close(); setActiveModal('profile') }}
           >
             <User className="w-5 h-5" />
@@ -151,7 +149,7 @@ export default function SettingsMenu() {
           {/* Поделиться статистикой */}
           <button
             type="button"
-            className="flex items-center gap-3.5 py-3.5 px-3 mb-1 cursor-pointer transition-colors text-white/70 hover:text-white hover:bg-white/[0.04] bg-transparent border-none w-full text-left font-[inherit]"
+            className="flex items-center gap-3.5 py-3.5 px-3 mb-1 cursor-pointer transition-colors text-text-secondary hover:text-foreground hover:bg-surface bg-transparent border-none w-full text-left font-[inherit]"
             onClick={() => { close(); setActiveModal('share-stats') }}
           >
             <Share2 className="w-5 h-5" />
@@ -162,21 +160,21 @@ export default function SettingsMenu() {
           <div>
             <button
               type="button"
-              className="flex items-center justify-between gap-3.5 py-3.5 px-3 mb-1 cursor-pointer transition-colors text-white/70 hover:text-white hover:bg-white/[0.04] bg-transparent border-none w-full text-left font-[inherit]"
+              className="flex items-center justify-between gap-3.5 py-3.5 px-3 mb-1 cursor-pointer transition-colors text-text-secondary hover:text-foreground hover:bg-surface bg-transparent border-none w-full text-left font-[inherit]"
               onClick={() => { setShowLangPicker(!showLangPicker); setShowThemePicker(false) }}
             >
               <div className="flex items-center gap-3.5">
                 <Globe className="w-5 h-5" />
                 <span className="text-sm font-[450] tracking-[0.3px]">Язык</span>
               </div>
-              <span className="text-xs text-white/40">
+              <span className="text-xs text-text-muted">
                 {LANGUAGES.find(l => l.code === selectedLang)?.label}
               </span>
             </button>
 
             {/* Language picker dropdown */}
             {showLangPicker && (
-              <div className="ml-12 mr-3 mb-2 border border-white/[0.08] bg-white/[0.03]">
+              <div className="ml-12 mr-3 mb-2 border border-border bg-surface">
                 {LANGUAGES.map((lang) => (
                   <button
                     type="button"
@@ -184,7 +182,7 @@ export default function SettingsMenu() {
                     className={`flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors text-sm bg-transparent border-none w-full text-left font-[inherit] ${
                       selectedLang === lang.code
                         ? 'text-purple-400 bg-purple-500/10'
-                        : 'text-white/60 hover:text-white hover:bg-white/[0.04]'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-surface'
                     }`}
                     onClick={() => handleLangSelect(lang.code)}
                   >
@@ -200,39 +198,34 @@ export default function SettingsMenu() {
           <div>
             <button
               type="button"
-              className="flex items-center justify-between gap-3.5 py-3.5 px-3 mb-1 cursor-pointer transition-colors text-white/70 hover:text-white hover:bg-white/[0.04] bg-transparent border-none w-full text-left font-[inherit]"
+              className="flex items-center justify-between gap-3.5 py-3.5 px-3 mb-1 cursor-pointer transition-colors text-text-secondary hover:text-foreground hover:bg-surface bg-transparent border-none w-full text-left font-[inherit]"
               onClick={() => { setShowThemePicker(!showThemePicker); setShowLangPicker(false) }}
             >
               <div className="flex items-center gap-3.5">
                 <Palette className="w-5 h-5" />
                 <span className="text-sm font-[450] tracking-[0.3px]">Тема</span>
               </div>
-              <span className="text-xs text-white/40">
+              <span className="text-xs text-text-muted">
                 {THEMES.find(t => t.code === selectedTheme)?.label}
               </span>
             </button>
 
             {/* Theme picker dropdown */}
             {showThemePicker && (
-              <div className="ml-12 mr-3 mb-2 border border-white/[0.08] bg-white/[0.03]">
-                {THEMES.map((theme) => (
+              <div className="ml-12 mr-3 mb-2 border border-border bg-surface">
+                {THEMES.map((t) => (
                   <button
                     type="button"
-                    key={theme.code}
+                    key={t.code}
                     className={`flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors text-sm bg-transparent border-none w-full text-left font-[inherit] ${
-                      selectedTheme === theme.code && theme.code === 'dark'
+                      selectedTheme === t.code
                         ? 'text-purple-400 bg-purple-500/10'
-                        : 'text-white/60 hover:text-white hover:bg-white/[0.04]'
-                    } ${theme.code !== 'dark' ? 'opacity-60' : ''}`}
-                    onClick={() => handleThemeSelect(theme.code)}
+                        : 'text-muted-foreground hover:text-foreground hover:bg-surface'
+                    }`}
+                    onClick={() => handleThemeSelect(t.code)}
                   >
-                    <div>
-                      <span>{theme.label}</span>
-                      {theme.code !== 'dark' && (
-                        <span className="text-[10px] text-white/30 ml-2">скоро</span>
-                      )}
-                    </div>
-                    {selectedTheme === theme.code && theme.code === 'dark' && <Check size={14} />}
+                    <span>{t.label}</span>
+                    {selectedTheme === t.code && <Check size={14} />}
                   </button>
                 ))}
               </div>
@@ -245,7 +238,7 @@ export default function SettingsMenu() {
         {/* Logout item */}
         <button
           type="button"
-          className="flex items-center gap-3.5 py-3.5 px-3 cursor-pointer transition-colors text-red-400/80 hover:text-red-400 hover:bg-red-500/5 pt-5 mt-5 border-t border-white/[0.08] bg-transparent border-x-0 border-b-0 w-full text-left font-[inherit]"
+          className="flex items-center gap-3.5 py-3.5 px-3 cursor-pointer transition-colors text-red-400/80 hover:text-red-400 hover:bg-red-500/5 pt-5 mt-5 border-t border-border bg-transparent border-x-0 border-b-0 w-full text-left font-[inherit]"
           onClick={handleLogout}
         >
           <LogOut className="w-5 h-5" />

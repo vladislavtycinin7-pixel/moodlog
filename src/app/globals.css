@@ -37,47 +37,86 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  /* Custom theme tokens */
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-navbar-bg: var(--navbar-bg);
+  --color-panel-bg: var(--panel-bg);
+  --color-overlay-bg: var(--overlay-bg);
+  --color-footer-bg: var(--footer-bg);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* ═══════════════════════════════════════════════════
+   LIGHT THEME — Warm Cream
+   Ламповый, мягкий, тёплый — но с контрастом
+   ═══════════════════════════════════════════════════ */
 :root {
   --radius: 0.625rem;
-  --background: #0a0a0f;
-  --foreground: rgba(255, 255, 255, 0.9);
-  --card: rgba(20, 20, 28, 0.95);
-  --card-foreground: rgba(255, 255, 255, 0.9);
-  --popover: rgba(18, 18, 24, 0.98);
-  --popover-foreground: rgba(255, 255, 255, 0.9);
+  --background: #faf7f2;
+  --foreground: #1e1b2e;
+  --card: rgba(255, 255, 255, 0.92);
+  --card-foreground: #1e1b2e;
+  --popover: rgba(255, 255, 255, 0.98);
+  --popover-foreground: #1e1b2e;
   --primary: #a855f7;
   --primary-foreground: #ffffff;
-  --secondary: rgba(255, 255, 255, 0.06);
-  --secondary-foreground: rgba(255, 255, 255, 0.8);
-  --muted: rgba(255, 255, 255, 0.04);
-  --muted-foreground: rgba(255, 255, 255, 0.6);
-  --accent: rgba(168, 85, 247, 0.15);
-  --accent-foreground: rgba(255, 255, 255, 0.9);
+  --secondary: #f0ece6;
+  --secondary-foreground: #3a3650;
+  --muted: #f5f1eb;
+  --muted-foreground: #6e6b80;
+  --accent: rgba(168, 85, 247, 0.1);
+  --accent-foreground: #1e1b2e;
   --destructive: #ef4444;
-  --border: rgba(255, 255, 255, 0.08);
-  --input: rgba(255, 255, 255, 0.25);
+  --border: #e2ddd5;
+  --input: #d4d0c9;
   --ring: #a855f7;
   --chart-1: #a855f7;
   --chart-2: #ec4899;
   --chart-3: #8b5cf6;
   --chart-4: #a855f7;
   --chart-5: #7c3aed;
-  --sidebar: rgba(18, 18, 24, 0.98);
-  --sidebar-foreground: rgba(255, 255, 255, 0.9);
+  --sidebar: rgba(255, 255, 255, 0.98);
+  --sidebar-foreground: #1e1b2e;
   --sidebar-primary: #a855f7;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: rgba(168, 85, 247, 0.15);
-  --sidebar-accent-foreground: rgba(255, 255, 255, 0.9);
-  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-accent: rgba(168, 85, 247, 0.1);
+  --sidebar-accent-foreground: #1e1b2e;
+  --sidebar-border: #e2ddd5;
   --sidebar-ring: #a855f7;
+  /* Custom tokens */
+  --surface: rgba(0, 0, 0, 0.025);
+  --surface-elevated: rgba(0, 0, 0, 0.045);
+  --text-primary: #1e1b2e;
+  --text-secondary: #4a4660;
+  --text-muted: #8a869e;
+  --navbar-bg: rgba(250, 247, 242, 0.82);
+  --panel-bg: rgba(255, 255, 255, 0.98);
+  --overlay-bg: rgba(0, 0, 0, 0.25);
+  --footer-bg: #f3efe8;
+  --gradient-1: rgba(139, 92, 246, 0.07);
+  --gradient-2: rgba(236, 72, 153, 0.05);
+  --gradient-3: rgba(168, 85, 247, 0.06);
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+  --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.03);
+  --track-bg: rgba(0, 0, 0, 0.06);
+  --slider-track: #e2ddd5;
+  --select-option-bg: #ffffff;
+  --input-placeholder: rgba(30, 27, 46, 0.3);
+  --input-border: #ccc8c0;
+  --focus-border: #a855f7;
 }
 
+/* ═══════════════════════════════════════════════════
+   DARK THEME — Original Moody Dark
+   Текущая тёмная тема без изменений
+   ═══════════════════════════════════════════════════ */
 .dark {
   --background: #0a0a0f;
   --foreground: rgba(255, 255, 255, 0.9);
@@ -110,6 +149,27 @@
   --sidebar-accent-foreground: rgba(255, 255, 255, 0.9);
   --sidebar-border: rgba(255, 255, 255, 0.08);
   --sidebar-ring: #a855f7;
+  /* Custom tokens */
+  --surface: rgba(255, 255, 255, 0.03);
+  --surface-elevated: rgba(255, 255, 255, 0.04);
+  --text-primary: rgba(255, 255, 255, 0.9);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --navbar-bg: rgba(10, 10, 15, 0.8);
+  --panel-bg: rgba(18, 18, 24, 0.98);
+  --overlay-bg: rgba(0, 0, 0, 0.6);
+  --footer-bg: #08080c;
+  --gradient-1: rgba(139, 92, 246, 0.4);
+  --gradient-2: rgba(236, 72, 153, 0.3);
+  --gradient-3: rgba(168, 85, 247, 0.35);
+  --shadow-card: none;
+  --shadow-card-hover: none;
+  --track-bg: rgba(255, 255, 255, 0.04);
+  --slider-track: #2b2a33;
+  --select-option-bg: #1a1a24;
+  --input-placeholder: rgba(255, 255, 255, 0.3);
+  --input-border: rgba(255, 255, 255, 0.2);
+  --focus-border: #a855f7;
 }
 
 @layer base {
@@ -141,27 +201,32 @@
   display: block;
   font-size: 12px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-muted);
   margin-bottom: 0.5rem;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
-/* Custom scrollbar for dark theme */
+/* Custom scrollbar — adapts to theme */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.15) rgba(255, 255, 255, 0.03);
+  scrollbar-color: var(--surface-elevated) transparent;
 }
 ::-webkit-scrollbar {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--surface-elevated);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: var(--text-muted);
+}
+
+/* Light theme card shadow */
+:root .theme-card-shadow {
+  box-shadow: var(--shadow-card);
 }

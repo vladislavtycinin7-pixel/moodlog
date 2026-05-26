@@ -41,11 +41,14 @@ export default function LandingPage() {
   const setActiveModal = useAppStore((s) => s.setActiveModal)
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0a0a0f] text-white">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       {/* ===== HERO ===== */}
       <section className="relative min-h-[85vh] flex items-center overflow-hidden mt-[70px]">
         {/* Blurred gradient background */}
-        <div className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] bg-[radial-gradient(circle_at_30%_40%,rgba(139,92,246,0.4),transparent_60%),radial-gradient(circle_at_80%_70%,rgba(236,72,153,0.3),transparent_60%),radial-gradient(circle_at_50%_20%,rgba(168,85,247,0.35),transparent_50%)] blur-[80px] z-0" />
+        <div
+        className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] blur-[80px] z-0"
+        style={{ background: 'radial-gradient(circle at 30% 40%, var(--gradient-1), transparent 60%), radial-gradient(circle at 80% 70%, var(--gradient-2), transparent 60%), radial-gradient(circle at 50% 20%, var(--gradient-3), transparent 50%)' }}
+      />
 
         {/* Hero content */}
         <div className="relative z-[1] max-w-[1400px] mx-auto w-full px-5 sm:px-6 md:px-12 py-10 sm:py-10 md:py-16 flex flex-col md:flex-row items-center gap-10 sm:gap-10 md:gap-20">
@@ -56,13 +59,13 @@ export default function LandingPage() {
               <br />
               настроения
             </h1>
-            <p className="text-base sm:text-lg text-white/60 mb-8 sm:mb-8 leading-relaxed">
+            <p className="text-base sm:text-lg text-muted-foreground mb-8 sm:mb-8 leading-relaxed">
               Отслеживай свои эмоции, замечай тренды и становись лучше с каждым
               днём. Просто записывай, как прошёл твой день.
             </p>
             <button
               onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-              className="inline-block px-7 py-3 text-sm sm:text-base font-medium border border-white/20 bg-transparent text-white/70 cursor-pointer transition-colors hover:border-white/40 hover:text-white rounded-lg"
+              className="inline-block px-7 py-3 text-sm sm:text-base font-medium border border-border bg-transparent text-text-secondary cursor-pointer transition-colors hover:border-border hover:text-foreground rounded-lg"
             >
               Узнать больше
             </button>
@@ -71,7 +74,7 @@ export default function LandingPage() {
           {/* Right — stats panel */}
           <div className="flex-1 w-full md:w-auto bg-white/[0.03] p-5 sm:p-6 md:p-8 border border-white/[0.08] rounded-xl">
             {/* Header */}
-            <div className="flex justify-between mb-5 sm:mb-6 text-[11px] sm:text-xs uppercase tracking-wider text-white/50">
+            <div className="flex justify-between mb-5 sm:mb-6 text-[11px] sm:text-xs uppercase tracking-wider text-text-muted">
               <span>Динамика настроения</span>
               <span>7 дней</span>
             </div>
@@ -90,7 +93,7 @@ export default function LandingPage() {
             {/* Day labels */}
             <div className="flex gap-2 sm:gap-3 mb-6 sm:mb-8">
               {dayLabels.map((d) => (
-                <span key={d} className="flex-1 text-center text-[11px] sm:text-xs text-white/40">
+                <span key={d} className="flex-1 text-center text-[11px] sm:text-xs text-text-muted">
                   {d}
                 </span>
               ))}
@@ -103,7 +106,7 @@ export default function LandingPage() {
                   key={item.label}
                   className="flex justify-between py-3 sm:py-3 border-b border-white/[0.05] text-sm sm:text-sm"
                 >
-                  <span className="text-white/50">{item.label}</span>
+                  <span className="text-text-muted">{item.label}</span>
                   <span className="font-medium" style={{ color: getMoodColor(item.mood) }}>{item.mood}</span>
                   <span className="font-medium">{item.score}</span>
                 </div>
@@ -121,7 +124,7 @@ export default function LandingPage() {
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-[-1px] mb-4 sm:mb-4">
           Почему MoodLog?
         </h2>
-        <p className="text-white/50 mb-10 sm:mb-16 max-w-[600px] text-sm sm:text-base">
+        <p className="text-text-muted mb-10 sm:mb-16 max-w-[600px] text-sm sm:text-base">
           Веди дневник эмоций, анализируй тренды и улучшай качество жизни
         </p>
 
@@ -129,7 +132,7 @@ export default function LandingPage() {
           {features.map((f) => (
             <div key={f.title} className="border-t-2 border-purple-500 pt-5">
               <h3 className="text-lg font-medium mb-2">{f.title}</h3>
-              <p className="text-sm text-white/50 leading-relaxed">
+              <p className="text-sm text-text-muted leading-relaxed">
                 {f.description}
               </p>
             </div>

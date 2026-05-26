@@ -13,7 +13,7 @@ import { getMoodColor, MOOD_LABELS } from '@/lib/mood-colors'
 // Lazy-load recharts — it's ~200KB+ and only needed on the Stats tab
 const MoodChart = dynamic(() => import('@/components/mood-chart'), {
   ssr: false,
-  loading: () => <div className="h-[300px] flex items-center justify-center text-white/40 text-sm">Загрузка графика...</div>,
+  loading: () => <div className="h-[300px] flex items-center justify-center text-text-muted text-sm">Загрузка графика...</div>,
 })
 import AuthModals from '@/components/auth-modals'
 import EntryModals from '@/components/entry-modals'
@@ -55,18 +55,18 @@ function PublicStatsView({ token }: { token: string }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
-        <div className="text-white/50 text-sm">Загрузка статистики...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-text-muted text-sm">Загрузка статистики...</div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="text-4xl mb-4">😕</div>
-          <p className="text-white/50 text-sm">{error}</p>
+          <p className="text-text-muted text-sm">{error}</p>
           <a href="/" className="text-purple-400 text-sm mt-4 inline-block hover:underline">
             На главную
           </a>
@@ -79,23 +79,23 @@ function PublicStatsView({ token }: { token: string }) {
   const avatarLetter = shareUser.username ? shareUser.username.charAt(0).toUpperCase() : '?'
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Background */}
       <div
         className="fixed -top-1/2 -left-1/2 w-[200%] h-[200%] pointer-events-none z-0"
         style={{
           background:
-            'radial-gradient(circle at 30% 40%, rgba(139,92,246,0.4), transparent 60%), radial-gradient(circle at 80% 70%, rgba(236,72,153,0.3), transparent 60%), radial-gradient(circle at 50% 20%, rgba(168,85,247,0.35), transparent 50%)',
+            'radial-gradient(circle at 30% 40%, var(--gradient-1), transparent 60%), radial-gradient(circle at 80% 70%, var(--gradient-2), transparent 60%), radial-gradient(circle at 50% 20%, var(--gradient-3), transparent 50%)',
           filter: 'blur(80px)',
         }}
       />
 
       <nav
-        className="fixed top-0 w-full z-50 py-4 border-b border-white/[0.05]"
-        style={{ background: 'rgba(10, 10, 15, 0.8)', backdropFilter: 'blur(24px)' }}
+        className="fixed top-0 w-full z-50 py-4 border-b border-border"
+        style={{ background: 'var(--navbar-bg)', backdropFilter: 'blur(24px)' }}
       >
         <div className="max-w-[1200px] mx-auto px-5 flex items-center justify-between">
-          <span className="text-xl font-medium text-white cursor-pointer">MoodLog</span>
+          <span className="text-xl font-medium text-foreground cursor-pointer">MoodLog</span>
           <a href="/" className="text-sm text-purple-400 hover:underline">Начать свой дневник</a>
         </div>
       </nav>
@@ -113,47 +113,47 @@ function PublicStatsView({ token }: { token: string }) {
             )}
           </div>
           <h1 className="text-2xl font-medium">@{shareUser.username}</h1>
-          <p className="text-sm text-white/40 mt-1">Статистика настроения</p>
+          <p className="text-sm text-text-muted mt-1">Статистика настроения</p>
         </div>
 
         {/* Stats grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
-          <div className="bg-white/[0.03] border border-white/[0.08] p-4 text-center rounded-xl">
+          <div className="bg-surface border border-border p-4 text-center rounded-xl">
             <div className="text-2xl font-semibold text-purple-500">{shareStats.totalEntries}</div>
-            <div className="text-[10px] text-white/40 uppercase tracking-wider mt-1">Записей</div>
+            <div className="text-[10px] text-text-muted uppercase tracking-wider mt-1">Записей</div>
           </div>
-          <div className="bg-white/[0.03] border border-white/[0.08] p-4 text-center rounded-xl">
+          <div className="bg-surface border border-border p-4 text-center rounded-xl">
             <div className="text-2xl font-semibold text-purple-500">{shareStats.avgMood}</div>
-            <div className="text-[10px] text-white/40 uppercase tracking-wider mt-1">Среднее</div>
+            <div className="text-[10px] text-text-muted uppercase tracking-wider mt-1">Среднее</div>
           </div>
-          <div className="bg-white/[0.03] border border-white/[0.08] p-4 text-center rounded-xl">
+          <div className="bg-surface border border-border p-4 text-center rounded-xl">
             <div className="text-2xl font-semibold text-purple-500">{shareStats.currentStreak}</div>
-            <div className="text-[10px] text-white/40 uppercase tracking-wider mt-1">Серия</div>
+            <div className="text-[10px] text-text-muted uppercase tracking-wider mt-1">Серия</div>
           </div>
-          <div className="bg-white/[0.03] border border-white/[0.08] p-4 text-center rounded-xl">
+          <div className="bg-surface border border-border p-4 text-center rounded-xl">
             <div className="text-2xl font-semibold text-purple-500">{shareStats.longestStreak}</div>
-            <div className="text-[10px] text-white/40 uppercase tracking-wider mt-1">Рекорд серии</div>
+            <div className="text-[10px] text-text-muted uppercase tracking-wider mt-1">Рекорд серии</div>
           </div>
           {shareStats.mostFrequentMood && (
-            <div className="bg-white/[0.03] border border-white/[0.08] p-4 text-center rounded-xl">
+            <div className="bg-surface border border-border p-4 text-center rounded-xl">
               <div className="text-lg font-semibold" style={{ color: getMoodColor(shareStats.mostFrequentMood) }}>
                 {shareStats.mostFrequentMood}
               </div>
-              <div className="text-[10px] text-white/40 uppercase tracking-wider mt-1">Частая эмоция</div>
+              <div className="text-[10px] text-text-muted uppercase tracking-wider mt-1">Частая эмоция</div>
             </div>
           )}
           {shareStats.avgSleep != null && (
-            <div className="bg-white/[0.03] border border-white/[0.08] p-4 text-center rounded-xl">
+            <div className="bg-surface border border-border p-4 text-center rounded-xl">
               <div className="text-2xl font-semibold text-purple-500">{shareStats.avgSleep}ч</div>
-              <div className="text-[10px] text-white/40 uppercase tracking-wider mt-1">Средний сон</div>
+              <div className="text-[10px] text-text-muted uppercase tracking-wider mt-1">Средний сон</div>
             </div>
           )}
         </div>
 
         {/* Mood distribution */}
         {Object.keys(shareStats.moodDistribution).length > 0 && (
-          <div className="bg-white/[0.03] border border-white/[0.08] p-5 rounded-xl">
-            <h3 className="text-sm font-medium text-white/60 mb-4 uppercase tracking-wider">
+          <div className="bg-surface border border-border p-5 rounded-xl">
+            <h3 className="text-sm font-medium text-muted-foreground mb-4 uppercase tracking-wider">
               Распределение эмоций
             </h3>
             <div className="space-y-3">
@@ -166,13 +166,13 @@ function PublicStatsView({ token }: { token: string }) {
                     <span className="text-xs w-28 shrink-0 break-words" style={{ color: getMoodColor(label) }}>
                       {label}
                     </span>
-                    <div className="flex-1 h-4 bg-white/[0.04] rounded-sm overflow-hidden">
+                    <div className="flex-1 h-4 bg-surface-elevated rounded-sm overflow-hidden">
                       <div
                         className="h-full rounded-sm"
                         style={{ width: `${barWidth}%`, backgroundColor: getMoodColor(label), opacity: 0.8 }}
                       />
                     </div>
-                    <span className="text-[11px] text-white/40 w-12 text-right">
+                    <span className="text-[11px] text-text-muted w-12 text-right">
                       {count} ({percentage}%)
                     </span>
                   </div>
@@ -183,7 +183,7 @@ function PublicStatsView({ token }: { token: string }) {
         )}
 
         {/* Footer */}
-        <div className="text-center mt-10 text-xs text-white/30">
+        <div className="text-center mt-10 text-xs text-text-muted">
           Создано в <span className="text-purple-400">MoodLog</span> — дневник настроения
         </div>
       </main>
@@ -302,15 +302,15 @@ export default function Home() {
   // Loading state
   if (isAuthLoading && !authLoadTimedOut) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
-        <div className="text-white/50 text-sm">Загрузка...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-text-muted text-sm">Загрузка...</div>
       </div>
     )
   }
 
   return (
     <ErrorBoundary>
-    <div className="min-h-screen flex flex-col bg-[#0a0a0f] text-white">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       {/* Network status indicator */}
       <NetworkStatus />
 
@@ -319,7 +319,7 @@ export default function Home() {
         className="fixed -top-1/2 -left-1/2 w-[200%] h-[200%] pointer-events-none z-0"
         style={{
           background:
-            'radial-gradient(circle at 30% 40%, rgba(139,92,246,0.4), transparent 60%), radial-gradient(circle at 80% 70%, rgba(236,72,153,0.3), transparent 60%), radial-gradient(circle at 50% 20%, rgba(168,85,247,0.35), transparent 50%)',
+            'radial-gradient(circle at 30% 40%, var(--gradient-1), transparent 60%), radial-gradient(circle at 80% 70%, var(--gradient-2), transparent 60%), radial-gradient(circle at 50% 20%, var(--gradient-3), transparent 50%)',
           filter: 'blur(80px)',
         }}
       />
@@ -339,7 +339,7 @@ export default function Home() {
         <main className="relative z-[1] max-w-[1200px] w-full mx-auto px-4 sm:px-4 md:px-6 pt-[80px] sm:pt-[100px] pb-12 sm:pb-16 flex-1">
           {/* Tab switcher + add entry button */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 mb-8">
-            <div className="flex gap-1 p-1 bg-white/[0.04] border border-white/[0.08] rounded-lg">
+            <div className="flex gap-1 p-1 bg-surface-elevated border border-border rounded-lg">
               {TABS.map((tab) => (
                 <button
                   key={tab.key}
@@ -347,7 +347,7 @@ export default function Home() {
                   className={`flex items-center justify-center gap-2 px-5 sm:px-5 py-3 sm:py-2.5 text-sm sm:text-sm font-medium cursor-pointer transition-all duration-200 border-none rounded-md flex-1 sm:flex-initial ${
                     activeTab === tab.key
                       ? 'bg-purple-500 text-white'
-                      : 'bg-transparent text-white/50 hover:text-white/80'
+                      : 'bg-transparent text-text-muted hover:text-text-secondary'
                   }`}
                 >
                   {tab.icon}
