@@ -21,6 +21,7 @@ import SettingsMenu from '@/components/settings-menu'
 import ProfileModal from '@/components/profile-modal'
 import ShareStatsModal from '@/components/share-stats-modal'
 import NetworkStatus from '@/components/network-status'
+import { ErrorBoundary } from '@/components/error-boundary'
 
 const TABS: { key: MainTab; label: string; icon: React.ReactNode }[] = [
   { key: 'calendar', label: 'Календарь', icon: <CalendarDays size={18} /> },
@@ -284,6 +285,7 @@ export default function Home() {
   }
 
   return (
+    <ErrorBoundary>
     <div className="min-h-screen flex flex-col bg-[#0a0a0f] text-white">
       {/* Network status indicator */}
       <NetworkStatus />
@@ -357,5 +359,6 @@ export default function Home() {
         <Footer className="relative z-[1]" />
       )}
     </div>
+    </ErrorBoundary>
   )
 }

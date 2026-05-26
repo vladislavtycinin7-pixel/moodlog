@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { useMemo } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAppStore, MoodEntry } from '@/lib/store'
 import { getMoodColor, getMoodColorDef } from '@/lib/mood-colors'
 import {
@@ -27,14 +27,10 @@ export default function MoodCalendar() {
     entriesLoading,
     calendarMonth,
     setCalendarMonth,
-    fetchEntries,
-    fetchStats,
     setSelectedEntry,
     setActiveModal,
     setPendingEntryDate,
   } = useAppStore()
-
-  const [clickedDate, setClickedDate] = useState<string | null>(null)
 
   // Parse the current calendar month into a Date
   const currentDate = useMemo(() => {
@@ -109,13 +105,9 @@ export default function MoodCalendar() {
     setCalendarMonth(newMonth)
   }
 
-  // Fetch entries and stats when month changes
-  // (handled in page.tsx via useEffect on calendarMonth)
-
   // Handle day click
   const handleDayClick = (day: Date) => {
     const dateStr = format(day, 'yyyy-MM-dd')
-    setClickedDate(dateStr)
 
     const entry = entryMap.get(dateStr)
     if (entry) {
@@ -134,13 +126,10 @@ export default function MoodCalendar() {
 
   return (
     <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-4 sm:p-6 rounded-xl relative">
-      {/* Loading overlay */}
+      {/* Loading indicator — non-blocking, subtle progress bar at the top */}
       {entriesLoading && (
-        <div className="absolute inset-0 z-10 bg-black/30 backdrop-blur-[2px] rounded-xl flex items-center justify-center">
-          <div className="flex items-center gap-3 bg-[rgba(18,18,24,0.9)] px-5 py-3 rounded-lg border border-white/10">
-            <Loader2 size={18} className="animate-spin text-purple-400" />
-            <span className="text-sm text-white/70">Загрузка записей</span>
-          </div>
+        <div className="absolute top-0 left-0 right-0 z-10 h-0.5 rounded-t-xl overflow-hidden">
+          <div className="h-full bg-purple-500 animate-pulse" style={{ width: '60%' }} />
         </div>
       )}
 
@@ -184,7 +173,6 @@ export default function MoodCalendar() {
           const entry = entryMap.get(dateStr)
           const isCurrentMonth = isSameMonth(day, currentDate)
           const isToday = isTodayFn(day)
-          const moodDef = entry ? getMoodColorDef(entry.moodLabel) : null
 
           // Build class names based on states
           let cellClass =
