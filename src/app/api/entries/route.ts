@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSessionUser } from '@/lib/auth'
+import { withRetry } from '@/lib/db-retry'
 
 const VALID_MOOD_LABELS = [
   'Отличное',
@@ -43,10 +44,12 @@ export async function GET(request: NextRequest) {
       where.date = { gte: startDate, lt: `${nextMonth}-01` }
     }
 
-    const entries = await db.moodEntry.findMany({
-      where,
-      orderBy: { date: 'desc' },
-    })
+    const entries = await withRetry(() =>
+      db.moodEntry.findMany({
+        where,
+        orderBy: { date: 'desc' },
+      })
+    )
 
     return NextResponse.json({ success: true, entries })
   } catch {
@@ -137,9 +140,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Check no existing entry for this date+user (unique constraint)
-    const existing = await db.moodEntry.findUnique({
-      where: { userId_date: { userId: user.id, date } },
-    })
+    const existing = await withRetry(() =>
+      db.moodEntry.findUnique({
+        where: { userId_date: { userId: user.id, date } },
+      })
+    )
 
     if (existing) {
       return NextResponse.json(
@@ -148,20 +153,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const entry = await db.moodEntry.create({
-      data: {
-        date,
-        moodScore,
-        moodLabel,
-        notes: notes || null,
-        sleepHours: sleepHours != null ? Number(sleepHours) : null,
-        activityLevel: activityLevel != null ? Number(activityLevel) : null,
-        stressLevel: stressLevel != null ? Number(stressLevel) : null,
-        goodThing: goodThing || null,
-        badThing: badThing || null,
-        userId: user.id,
-      },
-    })
+    const entry = await withRetry(() =>
+      db.moodEntry.create({
+        data: {
+          date,
+          moodScore,
+          moodLabel,
+          notes: notes || null,
+          sleepHours: sleepHours != null ? Number(sleepHours) : null,
+          activityLevel: activityLevel != null ? Number(activityLevel) : null,
+          stressLevel: stressLevel != null ? Number(stressLevel) : null,
+          goodThing: goodThing || null,
+          badThing: badThing || null,
+          userId: user.id,
+        },
+      })
+    )
 
     return NextResponse.json({ success: true, entry }, { status: 201 })
   } catch {

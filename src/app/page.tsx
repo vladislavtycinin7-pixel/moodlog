@@ -70,6 +70,15 @@ export default function Home() {
     }
   }, [isAuthenticated, fetchEntries, fetchStats])
 
+  // Refresh data when switching to stats tab
+  useEffect(() => {
+    if (isAuthenticated && activeTab === 'stats') {
+      const month = useAppStore.getState().calendarMonth
+      fetchStats(month)
+      fetchEntries(month)
+    }
+  }, [activeTab, isAuthenticated, fetchStats, fetchEntries])
+
   // Loading state
   if (isAuthLoading) {
     return (

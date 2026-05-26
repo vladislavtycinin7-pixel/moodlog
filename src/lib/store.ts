@@ -249,12 +249,19 @@ export const useAppStore = create<AppState>((set, get) => ({
         const result = await res.json()
         const entry = result.entry ?? result
         set((s) => ({ entries: [entry, ...s.entries], isOffline: false }))
-        get().fetchStats()
+        // Refresh stats for the currently viewed month
+        const currentMonth = get().calendarMonth
+        get().fetchStats(currentMonth)
+        get().fetchEntries(currentMonth)
         return true
       }
       if (res.status === 401) {
         clearToken()
         set({ user: null, isAuthenticated: false })
+      }
+      if (res.status === 409) {
+        // Duplicate entry — show specific error
+        toast.error('Запись за эту дату уже существует')
       }
       return false
     } catch {
@@ -276,6 +283,10 @@ export const useAppStore = create<AppState>((set, get) => ({
           entries: s.entries.map((e) => (e.id === id ? { ...e, ...updated } : e)),
           isOffline: false,
         }))
+        // Refresh stats for the currently viewed month
+        const currentMonth = get().calendarMonth
+        get().fetchStats(currentMonth)
+        get().fetchEntries(currentMonth)
         return true
       }
       return false
@@ -297,7 +308,10 @@ export const useAppStore = create<AppState>((set, get) => ({
           selectedEntry: null,
           isOffline: false,
         }))
-        get().fetchStats()
+        // Refresh stats for the currently viewed month
+        const currentMonth = get().calendarMonth
+        get().fetchStats(currentMonth)
+        get().fetchEntries(currentMonth)
         return true
       }
       return false

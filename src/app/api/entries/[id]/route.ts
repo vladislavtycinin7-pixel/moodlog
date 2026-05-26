@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSessionUser } from '@/lib/auth'
+import { withRetry } from '@/lib/db-retry'
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 const MAX_TEXT_LENGTH = 2000
@@ -31,9 +32,9 @@ export async function GET(
 
     const { id } = await params
 
-    const entry = await db.moodEntry.findUnique({
-      where: { id },
-    })
+    const entry = await withRetry(() =>
+      db.moodEntry.findUnique({ where: { id } })
+    )
 
     if (!entry || entry.userId !== user.id) {
       return NextResponse.json(
@@ -66,9 +67,9 @@ export async function PUT(
 
     const { id } = await params
 
-    const existing = await db.moodEntry.findUnique({
-      where: { id },
-    })
+    const existing = await withRetry(() =>
+      db.moodEntry.findUnique({ where: { id } })
+    )
 
     if (!existing || existing.userId !== user.id) {
       return NextResponse.json(
@@ -145,9 +146,11 @@ export async function PUT(
 
     // Check for duplicate date if date is being changed
     if (date && date !== existing.date) {
-      const duplicate = await db.moodEntry.findUnique({
-        where: { userId_date: { userId: user.id, date } },
-      })
+      const duplicate = await withRetry(() =>
+        db.moodEntry.findUnique({
+          where: { userId_date: { userId: user.id, date } },
+        })
+      )
       if (duplicate) {
         return NextResponse.json(
           { success: false, message: 'Запись за эту дату уже существует' },
@@ -156,20 +159,22 @@ export async function PUT(
       }
     }
 
-    const entry = await db.moodEntry.update({
-      where: { id },
-      data: {
-        ...(date !== undefined && { date }),
-        ...(moodScore !== undefined && { moodScore }),
-        ...(moodLabel !== undefined && { moodLabel }),
-        ...(notes !== undefined && { notes: notes || null }),
-        ...(sleepHours !== undefined && { sleepHours: sleepHours != null ? Number(sleepHours) : null }),
-        ...(activityLevel !== undefined && { activityLevel: activityLevel != null ? Number(activityLevel) : null }),
-        ...(stressLevel !== undefined && { stressLevel: stressLevel != null ? Number(stressLevel) : null }),
-        ...(goodThing !== undefined && { goodThing: goodThing || null }),
-        ...(badThing !== undefined && { badThing: badThing || null }),
-      },
-    })
+    const entry = await withRetry(() =>
+      db.moodEntry.update({
+        where: { id },
+        data: {
+          ...(date !== undefined && { date }),
+          ...(moodScore !== undefined && { moodScore }),
+          ...(moodLabel !== undefined && { moodLabel }),
+          ...(notes !== undefined && { notes: notes || null }),
+          ...(sleepHours !== undefined && { sleepHours: sleepHours != null ? Number(sleepHours) : null }),
+          ...(activityLevel !== undefined && { activityLevel: activityLevel != null ? Number(activityLevel) : null }),
+          ...(stressLevel !== undefined && { stressLevel: stressLevel != null ? Number(stressLevel) : null }),
+          ...(goodThing !== undefined && { goodThing: goodThing || null }),
+          ...(badThing !== undefined && { badThing: badThing || null }),
+        },
+      })
+    )
 
     return NextResponse.json({ success: true, entry })
   } catch {
@@ -195,9 +200,9 @@ export async function DELETE(
 
     const { id } = await params
 
-    const existing = await db.moodEntry.findUnique({
-      where: { id },
-    })
+    const existing = await withRetry(() =>
+      db.moodEntry.findUnique({ where: { id } })
+    )
 
     if (!existing || existing.userId !== user.id) {
       return NextResponse.json(
@@ -206,9 +211,9 @@ export async function DELETE(
       )
     }
 
-    await db.moodEntry.delete({
-      where: { id },
-    })
+    await withRetry(() =>
+      db.moodEntry.delete({ where: { id } })
+    )
 
     return NextResponse.json({ success: true })
   } catch {

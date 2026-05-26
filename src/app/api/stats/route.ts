@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSessionUser } from '@/lib/auth'
+import { withRetry } from '@/lib/db-retry'
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,13 +29,15 @@ export async function GET(request: NextRequest) {
     const nextMonth = mon === 12 ? `${year + 1}-01` : `${year}-${String(mon + 1).padStart(2, '0')}`
     const endDate = `${nextMonth}-01`
 
-    const entries = await db.moodEntry.findMany({
-      where: {
-        userId: user.id,
-        date: { gte: startDate, lt: endDate },
-      },
-      orderBy: { date: 'asc' },
-    })
+    const entries = await withRetry(() =>
+      db.moodEntry.findMany({
+        where: {
+          userId: user.id,
+          date: { gte: startDate, lt: endDate },
+        },
+        orderBy: { date: 'asc' },
+      })
+    )
 
     if (entries.length === 0) {
       return NextResponse.json({
@@ -73,11 +76,13 @@ export async function GET(request: NextRequest) {
 
     // Current streak and longest streak (consecutive days with entries)
     // For current streak: count backwards from today
-    const allEntries = await db.moodEntry.findMany({
-      where: { userId: user.id },
-      orderBy: { date: 'desc' },
-      select: { date: true },
-    })
+    const allEntries = await withRetry(() =>
+      db.moodEntry.findMany({
+        where: { userId: user.id },
+        orderBy: { date: 'desc' },
+        select: { date: true },
+      })
+    )
     const entryDates = new Set(allEntries.map(e => e.date))
 
     // Current streak: consecutive days from today backwards
