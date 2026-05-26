@@ -211,25 +211,51 @@ export default function Home() {
   }, [])
 
   // Check session on mount — use Authorization header with stored token
+  // Retry up to 3 times to avoid logging out on transient DB errors
   useEffect(() => {
     const checkSession = async () => {
-      try {
-        const token = loadToken()
-        const headers: Record<string, string> = {}
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`
-        }
-        const res = await fetch('/api/auth/session', { headers })
-        if (res.ok) {
-          const data = await res.json()
-          if (data.authenticated && data.user) {
-            setUser(data.user)
-          } else {
+      const MAX_RETRIES = 3
+      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        try {
+          const token = loadToken()
+          if (!token) {
+            // No token at all — genuinely not logged in
             setUser(null)
+            return
           }
+          const headers: Record<string, string> = {
+            'Authorization': `Bearer ${token}`,
+          }
+          const res = await fetch('/api/auth/session', { headers })
+          if (res.ok) {
+            const data = await res.json()
+            if (data.authenticated && data.user) {
+              setUser(data.user)
+              return
+            }
+            // Server says not authenticated — but could be a transient DB error
+            // Only log out if server explicitly says authenticated: false AND we've retried
+            if (attempt < MAX_RETRIES - 1) {
+              await new Promise(r => setTimeout(r, 800 * (attempt + 1)))
+              continue
+            }
+            setUser(null)
+            return
+          }
+          // Non-200 response (e.g. 500) — retry, don't log out on server error
+          if (attempt < MAX_RETRIES - 1) {
+            await new Promise(r => setTimeout(r, 800 * (attempt + 1)))
+            continue
+          }
+          setUser(null)
+        } catch {
+          // Network error — retry, don't log out on connection failure
+          if (attempt < MAX_RETRIES - 1) {
+            await new Promise(r => setTimeout(r, 800 * (attempt + 1)))
+            continue
+          }
+          setUser(null)
         }
-      } catch {
-        setUser(null)
       }
     }
     checkSession()

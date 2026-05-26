@@ -30,12 +30,12 @@ export interface RateLimitConfig {
 
 /** Default configs for different endpoint types */
 export const RATE_LIMITS = {
-  /** Auth endpoints: 5 requests per minute per IP */
-  auth: { limit: 5, windowMs: 60_000 },
+  /** Auth endpoints: 20 requests per minute per IP — generous for proxy/shared IPs */
+  auth: { limit: 20, windowMs: 60_000 },
   /** File upload: 10 requests per minute per IP */
   upload: { limit: 10, windowMs: 60_000 },
-  /** General API: 30 requests per minute per IP */
-  general: { limit: 30, windowMs: 60_000 },
+  /** General API: 60 requests per minute per IP */
+  general: { limit: 60, windowMs: 60_000 },
 } satisfies Record<string, RateLimitConfig>
 
 /**

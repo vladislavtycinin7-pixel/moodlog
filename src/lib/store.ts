@@ -254,6 +254,34 @@ async function retryUntilSuccess<T>(
   return lastResult
 }
 
+/**
+ * Verify if a 401 is truly an expired session or just a transient DB error.
+ * Returns true if session is actually valid (shouldn't log out),
+ * false if session is truly invalid (safe to log out).
+ */
+async function isSessionActuallyValid(): Promise<boolean> {
+  try {
+    const token = loadToken()
+    if (!token) return false
+
+    const res = await fetchWithRetry('/api/auth/session', {
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+    })
+    if (res.ok) {
+      const data = await res.json()
+      if (data.authenticated && data.user) {
+        // Session is still valid — the 401 was transient
+        useAppStore.getState().setUser(data.user)
+        return true
+      }
+    }
+    return false
+  } catch {
+    // Network error — can't verify, assume session is still valid
+    return true
+  }
+}
+
 interface AppState {
   // Auth
   user: { id: string; username: string; avatarUrl?: string | null } | null
@@ -326,14 +354,22 @@ export const useAppStore = create<AppState>((set, get) => ({
         const data = await res.json()
         set({ entries: data.entries ?? data, isOffline: false, entriesLoading: false })
       } else if (res.status === 401) {
-        // Token truly expired after refresh attempt
-        clearToken()
-        set({ user: null, isAuthenticated: false, entries: [], entriesLoading: false })
+        // Verify if session is truly invalid before logging out
+        const stillValid = await isSessionActuallyValid()
+        if (stillValid) {
+          // Session is fine, this was a transient 401 — don't log out
+          set({ isOffline: false, entriesLoading: false })
+        } else {
+          // Session is truly invalid
+          clearToken()
+          set({ user: null, isAuthenticated: false, entries: [], entriesLoading: false })
+        }
       } else {
         set({ entriesLoading: false })
       }
     } catch (e) {
       console.error('Failed to fetch entries:', e)
+      // Network error — DON'T log out, just show offline state
       set({ isOffline: true, entriesLoading: false })
     }
   },
@@ -366,6 +402,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
 
     if (result.status === 401) {
+      // Verify if session is truly invalid before logging out
+      const stillValid = await isSessionActuallyValid()
+      if (stillValid) {
+        toast.error('Временная ошибка. Попробуйте снова.')
+        return false
+      }
       clearToken()
       set({ user: null, isAuthenticated: false })
       toast.error('Сессия истекла. Войдите заново.')
@@ -415,6 +457,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
 
     if (result.status === 401) {
+      const stillValid = await isSessionActuallyValid()
+      if (stillValid) {
+        toast.error('Временная ошибка. Попробуйте снова.')
+        return false
+      }
       clearToken()
       set({ user: null, isAuthenticated: false })
       toast.error('Сессия истекла. Войдите заново.')
@@ -461,6 +508,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
 
     if (result.status === 401) {
+      const stillValid = await isSessionActuallyValid()
+      if (stillValid) {
+        toast.error('Временная ошибка. Попробуйте снова.')
+        return false
+      }
       clearToken()
       set({ user: null, isAuthenticated: false })
       toast.error('Сессия истекла. Войдите заново.')
