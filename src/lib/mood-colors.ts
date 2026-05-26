@@ -7,10 +7,10 @@ export const MOOD_LABELS = [
   'Отличное',
   'Хорошее',
   'Нейтральное',
-  'Грустное',
+  'Уставшее',
   'Тревожное',
   'Раздраженное',
-  'Уставшее',
+  'Грустное',
 ] as const
 
 export type MoodLabel = (typeof MOOD_LABELS)[number]
