@@ -23,6 +23,10 @@ node_modules
 # local uploads (not for Vercel)
 /uploads/
 
+# database files (using Supabase PostgreSQL on Vercel)
+db/*.db
+db/*.sqlite
+
 # misc
 .DS_Store
 *.pem
