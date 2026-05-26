@@ -1,7 +1,7 @@
 'use client'
 
 import { useAppStore } from '@/lib/store'
-import { getMoodColor } from '@/lib/mood-colors'
+import { getMoodColor, MOOD_LABELS } from '@/lib/mood-colors'
 import {
   TrendingUp,
   TrendingDown,
@@ -55,8 +55,10 @@ function MoodDistribution({
   distribution: Record<string, number>
   total: number
 }) {
+  // Sort by intuitive mood order: positive at top → negative at bottom
+  const moodOrder = Object.fromEntries(MOOD_LABELS.map((label, i) => [label, i]))
   const entries = Object.entries(distribution).sort(
-    (a, b) => b[1] - a[1]
+    (a, b) => (moodOrder[a[0]] ?? 99) - (moodOrder[b[0]] ?? 99)
   )
 
   if (entries.length === 0) {
@@ -69,7 +71,7 @@ function MoodDistribution({
     )
   }
 
-  const maxCount = entries[0][1]
+  const maxCount = Math.max(...entries.map(([, count]) => count))
 
   return (
     <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-6 rounded-xl">
