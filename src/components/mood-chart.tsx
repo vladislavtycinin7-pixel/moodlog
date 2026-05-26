@@ -100,9 +100,8 @@ export default function MoodChart() {
       return days.map((day) => {
         const entry = entries.find((e) => isSameDay(parseISO(e.date), day))
         const dayNum = getDate(day)
-        const monthName = format(day, 'MMM', { locale: ru })
         return {
-          label: `${dayNum} ${monthName}`,
+          label: `${dayNum}`,
           value: entry ? entry.moodScore : null,
         }
       })
@@ -136,15 +135,26 @@ export default function MoodChart() {
     return []
   }, [period, entries, calendarMonth])
 
-  const chartHeight = 380
+  // Dynamic X-axis interval: on mobile show fewer labels
+  const xAxisInterval = useMemo(() => {
+    if (period === 'month') {
+      // Show every Nth label depending on data length
+      // On small screens, show ~5-7 labels max
+      if (typeof window !== 'undefined' && window.innerWidth < 640) {
+        return Math.max(Math.floor(chartData.length / 5), 2)
+      }
+      return Math.floor(chartData.length / 10)
+    }
+    return 0
+  }, [period, chartData.length])
 
   return (
-    <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-3 sm:p-6 rounded-xl">
+    <div className="bg-white/[0.03] border border-white/[0.08] backdrop-blur-[4px] p-4 sm:p-6 rounded-xl">
       {/* Period selector */}
       <div className="flex gap-2 sm:gap-3 justify-end mb-4 sm:mb-6">
         <button
           onClick={() => setPeriod('week')}
-          className={`px-3 sm:px-5 py-1.5 text-xs sm:text-sm cursor-pointer transition-colors rounded-md ${
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-base cursor-pointer transition-colors rounded-md ${
             period === 'week'
               ? 'bg-purple-500 border border-purple-500 text-white'
               : 'bg-transparent border border-white/20 text-white/70 hover:border-purple-500'
@@ -154,7 +164,7 @@ export default function MoodChart() {
         </button>
         <button
           onClick={() => setPeriod('month')}
-          className={`px-3 sm:px-5 py-1.5 text-xs sm:text-sm cursor-pointer transition-colors rounded-md ${
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-base cursor-pointer transition-colors rounded-md ${
             period === 'month'
               ? 'bg-purple-500 border border-purple-500 text-white'
               : 'bg-transparent border border-white/20 text-white/70 hover:border-purple-500'
@@ -164,7 +174,7 @@ export default function MoodChart() {
         </button>
         <button
           onClick={() => setPeriod('year')}
-          className={`px-3 sm:px-5 py-1.5 text-xs sm:text-sm cursor-pointer transition-colors rounded-md ${
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-base cursor-pointer transition-colors rounded-md ${
             period === 'year'
               ? 'bg-purple-500 border border-purple-500 text-white'
               : 'bg-transparent border border-white/20 text-white/70 hover:border-purple-500'
@@ -175,9 +185,9 @@ export default function MoodChart() {
       </div>
 
       {/* Chart */}
-      <div className="h-[220px] sm:h-[280px] md:h-[380px]">
+      <div className="h-[260px] sm:h-[280px] md:h-[380px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData}>
+          <LineChart data={chartData} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
             <defs>
               <linearGradient id="moodGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#a855f7" stopOpacity={0.3} />
@@ -193,7 +203,7 @@ export default function MoodChart() {
               tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
               tickLine={false}
               axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
-              interval={period === 'month' ? Math.floor(chartData.length / 10) : 0}
+              interval={xAxisInterval}
             />
             <YAxis
               domain={[0, 10]}
@@ -228,23 +238,23 @@ export default function MoodChart() {
       </div>
 
       {/* Legend */}
-      <div className="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-white/[0.08] flex gap-3 sm:gap-5 flex-wrap text-[10px] sm:text-[11px] text-white/40">
-        <span>
-          <span className="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-purple-500 mr-1" />
+      <div className="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-white/[0.08] flex gap-4 sm:gap-5 flex-wrap text-xs sm:text-sm text-white/40">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-3 h-3 sm:w-2.5 sm:h-2.5 rounded-full bg-purple-500" />
           Есть запись
         </span>
-        <span>
-          <span className="inline-block w-4 sm:w-5 h-0.5 bg-purple-500 mr-1 align-middle" />
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-5 sm:w-5 h-0.5 bg-purple-500" />
           Линия настроения
         </span>
-        <span>
-          <span className="inline-block w-4 sm:w-5 h-0 border-b-2 border-dashed border-purple-500/50 mr-1 align-middle" />
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-5 sm:w-5 h-0 border-b-2 border-dashed border-purple-500/50" />
           Пропуск
         </span>
       </div>
 
       {/* Info note */}
-      <div className="mt-3 sm:mt-4 bg-purple-500/10 border-l-2 border-purple-500 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs text-white/60">
+      <div className="mt-3 sm:mt-4 bg-purple-500/10 border-l-2 border-purple-500 px-4 sm:px-4 py-3 sm:py-3 text-xs sm:text-sm text-white/60 leading-relaxed">
         Пропуски в графике означают дни, когда вы не делали запись. Чем чаще
         заполняете дневник, тем точнее график.
       </div>
